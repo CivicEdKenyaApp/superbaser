@@ -311,7 +311,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <ArrowLeft className="w-3.5 h-3.5" /> Landing Page
           </button>
           <div className="font-display font-extrabold text-xl tracking-[-0.06em]">
-            SUPER<span className="text-orange">/</span>BASER <span className="font-mono font-normal text-xs text-[#aaa99f] ml-2 uppercase">Console</span>
+            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-orange fill-current stroke-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z"/></svg>BASER <span className="font-mono font-normal text-xs text-[#aaa99f] ml-2 uppercase">Console</span>
           </div>
         </div>
 
