@@ -31,7 +31,7 @@ export async function encryptJSON(payload: unknown): Promise<{ ciphertext: strin
   const key = await importKey();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(JSON.stringify(payload));
-  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv as BufferSource }, key, data as BufferSource);
   return { ciphertext: `${toB64(iv)}:${toB64(ct)}`, keyId: KEY_ID };
 }
 
