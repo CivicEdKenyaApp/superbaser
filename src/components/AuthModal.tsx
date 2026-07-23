@@ -86,7 +86,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
           <h2 className="font-display font-bold text-xl tracking-tight uppercase">
             {isLogin ? 'Operations Login' : 'Create Account'}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 hover:bg-ink hover:text-paper transition-colors duration-200 border border-transparent hover:border-ink"
           >
@@ -192,7 +192,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="font-mono text-xs text-ink hover:text-orange underline decoration-ink/30 underline-offset-4"
+              className="font-mono text-xs text-ink hover:text-neon underline decoration-ink/30 underline-offset-4"
             >
               {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
             </button>

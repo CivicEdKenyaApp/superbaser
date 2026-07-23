@@ -26,7 +26,7 @@ export default function Process() {
         <div className="process-intro sticky top-[36px] max-md:static align-self-start">
           <p className="eyebrow font-mono font-medium text-[0.72rem] tracking-[0.11em] uppercase m-0 before:content-['✦'] before:mr-[0.65rem]">The Pipeline</p>
           <h2 className="section-title my-[26px] font-display font-bold text-[clamp(2.8rem,6vw,5.8rem)] leading-[0.95] tracking-[-0.065em]">
-            Predictable execution. <em className="text-orange not-italic">Zero data loss.</em>
+            Predictable execution. <em className="text-neon not-italic">Zero data loss.</em>
           </h2>
           <p className="max-w-[400px] text-muted m-0">
             Automated, versioned, and idempotent backup and restoration pipeline designed specifically for Supabase architecture.
@@ -36,7 +36,7 @@ export default function Process() {
         <div className="steps">
           {steps.map((step, idx) => (
             <article key={idx} className="step grid grid-cols-[54px_1fr] gap-[22px] py-[36px] border-t border-line last:border-b">
-              <span className="font-mono font-medium text-[0.72rem] leading-none text-orange pt-2">
+              <span className="font-mono font-medium text-[0.72rem] leading-none text-neon pt-2">
                 0{idx + 1}
               </span>
               <div>

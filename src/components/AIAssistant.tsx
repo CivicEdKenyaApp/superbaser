@@ -164,11 +164,10 @@ export default function AIAssistant() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`max-w-[85%] p-3 text-sm leading-relaxed ${
-                      msg.role === 'user'
+                    className={`max-w-[85%] p-3 text-sm leading-relaxed ${msg.role === 'user'
                         ? 'bg-ink text-white rounded-2xl rounded-br-sm'
                         : 'bg-panel border border-line text-ink rounded-2xl rounded-bl-sm shadow-[2px_2px_0_#171714]'
-                    }`}
+                      }`}
                   >
                     {msg.role === 'assistant' ? (
                       <div className="prose prose-sm prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:text-xs">
@@ -210,7 +209,7 @@ export default function AIAssistant() {
                 <button
                   type="button"
                   onClick={() => setIsListening(!isListening)}
-                  className={`absolute left-2 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${isListening ? 'text-orange' : 'text-muted hover:text-ink'}`}
+                  className={`absolute left-2 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${isListening ? 'text-neon' : 'text-muted hover:text-ink'}`}
                 >
                   {isListening ? (
                     <Lottie animationData={fireMicData} loop={true} style={{ width: 40, height: 40 }} />

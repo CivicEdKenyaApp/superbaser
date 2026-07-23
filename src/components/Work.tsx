@@ -30,7 +30,7 @@ export default function Work() {
         <div className="section-head grid grid-cols-[0.42fr_1fr] max-md:grid-cols-1 gap-[40px] max-md:gap-[26px] mb-[70px] max-md:mb-[50px]">
           <p className="eyebrow font-mono font-medium text-[0.72rem] tracking-[0.11em] uppercase m-0 before:content-['✦'] before:mr-[0.65rem]">Platform Modules</p>
           <h2 className="section-title max-w-[780px] m-0 font-display font-bold text-[clamp(2.8rem,6vw,5.8rem)] leading-[0.95] tracking-[-0.065em]">
-            Complete Supabase <em className="text-orange not-italic">state protection.</em>
+            Complete Supabase <em className="text-neon not-italic">state protection.</em>
           </h2>
         </div>
 
