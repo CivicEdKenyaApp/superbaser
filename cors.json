@@ -1,0 +1,24 @@
+{
+    "rules": [
+        {
+            "id": "Allow Supabase Frontend",
+            "allowed": {
+                "origins": [
+                    "https://vkepcsrjgeyquzmvwvmf.supabase.co"
+                ],
+                "methods": [
+                    "GET",
+                    "HEAD"
+                ],
+                "headers": [
+                    "x-requested-by"
+                ]
+            },
+            "exposeHeaders": [
+                "Content-Length",
+                "Content-Type"
+            ],
+            "maxAgeSeconds": 3600
+        }
+    ]
+}

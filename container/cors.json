@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "id": "Allow Supabase Frontend",
+      "allowed": {
+        "origins": ["*"],
+        "methods": ["GET", "HEAD"],
+        "headers": ["x-requested-by", "Authorization", "Content-Type"]
+      },
+      "exposeHeaders": ["Content-Length", "Content-Type", "ETag"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

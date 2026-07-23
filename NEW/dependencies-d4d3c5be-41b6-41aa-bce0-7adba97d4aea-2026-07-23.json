@@ -1,0 +1,287 @@
+{
+  "projectId": "d4d3c5be-41b6-41aa-bce0-7adba97d4aea",
+  "scanDate": "2026-07-23T11:40:21.861Z",
+  "dependencies": [
+    {
+      "name": "@hookform/resolvers",
+      "version": "5.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@lovable.dev/cloud-auth-js",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "version": "1.2.12",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-alert-dialog",
+      "version": "1.1.15",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-aspect-ratio",
+      "version": "1.1.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-avatar",
+      "version": "1.1.11",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "version": "1.3.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-collapsible",
+      "version": "1.1.12",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-context-menu",
+      "version": "2.2.16",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "1.1.15",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "2.1.16",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-hover-card",
+      "version": "1.1.15",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-label",
+      "version": "2.1.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-menubar",
+      "version": "1.1.16",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-navigation-menu",
+      "version": "1.2.14",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-popover",
+      "version": "1.1.15",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "version": "1.1.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-radio-group",
+      "version": "1.3.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-scroll-area",
+      "version": "1.2.10",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "2.2.6",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "version": "1.1.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-slider",
+      "version": "1.3.6",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "version": "1.2.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-switch",
+      "version": "1.2.6",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "version": "1.1.13",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-toggle",
+      "version": "1.1.10",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-toggle-group",
+      "version": "1.1.11",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@radix-ui/react-tooltip",
+      "version": "1.2.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "version": "2.110.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@tailwindcss/vite",
+      "version": "4.2.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "5.101.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@tanstack/react-router",
+      "version": "1.170.16",
+      "vulnerabilities": []
+    },
+    {
+      "name": "@tanstack/react-start",
+      "version": "1.168.26",
+      "vulnerabilities": [
+        {
+          "name": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases (via js-yaml)",
+          "severity": "moderate",
+          "link": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+        },
+        {
+          "name": "js-yaml: YAML merge-key chains can force quadratic CPU consumption (via js-yaml)",
+          "severity": "high",
+          "link": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+        }
+      ]
+    },
+    {
+      "name": "@tanstack/router-plugin",
+      "version": "1.168.18",
+      "vulnerabilities": []
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "0.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "cmdk",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "date-fns",
+      "version": "4.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "embla-carousel-react",
+      "version": "8.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "input-otp",
+      "version": "1.4.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "lucide-react",
+      "version": "0.575.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "react",
+      "version": "19.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "react-day-picker",
+      "version": "9.14.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "react-dom",
+      "version": "19.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "react-hook-form",
+      "version": "7.73.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "react-resizable-panels",
+      "version": "4.10.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "recharts",
+      "version": "2.15.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "sonner",
+      "version": "2.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "3.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "tailwindcss",
+      "version": "4.2.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "tw-animate-css",
+      "version": "1.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "vaul",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "vite-tsconfig-paths",
+      "version": "6.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "zod",
+      "version": "3.25.76",
+      "vulnerabilities": []
+    }
+  ]
+}

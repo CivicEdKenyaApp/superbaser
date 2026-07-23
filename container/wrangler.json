@@ -1,0 +1,34 @@
+{
+  "name": "superbaser-backup",
+  "main": "index.js",
+  "compatibility_date": "2025-01-01",
+  "containers": [
+    {
+      "class_name": "BackupContainer",
+      "image": "./Dockerfile",
+      "max_instances": 10
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BACKUP_CONTAINER",
+        "class_name": "BackupContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "BackupContainer"
+      ]
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BACKUPS",
+      "bucket_name": "superbaser-backups"
+    }
+  ]
+}
