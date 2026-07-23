@@ -64,7 +64,7 @@ export default function AIAssistant() {
           'Authorization': `Bearer ${import.meta.env.VITE_SB_GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama3-8b-8192',
+          model: 'llama-3.1-8b-instant',
           messages: [
             { role: 'system', content: 'You are SUPERB AI, an expert Postgres and Supabase database architect. Provide concise, direct answers with code.' },
             ...messages.map(m => ({ role: m.role, content: m.content })),
@@ -73,7 +73,10 @@ export default function AIAssistant() {
         })
       });
 
-      if (!response.ok) throw new Error('API Request Failed');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(`Groq API Error: ${response.status} - ${JSON.stringify(errData)}`);
+      }
 
       const data = await response.json();
       const newAiMsg: Message = {
@@ -84,11 +87,12 @@ export default function AIAssistant() {
       };
 
       setMessages(prev => [...prev, newAiMsg]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error(error);
       const errorMsg: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: 'I encountered an error connecting to my inference engine. Please verify the API key is configured correctly.',
+        content: `I encountered an error connecting to my inference engine. Details: ${error.message}. Also, did you restart the dev server after the .env changes?`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMsg]);
