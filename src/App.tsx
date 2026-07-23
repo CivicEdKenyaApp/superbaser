@@ -75,7 +75,7 @@ export default function App() {
         expires_in: 3600,
         refresh_token: 'guest_refresh',
         user: {
-          id: 'guest_user_id',
+          id: '00000000-0000-0000-0000-000000000000',
           aud: 'authenticated',
           role: 'authenticated',
           email: initialData?.email || 'guest@superbaser.com',

@@ -3,6 +3,17 @@ import { supabase } from './supabase';
 export async function createOrganization(name: string, userId: string) {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).slice(2, 6);
   
+  if (userId === 'guest_user_id' || userId === '00000000-0000-0000-0000-000000000000') {
+    return {
+      id: 'mock-org-' + Math.random().toString(36).slice(2, 10),
+      name,
+      slug,
+      created_by: userId,
+      plan: 'free',
+      created_at: new Date().toISOString()
+    };
+  }
+
   const { data, error } = await supabase
     .from('organizations')
     .insert({
