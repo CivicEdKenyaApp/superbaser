@@ -84,7 +84,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
             if (j.status === "succeeded") { ru.status = "completed"; ru.finished_at = new Date().toISOString(); }
             if (j.status === "failed") { ru.status = "failed"; ru.finished_at = new Date().toISOString(); ru.error_code = j.errorCode ?? null; ru.error_message = j.errorMessage ?? null; }
             if (j.status === "cancelled") { ru.status = "cancelled"; ru.finished_at = new Date().toISOString(); }
-            await supabaseAdmin.from("restores").update(ru).eq("id", jobRow.restore_id);
+            await supabaseAdmin.from("restores").update(ru as never).eq("id", jobRow.restore_id);
           }
 
           return Response.json({ ok: true });
