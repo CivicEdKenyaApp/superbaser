@@ -46,6 +46,13 @@ import {
 import { openPaystackCheckout } from '../lib/paystack';
 import AIAssistant from './AIAssistant';
 
+const LIFETIME_PRO_CODES = [
+  'LIFETIME-PRO-H7X9K', 'LIFETIME-PRO-P3M2R', 'LIFETIME-PRO-W8N5C', 'LIFETIME-PRO-T6B4Y',
+  'LIFETIME-PRO-Q1L9F', 'LIFETIME-PRO-E5V7S', 'LIFETIME-PRO-Z2D8J', 'LIFETIME-PRO-X4G6M',
+  'LIFETIME-PRO-C9A3T', 'LIFETIME-PRO-V7Y1P', 'LIFETIME-PRO-B5U8W', 'LIFETIME-PRO-N3I4E',
+  'LIFETIME-PRO-M2O6Q', 'LIFETIME-PRO-L8K9Z', 'LIFETIME-PRO-J4H5X', 'LIFETIME-PRO-F6G2C',
+  'LIFETIME-PRO-D1S7V', 'LIFETIME-PRO-S9A8B', 'LIFETIME-PRO-A3D4N', 'LIFETIME-PRO-R7F1M'
+];
 
 interface DashboardConsoleProps {
   projectRef: string;
@@ -79,6 +86,9 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [targetServiceKey, setTargetServiceKey] = useState('');
 
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
+  const [promoCode, setPromoCode] = useState('');
+  const [promoStatus, setPromoStatus] = useState<{type: 'error' | 'success', msg: string} | null>(null);
 
   const [discoveryData, setDiscoveryData] = useState<DiscoveryReportPayload | null>(null);
   const [isDiscovering, setIsDiscovering] = useState(true);
@@ -1025,6 +1035,46 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                         Subscribe Taifa Tier ↗
                       </button>
                     </div>
+                  </div>
+
+                  {/* Promo Codes Section */}
+                  <div className="mt-8 p-6 bg-panel border-2 border-ink border-dashed">
+                    <h3 className="font-display font-bold text-xl uppercase text-ink mb-2">Redeem Lifetime Pro Code</h3>
+                    <p className="text-muted mb-4 text-xs">Have a 20-slot lifetime pro code? Enter it below to unlock the Taifa Enterprise plan forever.</p>
+                    <form 
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (!promoCode.trim()) return;
+                        if (LIFETIME_PRO_CODES.includes(promoCode.trim().toUpperCase())) {
+                          if (activeOrgId) {
+                            await updateOrganizationPlan(activeOrgId, 'Lifetime Pro', `PROMO-${promoCode.trim()}`);
+                            setPromoStatus({ type: 'success', msg: 'Lifetime Pro unlocked successfully! Enjoy unlimited backups.' });
+                            setPromoCode('');
+                          } else {
+                            setPromoStatus({ type: 'error', msg: 'No active organization selected.' });
+                          }
+                        } else {
+                          setPromoStatus({ type: 'error', msg: 'Invalid or expired promo code.' });
+                        }
+                      }}
+                      className="flex gap-4 max-sm:flex-col items-start"
+                    >
+                      <input 
+                        type="text" 
+                        placeholder="ENTER CODE" 
+                        value={promoCode}
+                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoStatus(null); }}
+                        className="flex-1 min-w-[250px] px-4 py-3 bg-paper border border-ink font-mono text-sm uppercase focus-visible:ring-2 focus-visible:ring-acid outline-none placeholder:text-muted/60"
+                      />
+                      <button type="submit" className="button px-6 py-3 bg-ink text-paper font-bold font-mono text-sm uppercase shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors h-full">
+                        Redeem Code
+                      </button>
+                    </form>
+                    {promoStatus && (
+                      <div className={`mt-4 p-3 border font-mono text-xs ${promoStatus.type === 'success' ? 'bg-acid border-ink text-ink shadow-[2px_2px_0_#171714]' : 'bg-red-100 border-red-500 text-red-700'}`}>
+                        {promoStatus.msg}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
