@@ -142,7 +142,8 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     const y = e.clientY - rect.top;
 
     const now = performance.now();
-    const colors = [sparkColor, '#F97316', '#3FCF8E', '#FFFFFF'];
+    // Neon Green (#d8ff37), Dark Slate (#171714), White (#ffffff), Supabase Green (#3FCF8E)
+    const colors = ['#d8ff37', '#171714', '#ffffff', '#3FCF8E'];
     const newSparks: Spark[] = Array.from({ length: sparkCount }, (_, i) => ({
       x,
       y,
