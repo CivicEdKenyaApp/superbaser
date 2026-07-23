@@ -41,6 +41,6 @@ export async function decryptJSON<T = unknown>(ciphertext: string): Promise<T> {
   const key = await importKey();
   const iv = fromB64(ivB64);
   const ct = fromB64(ctB64);
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv as BufferSource }, key, ct as BufferSource);
   return JSON.parse(new TextDecoder().decode(pt)) as T;
 }
