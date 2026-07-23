@@ -54,7 +54,7 @@ export default function Contact({ onLaunchConsole, session }: ContactProps) {
         }
       }, 500);
     } catch (err) {
-      setStatus({ text: 'Dispatch error. Please contact ops@superbaser.com directly.', type: 'error' });
+      setStatus({ text: 'Dispatch error. Please contact support@superbaser.co directly.', type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -74,8 +74,8 @@ export default function Contact({ onLaunchConsole, session }: ContactProps) {
           <div className="contact-details mt-[64px] font-mono text-[0.72rem] leading-[1.8] uppercase">
             Operations Support
             <br />
-            <a href="mailto:ops@superbaser.com" className="underline underline-offset-4">
-              ops@superbaser.com
+            <a href="mailto:support@superbaser.co" className="underline underline-offset-4">
+              support@superbaser.co
             </a>
           </div>
         </div>
@@ -97,101 +97,101 @@ export default function Contact({ onLaunchConsole, session }: ContactProps) {
         ) : (
           <form
             className="form p-[42px] max-sm:p-[28px_22px] bg-paper shadow-[12px_12px_0_#171714] max-sm:shadow-[7px_7px_0_#171714]"
-          id="project-form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          <p className="hidden absolute -left-[9999px]">
-            <label>
-              Do not fill this out: <input name="bot-field" value={formData.botField} onChange={handleChange} />
-            </label>
-          </p>
-
-          <div className="form-row grid grid-cols-2 max-sm:grid-cols-1 gap-[22px] max-sm:gap-0">
-            <div className="field mb-[24px]">
-              <label htmlFor="name" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
-                Your Name
+            id="project-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            <p className="hidden absolute -left-[9999px]">
+              <label>
+                Do not fill this out: <input name="bot-field" value={formData.botField} onChange={handleChange} />
               </label>
-              <input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                autoComplete="name"
-                placeholder="Ada Lovelace"
-                required
-                className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
-              />
-            </div>
-            <div className="field mb-[24px]">
-              <label htmlFor="email" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
-                Work Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                autoComplete="email"
-                placeholder="ada@company.com"
-                required
-                className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
-              />
-            </div>
-          </div>
-
-          <div className="form-row grid grid-cols-2 max-sm:grid-cols-1 gap-[22px] max-sm:gap-0">
-            <div className="field mb-[24px]">
-              <label htmlFor="orgName" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
-                Organization Name
-              </label>
-              <input
-                id="orgName"
-                name="orgName"
-                value={formData.orgName}
-                onChange={handleChange}
-                placeholder="Acme Corp"
-                required
-                className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
-              />
-            </div>
-            <div className="field mb-[24px]">
-              <label htmlFor="databaseType" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
-                Target Engine
-              </label>
-              <select
-                id="databaseType"
-                name="databaseType"
-                value={formData.databaseType}
-                onChange={handleChange}
-                required
-                className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
-              >
-                <option value="PostgreSQL 15.x / 17.x">PostgreSQL 15.x / 17.x</option>
-                <option value="PostgreSQL 14.x">PostgreSQL 14.x</option>
-                <option value="Custom Self-Hosted Supabase">Custom Self-Hosted Supabase</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-footer flex max-sm:flex-col-reverse justify-between items-center max-sm:items-stretch gap-5 mt-3">
-            <small className="max-w-[230px] text-muted text-[0.7rem]">You will connect target database credentials inside your dashboard after sign in.</small>
-            <button
-              className="button inline-flex items-center justify-center min-h-[58px] px-[26px] max-sm:w-full border border-ink bg-ink text-white font-mono font-medium text-[0.76rem] tracking-[0.05em] uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_#171714] disabled:opacity-50"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Initializing…' : 'Continue to Sign Up ↗'}
-            </button>
-          </div>
-
-          {status.text && (
-            <p className={`form-status min-h-[24px] mt-[18px] font-mono font-medium text-[0.73rem] leading-[1.5] ${status.type === 'success' ? 'text-[#347000]' : 'text-[#b12200]'}`} role="status" aria-live="polite">
-              {status.text}
             </p>
-          )}
-        </form>
+
+            <div className="form-row grid grid-cols-2 max-sm:grid-cols-1 gap-[22px] max-sm:gap-0">
+              <div className="field mb-[24px]">
+                <label htmlFor="name" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
+                  Your Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  autoComplete="name"
+                  placeholder="Ada Lovelace"
+                  required
+                  className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
+                />
+              </div>
+              <div className="field mb-[24px]">
+                <label htmlFor="email" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
+                  Work Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  placeholder="ada@company.com"
+                  required
+                  className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
+                />
+              </div>
+            </div>
+
+            <div className="form-row grid grid-cols-2 max-sm:grid-cols-1 gap-[22px] max-sm:gap-0">
+              <div className="field mb-[24px]">
+                <label htmlFor="orgName" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
+                  Organization Name
+                </label>
+                <input
+                  id="orgName"
+                  name="orgName"
+                  value={formData.orgName}
+                  onChange={handleChange}
+                  placeholder="Acme Corp"
+                  required
+                  className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
+                />
+              </div>
+              <div className="field mb-[24px]">
+                <label htmlFor="databaseType" className="block mb-[9px] font-mono font-medium text-[0.7rem] uppercase tracking-[0.06em]">
+                  Target Engine
+                </label>
+                <select
+                  id="databaseType"
+                  name="databaseType"
+                  value={formData.databaseType}
+                  onChange={handleChange}
+                  required
+                  className="w-full border-0 border-b border-ink rounded-none py-3 px-[2px] text-ink bg-transparent outline-none focus:border-b-3 focus:border-ink focus:pb-[10px]"
+                >
+                  <option value="PostgreSQL 15.x / 17.x">PostgreSQL 15.x / 17.x</option>
+                  <option value="PostgreSQL 14.x">PostgreSQL 14.x</option>
+                  <option value="Custom Self-Hosted Supabase">Custom Self-Hosted Supabase</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-footer flex max-sm:flex-col-reverse justify-between items-center max-sm:items-stretch gap-5 mt-3">
+              <small className="max-w-[230px] text-muted text-[0.7rem]">You will connect target database credentials inside your dashboard after sign in.</small>
+              <button
+                className="button inline-flex items-center justify-center min-h-[58px] px-[26px] max-sm:w-full border border-ink bg-ink text-white font-mono font-medium text-[0.76rem] tracking-[0.05em] uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_#171714] disabled:opacity-50"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Initializing…' : 'Continue to Sign Up ↗'}
+              </button>
+            </div>
+
+            {status.text && (
+              <p className={`form-status min-h-[24px] mt-[18px] font-mono font-medium text-[0.73rem] leading-[1.5] ${status.type === 'success' ? 'text-[#347000]' : 'text-[#b12200]'}`} role="status" aria-live="polite">
+                {status.text}
+              </p>
+            )}
+          </form>
         )}
       </div>
     </section>

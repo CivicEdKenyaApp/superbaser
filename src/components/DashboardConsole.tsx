@@ -490,562 +490,562 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             </div>
           ) : (
             <>
-          <div className="p-6 bg-paper border border-ink shadow-[8px_8px_0_#171714] flex max-md:flex-col items-start md:items-center justify-between gap-6">
-            <div>
-              <p className="eyebrow font-mono text-[0.7rem] uppercase tracking-widest text-muted m-0">Subpage Console View</p>
-              <h2 className="font-display font-bold text-3xl uppercase tracking-tighter mt-1">
-                {sidebarNavItems.find((n) => n.id === activeTab)?.label}
-              </h2>
-              <p className="font-mono text-xs text-muted mt-1">
-                Target Project Ref: <strong className="text-ink font-semibold">{activeProject}</strong>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 max-sm:flex-col max-sm:w-full">
-              <button
-                onClick={runBackup}
-                disabled={isBackupRunning || projectsData.length === 0}
-                className="button inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-ink text-white font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[5px_5px_0_#c6f806] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                title={projectsData.length === 0 ? "Connect a database first" : ""}
-              >
-                {isBackupRunning ? <RefreshCw className="w-4 h-4 animate-spin text-orange mr-2" /> : <Play className="w-4 h-4 text-orange mr-2" />}
-                {isBackupRunning ? 'Running Backup...' : 'Run Backup Now'}
-              </button>
-              <button
-                onClick={handleDownloadDump}
-                disabled={projectsData.length === 0}
-                className="inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-paper text-ink font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:bg-ink hover:text-paper disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-paper disabled:hover:text-ink"
-                title={projectsData.length === 0 ? "Connect a database first" : ""}
-              >
-                <Download className="w-4 h-4 mr-2" /> Export SQL Dump
-              </button>
-            </div>
-          </div>
-
-          {isBackupRunning && (
-            <div className="bg-ink text-paper p-5 border-2 border-orange space-y-3">
-              <div className="flex justify-between font-mono text-xs uppercase">
-                <span className="font-bold text-orange">Engine Task In Progress (Backup)</span>
-                <span>{backupProgress}%</span>
-              </div>
-              <div className="w-full bg-paper/20 h-2">
-                <div className="bg-orange h-full transition-all duration-300" style={{ width: `${backupProgress}%` }}></div>
-              </div>
-              <p className="font-mono text-xs text-[#aaa99f]">{backupStep}</p>
-            </div>
-          )}
-
-          {isRestoreRunning && (
-            <div className="bg-acid text-ink p-5 border-2 border-ink space-y-3">
-              <div className="flex justify-between font-mono text-xs uppercase">
-                <span className="font-bold text-ink">Engine Task In Progress (Restore)</span>
-                <span>{restoreProgress}%</span>
-              </div>
-              <div className="w-full bg-ink/20 h-2">
-                <div className="bg-ink h-full transition-all duration-300" style={{ width: `${restoreProgress}%` }}></div>
-              </div>
-              <p className="font-mono text-xs text-ink/80">{restoreStep}</p>
-            </div>
-          )}
-
-          {activeTab === 'dashboard' && projectsData.length === 0 && (
-            <div className="bg-paper p-8 border-2 border-ink shadow-[8px_8px_0_#171714] space-y-6 flex flex-col items-center justify-center text-center py-16">
-              <div className="w-16 h-16 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#c6f806] rounded-full mb-2">
-                <Database className="w-8 h-8 text-ink" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-2xl uppercase tracking-tight">No Connected Projects</h3>
-                <p className="text-muted mt-2 max-w-md mx-auto">Connect your first target Supabase database to start generating automated disaster recovery archives.</p>
-              </div>
-              <button
-                onClick={() => setShowConnectModal(true)}
-                className="button px-6 py-3 border-2 border-ink bg-ink text-white font-bold uppercase shadow-[4px_4px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors mt-4"
-              >
-                + Connect Target Database
-              </button>
-
-              {user?.id === '00000000-0000-0000-0000-000000000000' && (
-                <div className="mt-12 p-6 border border-line bg-panel text-left w-full max-w-2xl">
-                  <h4 className="font-bold text-orange uppercase flex items-center gap-2 mb-3">
-                    <ShieldCheck className="w-4 h-4" /> Temporary Anonymous Session
-                  </h4>
-                  <p className="text-xs text-muted leading-relaxed mb-4">
-                    You are currently using SuperBaser in an anonymous guest session. Any target projects or backups you configure now are temporary. 
-                    To permanently save your disaster recovery rules, you must claim your account.
+              <div className="p-6 bg-paper border border-ink shadow-[8px_8px_0_#171714] flex max-md:flex-col items-start md:items-center justify-between gap-6">
+                <div>
+                  <p className="eyebrow font-mono text-[0.7rem] uppercase tracking-widest text-muted m-0">Subpage Console View</p>
+                  <h2 className="font-display font-bold text-3xl uppercase tracking-tighter mt-1">
+                    {sidebarNavItems.find((n) => n.id === activeTab)?.label}
+                  </h2>
+                  <p className="font-mono text-xs text-muted mt-1">
+                    Target Project Ref: <strong className="text-ink font-semibold">{activeProject}</strong>
                   </p>
-                  <button onClick={() => alert('Claim account flow initiated (Integration pending)')} className="text-xs font-bold underline hover:text-orange">
-                    Claim Account / Sign Up ↗
+                </div>
+
+                <div className="flex items-center gap-3 max-sm:flex-col max-sm:w-full">
+                  <button
+                    onClick={runBackup}
+                    disabled={isBackupRunning || projectsData.length === 0}
+                    className="button inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-ink text-white font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[5px_5px_0_#c6f806] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                    title={projectsData.length === 0 ? "Connect a database first" : ""}
+                  >
+                    {isBackupRunning ? <RefreshCw className="w-4 h-4 animate-spin text-orange mr-2" /> : <Play className="w-4 h-4 text-orange mr-2" />}
+                    {isBackupRunning ? 'Running Backup...' : 'Run Backup Now'}
+                  </button>
+                  <button
+                    onClick={handleDownloadDump}
+                    disabled={projectsData.length === 0}
+                    className="inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-paper text-ink font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:bg-ink hover:text-paper disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-paper disabled:hover:text-ink"
+                    title={projectsData.length === 0 ? "Connect a database first" : ""}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Export SQL Dump
                   </button>
                 </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'dashboard' && projectsData.length > 0 && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-4 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-6">
-                <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
-                  <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Monitored Projects</span>
-                    <FolderGit2 className="w-4 h-4 text-orange" />
-                  </div>
-                  <div className="font-display font-bold text-3xl">
-                    {summaryData?.projectsCount || projectsData.length || 0}
-                  </div>
-                  <p className="font-mono text-[0.7rem] text-muted uppercase">Configured Targets</p>
-                </div>
-
-                <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
-                  <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Storage Sync</span>
-                    <HardDrive className="w-4 h-4 text-orange" />
-                  </div>
-                  <div className="font-display font-bold text-3xl">
-                    {summaryData ? `${(summaryData.storageBytes / (1024 * 1024)).toFixed(1)} MB` : '0 MB'}
-                  </div>
-                  <p className="font-mono text-[0.7rem] text-muted uppercase">
-                    Total Backup Archive Volume
-                  </p>
-                </div>
-
-                <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
-                  <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Active Schedules</span>
-                    <Calendar className="w-4 h-4 text-orange" />
-                  </div>
-                  <div className="font-display font-bold text-3xl">
-                    {summaryData?.schedulesEnabled || 0}
-                  </div>
-                  <p className="font-mono text-[0.7rem] text-muted uppercase">Cron Executions</p>
-                </div>
-
-                <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
-                  <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Active Jobs</span>
-                    <Play className="w-4 h-4 text-[#347000]" />
-                  </div>
-                  <div className="font-display font-bold text-3xl">
-                    {summaryData?.runningJobs || 0}
-                  </div>
-                  <p className="font-mono text-[0.7rem] text-[#347000] font-bold uppercase">Executing in Background</p>
-                </div>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="font-display font-bold text-xl uppercase tracking-tight">Connected Projects ({projectsData.length})</h3>
-                <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-6">
-                  {projectsData.map((project) => (
-                    <div key={project.id} className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] flex flex-col justify-between space-y-4">
-                      <div>
-                        <div className="flex justify-between items-start mb-2">
+              {isBackupRunning && (
+                <div className="bg-ink text-paper p-5 border-2 border-orange space-y-3">
+                  <div className="flex justify-between font-mono text-xs uppercase">
+                    <span className="font-bold text-orange">Engine Task In Progress (Backup)</span>
+                    <span>{backupProgress}%</span>
+                  </div>
+                  <div className="w-full bg-paper/20 h-2">
+                    <div className="bg-orange h-full transition-all duration-300" style={{ width: `${backupProgress}%` }}></div>
+                  </div>
+                  <p className="font-mono text-xs text-[#aaa99f]">{backupStep}</p>
+                </div>
+              )}
+
+              {isRestoreRunning && (
+                <div className="bg-acid text-ink p-5 border-2 border-ink space-y-3">
+                  <div className="flex justify-between font-mono text-xs uppercase">
+                    <span className="font-bold text-ink">Engine Task In Progress (Restore)</span>
+                    <span>{restoreProgress}%</span>
+                  </div>
+                  <div className="w-full bg-ink/20 h-2">
+                    <div className="bg-ink h-full transition-all duration-300" style={{ width: `${restoreProgress}%` }}></div>
+                  </div>
+                  <p className="font-mono text-xs text-ink/80">{restoreStep}</p>
+                </div>
+              )}
+
+              {activeTab === 'dashboard' && projectsData.length === 0 && (
+                <div className="bg-paper p-8 border-2 border-ink shadow-[8px_8px_0_#171714] space-y-6 flex flex-col items-center justify-center text-center py-16">
+                  <div className="w-16 h-16 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#c6f806] rounded-full mb-2">
+                    <Database className="w-8 h-8 text-ink" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-2xl uppercase tracking-tight">No Connected Projects</h3>
+                    <p className="text-muted mt-2 max-w-md mx-auto">Connect your first target Supabase database to start generating automated disaster recovery archives.</p>
+                  </div>
+                  <button
+                    onClick={() => setShowConnectModal(true)}
+                    className="button px-6 py-3 border-2 border-ink bg-ink text-white font-bold uppercase shadow-[4px_4px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors mt-4"
+                  >
+                    + Connect Target Database
+                  </button>
+
+                  {user?.id === '00000000-0000-0000-0000-000000000000' && (
+                    <div className="mt-12 p-6 border border-line bg-panel text-left w-full max-w-2xl">
+                      <h4 className="font-bold text-orange uppercase flex items-center gap-2 mb-3">
+                        <ShieldCheck className="w-4 h-4" /> Temporary Anonymous Session
+                      </h4>
+                      <p className="text-xs text-muted leading-relaxed mb-4">
+                        You are currently using SuperBaser in an anonymous guest session. Any target projects or backups you configure now are temporary.
+                        To permanently save your disaster recovery rules, you must claim your account.
+                      </p>
+                      <button onClick={() => alert('Claim account flow initiated (Integration pending)')} className="text-xs font-bold underline hover:text-orange">
+                        Claim Account / Sign Up ↗
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'dashboard' && projectsData.length > 0 && (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-4 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-6">
+                    <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
+                      <div className="flex justify-between font-mono text-xs uppercase text-muted">
+                        <span>Monitored Projects</span>
+                        <FolderGit2 className="w-4 h-4 text-orange" />
+                      </div>
+                      <div className="font-display font-bold text-3xl">
+                        {summaryData?.projectsCount || projectsData.length || 0}
+                      </div>
+                      <p className="font-mono text-[0.7rem] text-muted uppercase">Configured Targets</p>
+                    </div>
+
+                    <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
+                      <div className="flex justify-between font-mono text-xs uppercase text-muted">
+                        <span>Storage Sync</span>
+                        <HardDrive className="w-4 h-4 text-orange" />
+                      </div>
+                      <div className="font-display font-bold text-3xl">
+                        {summaryData ? `${(summaryData.storageBytes / (1024 * 1024)).toFixed(1)} MB` : '0 MB'}
+                      </div>
+                      <p className="font-mono text-[0.7rem] text-muted uppercase">
+                        Total Backup Archive Volume
+                      </p>
+                    </div>
+
+                    <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
+                      <div className="flex justify-between font-mono text-xs uppercase text-muted">
+                        <span>Active Schedules</span>
+                        <Calendar className="w-4 h-4 text-orange" />
+                      </div>
+                      <div className="font-display font-bold text-3xl">
+                        {summaryData?.schedulesEnabled || 0}
+                      </div>
+                      <p className="font-mono text-[0.7rem] text-muted uppercase">Cron Executions</p>
+                    </div>
+
+                    <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
+                      <div className="flex justify-between font-mono text-xs uppercase text-muted">
+                        <span>Active Jobs</span>
+                        <Play className="w-4 h-4 text-[#347000]" />
+                      </div>
+                      <div className="font-display font-bold text-3xl">
+                        {summaryData?.runningJobs || 0}
+                      </div>
+                      <p className="font-mono text-[0.7rem] text-[#347000] font-bold uppercase">Executing in Background</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-display font-bold text-xl uppercase tracking-tight">Connected Projects ({projectsData.length})</h3>
+                    <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-6">
+                      {projectsData.map((project) => (
+                        <div key={project.id} className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] flex flex-col justify-between space-y-4">
                           <div>
-                            <h4 className="font-bold text-lg uppercase truncate">{project.name}</h4>
-                            <p className="text-muted text-xs font-mono">{project.supabase_project_ref}</p>
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-bold text-lg uppercase truncate">{project.name}</h4>
+                                <p className="text-muted text-xs font-mono">{project.supabase_project_ref}</p>
+                              </div>
+                              <span className={`px-2 py-1 text-[0.6rem] font-bold uppercase ${project.status === 'active' ? 'bg-[#347000]/10 text-[#347000]' : 'bg-[#347000]/10 text-[#347000]'}`}>
+                                {project.status || 'Active'}
+                              </span>
+                            </div>
+                            <div className="text-xs font-mono text-muted">Region: {project.region}</div>
                           </div>
-                          <span className={`px-2 py-1 text-[0.6rem] font-bold uppercase ${project.status === 'active' ? 'bg-[#347000]/10 text-[#347000]' : 'bg-[#347000]/10 text-[#347000]'}`}>
-                            {project.status || 'Active'}
-                          </span>
+                          <div className="pt-4 border-t border-line flex justify-between items-center text-xs font-mono">
+                            <button onClick={() => setActiveTab('backups')} className="text-ink hover:text-orange font-bold uppercase">View Backups ↗</button>
+                            <span className="text-muted">Last sync: {project.last_inventory_at ? new Date(project.last_inventory_at).toLocaleDateString() : 'Pending'}</span>
+                          </div>
                         </div>
-                        <div className="text-xs font-mono text-muted">Region: {project.region}</div>
-                      </div>
-                      <div className="pt-4 border-t border-line flex justify-between items-center text-xs font-mono">
-                        <button onClick={() => setActiveTab('backups')} className="text-ink hover:text-orange font-bold uppercase">View Backups ↗</button>
-                        <span className="text-muted">Last sync: {project.last_inventory_at ? new Date(project.last_inventory_at).toLocaleDateString() : 'Pending'}</span>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'projects' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4 flex justify-between items-center">
-                <div>
-                  <h3 className="font-display font-bold text-xl uppercase">Connected Projects</h3>
-                  <p className="text-muted mt-1">Direct Connection parameters and Supabase instance metadata.</p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                {projectsData.length === 0 ? (
-                  <div className="p-4 bg-panel border border-line text-muted">No projects found. Add one via API.</div>
-                ) : (
-                  projectsData.map(p => (
-                    <div key={p.id} className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
-                      <div className="p-4 bg-panel border border-line space-y-1">
-                        <div className="text-muted">Project Ref / Name</div>
-                        <div className="font-bold text-sm text-ink">{p.supabase_project_ref} ({p.name})</div>
-                      </div>
-                      <div className="p-4 bg-panel border border-line space-y-1">
-                        <div className="text-muted">Direct PG Host</div>
-                        <div className="font-bold text-sm text-ink">db.{p.supabase_project_ref}.supabase.co:5432</div>
-                      </div>
-                      <div className="p-4 bg-panel border border-line space-y-1">
-                        <div className="text-muted">Postgres Version</div>
-                        <div className="font-bold text-sm text-ink">{p.postgres_version || discoveryData?.postgresVersion || 'Unknown'}</div>
-                      </div>
-                      <div className="p-4 bg-panel border border-line space-y-1">
-                        <div className="text-muted">Region</div>
-                        <div className="font-bold text-sm text-ink">{p.region || 'US-EAST-1 (Ohio)'}</div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'backups' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
-                <div>
-                  <h3 className="font-display font-bold text-xl uppercase">Backup Archive Snapshots</h3>
-                  <p className="text-muted mt-1">Automated daily and manual pg_dump archives.</p>
-                </div>
-                <button onClick={runBackup} disabled={isBackupRunning || projectsData.length === 0} className="button px-4 py-2 border border-ink bg-ink text-white font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
-                  + Create Snapshot
-                </button>
-              </div>
-              <div className="space-y-3">
-                {projectsData.length === 0 ? (
-                  <div className="p-8 bg-panel border-2 border-dashed border-line text-center space-y-3">
-                    <div className="font-bold uppercase text-ink">No Connected Database</div>
-                    <div className="text-muted text-xs">You must connect a Supabase project first before you can trigger or view backups.</div>
                   </div>
-                ) : backupsData.length === 0 ? (
-                  <div className="p-4 bg-panel border border-line text-muted">No backups found. Trigger a snapshot to begin.</div>
-                ) : (
-                  backupsData.map((b) => (
-                    <div key={b.id} className="flex max-sm:flex-col justify-between items-center p-4 bg-panel border border-line gap-4">
-                      <div>
-                        <div className="font-bold text-sm">{b.id.substring(0, 18)}... (FULL DUMP)</div>
-                        <div className="text-muted text-[0.7rem]">{new Date(b.created_at).toLocaleString()} · {(b.bytes_total / (1024 * 1024)).toFixed(1)} MB</div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-1 font-bold text-[0.65rem] uppercase ${b.status === 'completed' || b.status === 'verified' ? 'bg-[#347000]/10 text-[#347000]' : (b.status === 'pending' || b.status === 'running' ? 'bg-orange/10 text-orange' : 'bg-red-500/10 text-red-500')}`}>
-                          {b.status}
-                        </span>
-                        <button onClick={handleDownloadDump} className="px-3 py-1.5 border border-ink bg-paper font-bold hover:bg-ink hover:text-paper uppercase">
-                          Download
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'restores' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Disaster Recovery & Ingestion</h3>
-                <p className="text-muted mt-1">1-Click database restore and Storage bucket reconstruction.</p>
-              </div>
-              <div className="p-6 bg-panel border border-line space-y-4">
-                <div className="font-bold text-sm uppercase">Point-in-Time Restore Engine</div>
-                <p className="text-muted">
-                  Ingests pg_dump SQL archives over Direct Connection 5432 using ON_ERROR_STOP=0 parameter to preserve existing Supabase system roles.
-                </p>
-                <button onClick={runRestore} disabled={isRestoreRunning || projectsData.length === 0} className="button px-5 py-3 border border-ink bg-acid text-ink font-bold uppercase hover:shadow-[4px_4px_0_#171714] transition-all disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
-                  {isRestoreRunning ? 'Restoring...' : 'Execute Restoration Pipeline ↗'}
-                </button>
-                {projectsData.length === 0 && (
-                  <p className="text-orange font-bold uppercase text-xs mt-3">Error: No target database connected.</p>
-                )}
-              </div>
-
-              {restoresData.length > 0 && (
-                <div className="space-y-3 mt-6">
-                  <h4 className="font-bold uppercase mb-2">Restore History</h4>
-                  {restoresData.map(r => (
-                    <div key={r.id} className="flex justify-between items-center p-3 bg-panel border border-line">
-                      <div>
-                        <div className="font-bold">{r.id.substring(0, 8)}... to Project {r.destination_project_id?.substring(0, 8)}</div>
-                        <div className="text-muted text-[0.7rem]">{new Date(r.created_at).toLocaleString()}</div>
-                      </div>
-                      <span className="font-bold uppercase text-xs">{r.status}</span>
-                    </div>
-                  ))}
                 </div>
               )}
-            </div>
-          )}
 
-          {activeTab === 'schedules' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Automated Backup Schedules</h3>
-                <p className="text-muted mt-1">Cron execution pipelines and lifecycle retention policies.</p>
-              </div>
-              <div className="space-y-3">
-                {schedulesData.length === 0 ? (
-                  <div className="p-4 bg-panel border border-line text-muted">
-                    No active schedules configured. Add a subscription plan to enable automated cron schedules.
-                  </div>
-                ) : (
-                  schedulesData.map(s => (
-                    <div key={s.id} className="p-4 bg-panel border border-line flex justify-between items-center">
-                      <div>
-                        <div className="font-bold">{s.name}</div>
-                        <div className="text-muted text-[0.7rem]">{s.cron_expression} · {s.timezone} · Retain {s.retention_days} days</div>
-                      </div>
-                      <span className={`px-2 py-1 font-bold ${s.enabled ? 'bg-acid text-ink' : 'bg-line text-muted'}`}>
-                        {s.enabled ? 'ACTIVE' : 'DISABLED'}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'verification' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Data Integrity Verification Audit</h3>
-                <p className="text-muted mt-1">SHA-256 manifest matching and side-by-side catalog comparison.</p>
-              </div>
-              <div className="p-4 bg-panel border border-line space-y-2">
-                <div className="flex justify-between font-bold">
-                  <span>SHA-256 Checksum Manifest:</span>
-                  <span className="text-[#347000]">MATCHED (8f9a2b71...)</span>
-                </div>
-                <div className="flex justify-between text-muted">
-                  <span>Catalog Table Count:</span>
-                  <span>{discoveryData?.tableCount || 0} / {discoveryData?.tableCount || 0} Verified</span>
-                </div>
-                <div className="flex justify-between text-muted">
-                  <span>Storage Object Count:</span>
-                  <span>{discoveryData?.storageBucketsCount || 0} Buckets Verified</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'storage' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Storage Explorer</h3>
-                <p className="text-muted mt-1">Supabase Storage buckets and object sync metadata.</p>
-              </div>
-              <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
-                {discoveryData?.buckets?.length ? discoveryData.buckets.map((b, idx) => (
-                  <div key={idx} className="p-4 bg-panel border border-line space-y-2">
-                    <div className="font-bold text-sm">/{b.bucket}</div>
-                    <div className="text-muted">{b.files} · {b.public ? 'Public' : 'Private'} Bucket · {b.size}</div>
-                  </div>
-                )) : (
-                  <div className="p-4 bg-panel border border-line text-muted col-span-2">No storage buckets synced yet.</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'logs' && (
-            <div className="bg-ink text-paper p-6 border-2 border-ink space-y-4 font-mono text-xs">
-              <div className="flex justify-between items-center border-b border-white/20 pb-3">
-                <span className="font-bold text-sm text-orange">REALTIME ENGINE LOG STREAM</span>
-                <span className="text-muted">Live Monitor</span>
-              </div>
-              <div className="bg-black/50 p-4 rounded space-y-1.5 h-80 overflow-y-auto">
-                {logsData.length > 0 && logsData.slice(0, 10).map((job) => (
-                  <div key={job.id} className="leading-relaxed text-muted">
-                    [{new Date(job.created_at).toLocaleTimeString()}] DB_JOB: {job.kind.toUpperCase()} - {job.status.toUpperCase()}
-                  </div>
-                ))}
-                {logs.map((log, index) => (
-                  <div key={index} className="leading-relaxed">
-                    {log}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'organizations' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
-                <div>
-                  <h3 className="font-display font-bold text-xl uppercase">Organizations Management</h3>
-                  <p className="text-muted mt-1">Manage team access and project ownership.</p>
-                </div>
-                <button onClick={() => setIsCreateOrgModalOpen(true)} className="button px-4 py-2 border border-ink bg-acid text-ink font-bold uppercase">
-                  + New Organization
-                </button>
-              </div>
-              <div className="space-y-2">
-                {organizations.map((org) => (
-                  <div key={org.organization.id} className="p-4 bg-panel border border-line flex justify-between items-center">
+              {activeTab === 'projects' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4 flex justify-between items-center">
                     <div>
-                      <span className="font-bold text-sm mr-2">{org.organization.name}</span>
-                      <span className="text-muted text-[0.7rem] uppercase">Role: {org.role}</span>
+                      <h3 className="font-display font-bold text-xl uppercase">Connected Projects</h3>
+                      <p className="text-muted mt-1">Direct Connection parameters and Supabase instance metadata.</p>
                     </div>
-                    {activeOrgId === org.organization.id && (
-                      <span className="text-acid font-bold">ACTIVE TARGET</span>
+                  </div>
+                  <div className="space-y-4">
+                    {projectsData.length === 0 ? (
+                      <div className="p-4 bg-panel border border-line text-muted">No projects found. Add one via API.</div>
+                    ) : (
+                      projectsData.map(p => (
+                        <div key={p.id} className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
+                          <div className="p-4 bg-panel border border-line space-y-1">
+                            <div className="text-muted">Project Ref / Name</div>
+                            <div className="font-bold text-sm text-ink">{p.supabase_project_ref} ({p.name})</div>
+                          </div>
+                          <div className="p-4 bg-panel border border-line space-y-1">
+                            <div className="text-muted">Direct PG Host</div>
+                            <div className="font-bold text-sm text-ink">db.{p.supabase_project_ref}.supabase.co:5432</div>
+                          </div>
+                          <div className="p-4 bg-panel border border-line space-y-1">
+                            <div className="text-muted">Postgres Version</div>
+                            <div className="font-bold text-sm text-ink">{p.postgres_version || discoveryData?.postgresVersion || 'Unknown'}</div>
+                          </div>
+                          <div className="p-4 bg-panel border border-line space-y-1">
+                            <div className="text-muted">Region</div>
+                            <div className="font-bold text-sm text-ink">{p.region || 'US-EAST-1 (Ohio)'}</div>
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'billing' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-
-              <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
-                <div>
-                  <h3 className="font-display font-bold text-xl uppercase text-ink">Paystack Billing & Subscription Plans</h3>
-                  <p className="text-muted mt-1">Manage automated disaster recovery capacity and retention schedules.</p>
                 </div>
+              )}
 
-                {/* Billing Cycle Toggle */}
-                <div className="flex items-center gap-2 p-1 bg-panel border border-ink font-mono text-[0.7rem] uppercase">
-                  <button
-                    onClick={() => setBillingCycle('monthly')}
-                    className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'monthly' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
-                      }`}
-                  >
-                    Monthly Billing
-                  </button>
-                  <button
-                    onClick={() => setBillingCycle('annual')}
-                    className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'annual' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
-                      }`}
-                  >
-                    Annual (Save 20%)
-                  </button>
-                </div>
-              </div>
-
-              {/* Plan Cards */}
-              <div className="grid grid-cols-3 max-md:grid-cols-1 gap-6">
-                {/* Jamii Tier */}
-                <div className="p-6 bg-panel border-2 border-ink space-y-4 relative flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="text-orange font-bold uppercase text-[0.7rem]">Tier 1 · Free</div>
-                    <div className="font-display font-bold text-2xl uppercase">Jamii Plan</div>
-                    <div className="text-xl font-bold font-mono">$0 <span className="text-xs font-normal text-muted">/ month</span></div>
-                    <p className="text-muted text-[0.72rem] leading-relaxed">
-                      Community starter tier for individual project auditing and manual backup dumps.
-                    </p>
-                    <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
-                      <li>1 Target Supabase Project</li>
-                      <li>Manual pg_dump Execution</li>
-                      <li><strong>7-Day Retention Auto-Pruning</strong></li>
-                      <li>500 MB max database limit</li>
-                    </ul>
-                  </div>
-                  <button disabled className="w-full py-2.5 border border-ink bg-white/50 text-muted font-bold uppercase text-xs">
-                    Current Active Tier
-                  </button>
-                </div>
-
-                {/* Mwananchi Plan */}
-                <div className="p-6 bg-paper border-2 border-ink shadow-[6px_6px_0_#171714] space-y-4 relative flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="text-acid font-bold uppercase text-[0.7rem] bg-ink px-2 py-0.5 inline-block">Popular Choice</div>
-                    <div className="font-display font-bold text-2xl uppercase">Mwananchi Plan</div>
-                    <div className="text-xl font-bold font-mono">
-                      {billingCycle === 'monthly' ? '$15' : '$150'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+              {activeTab === 'backups' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
+                    <div>
+                      <h3 className="font-display font-bold text-xl uppercase">Backup Archive Snapshots</h3>
+                      <p className="text-muted mt-1">Automated daily and manual pg_dump archives.</p>
                     </div>
-                    <p className="text-muted text-[0.72rem] leading-relaxed">
-                      Automated hourly disaster recovery pipelines, R2 snapshot archival, and custom retention rules.
-                    </p>
-                    <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
-                      <li>Up to 5 Target Projects</li>
-                      <li>Automated Hourly Cron Schedules</li>
-                      <li><strong>30-Day Retention Auto-Pruning</strong></li>
-                      <li>Cloudflare R2 Bucket Sync & Alerts</li>
-                    </ul>
+                    <button onClick={runBackup} disabled={isBackupRunning || projectsData.length === 0} className="button px-4 py-2 border border-ink bg-ink text-white font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
+                      + Create Snapshot
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      const planCode = billingCycle === 'monthly'
-                        ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
-                        : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
-
-                      openPaystackCheckout({
-                        email: user?.email || 'ops@superbaser.com',
-                        amount: billingCycle === 'monthly' ? 1950 : 19500, // KES equivalent approx
-                        planCode,
-                        onSuccess: async (ref) => {
-                          if (activeOrgId) {
-                            await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, ref.reference);
-                          }
-                          alert(`Paystack Subscription Active! Reference: ${ref.reference}`);
-                        }
-                      });
-                    }}
-                    className="button w-full py-2.5 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors"
-                  >
-                    Subscribe with Paystack ↗
-                  </button>
+                  <div className="space-y-3">
+                    {projectsData.length === 0 ? (
+                      <div className="p-8 bg-panel border-2 border-dashed border-line text-center space-y-3">
+                        <div className="font-bold uppercase text-ink">No Connected Database</div>
+                        <div className="text-muted text-xs">You must connect a Supabase project first before you can trigger or view backups.</div>
+                      </div>
+                    ) : backupsData.length === 0 ? (
+                      <div className="p-4 bg-panel border border-line text-muted">No backups found. Trigger a snapshot to begin.</div>
+                    ) : (
+                      backupsData.map((b) => (
+                        <div key={b.id} className="flex max-sm:flex-col justify-between items-center p-4 bg-panel border border-line gap-4">
+                          <div>
+                            <div className="font-bold text-sm">{b.id.substring(0, 18)}... (FULL DUMP)</div>
+                            <div className="text-muted text-[0.7rem]">{new Date(b.created_at).toLocaleString()} · {(b.bytes_total / (1024 * 1024)).toFixed(1)} MB</div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2 py-1 font-bold text-[0.65rem] uppercase ${b.status === 'completed' || b.status === 'verified' ? 'bg-[#347000]/10 text-[#347000]' : (b.status === 'pending' || b.status === 'running' ? 'bg-orange/10 text-orange' : 'bg-red-500/10 text-red-500')}`}>
+                              {b.status}
+                            </span>
+                            <button onClick={handleDownloadDump} className="px-3 py-1.5 border border-ink bg-paper font-bold hover:bg-ink hover:text-paper uppercase">
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
+              )}
 
-                {/* Taifa Plan */}
-                <div className="p-6 bg-ink text-paper border-2 border-ink shadow-[6px_6px_0_#c6f806] space-y-4 relative flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="text-orange font-bold uppercase text-[0.7rem]">Enterprise DR</div>
-                    <div className="font-display font-bold text-2xl uppercase text-white">Taifa Plan</div>
-                    <div className="text-xl font-bold font-mono text-acid">
-                      {billingCycle === 'monthly' ? '$49' : '$490'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+              {activeTab === 'restores' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Disaster Recovery & Ingestion</h3>
+                    <p className="text-muted mt-1">1-Click database restore and Storage bucket reconstruction.</p>
+                  </div>
+                  <div className="p-6 bg-panel border border-line space-y-4">
+                    <div className="font-bold text-sm uppercase">Point-in-Time Restore Engine</div>
+                    <p className="text-muted">
+                      Ingests pg_dump SQL archives over Direct Connection 5432 using ON_ERROR_STOP=0 parameter to preserve existing Supabase system roles.
+                    </p>
+                    <button onClick={runRestore} disabled={isRestoreRunning || projectsData.length === 0} className="button px-5 py-3 border border-ink bg-acid text-ink font-bold uppercase hover:shadow-[4px_4px_0_#171714] transition-all disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
+                      {isRestoreRunning ? 'Restoring...' : 'Execute Restoration Pipeline ↗'}
+                    </button>
+                    {projectsData.length === 0 && (
+                      <p className="text-orange font-bold uppercase text-xs mt-3">Error: No target database connected.</p>
+                    )}
+                  </div>
+
+                  {restoresData.length > 0 && (
+                    <div className="space-y-3 mt-6">
+                      <h4 className="font-bold uppercase mb-2">Restore History</h4>
+                      {restoresData.map(r => (
+                        <div key={r.id} className="flex justify-between items-center p-3 bg-panel border border-line">
+                          <div>
+                            <div className="font-bold">{r.id.substring(0, 8)}... to Project {r.destination_project_id?.substring(0, 8)}</div>
+                            <div className="text-muted text-[0.7rem]">{new Date(r.created_at).toLocaleString()}</div>
+                          </div>
+                          <span className="font-bold uppercase text-xs">{r.status}</span>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-[#aaa99f] text-[0.72rem] leading-relaxed">
-                      High-availability enterprise cluster protection, multi-region replication, and priority worker containers.
-                    </p>
-                    <ul className="list-disc pl-4 space-y-1 text-[#aaa99f] text-[0.7rem] pt-2">
-                      <li>Unlimited Target Projects</li>
-                      <li>Parallel Container Workflows</li>
-                      <li>Dedicated Cloudflare Worker Isolation</li>
-                      <li>Custom SLA & 24/7 Ops Phone Support</li>
-                    </ul>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const planCode = billingCycle === 'monthly'
-                        ? (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
-                        : (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
-
-                      openPaystackCheckout({
-                        email: user?.email || 'ops@superbaser.com',
-                        amount: billingCycle === 'monthly' ? 6370 : 63700,
-                        planCode,
-                        onSuccess: async (ref) => {
-                          if (activeOrgId) {
-                            await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
-                          }
-                          alert(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`);
-                        }
-                      });
-                    }}
-                    className="button w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714] hover:bg-orange transition-colors"
-                  >
-                    Subscribe Taifa Tier ↗
-                  </button>
+                  )}
                 </div>
-              </div>
-            </div>
-          )}
+              )}
+
+              {activeTab === 'schedules' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Automated Backup Schedules</h3>
+                    <p className="text-muted mt-1">Cron execution pipelines and lifecycle retention policies.</p>
+                  </div>
+                  <div className="space-y-3">
+                    {schedulesData.length === 0 ? (
+                      <div className="p-4 bg-panel border border-line text-muted">
+                        No active schedules configured. Add a subscription plan to enable automated cron schedules.
+                      </div>
+                    ) : (
+                      schedulesData.map(s => (
+                        <div key={s.id} className="p-4 bg-panel border border-line flex justify-between items-center">
+                          <div>
+                            <div className="font-bold">{s.name}</div>
+                            <div className="text-muted text-[0.7rem]">{s.cron_expression} · {s.timezone} · Retain {s.retention_days} days</div>
+                          </div>
+                          <span className={`px-2 py-1 font-bold ${s.enabled ? 'bg-acid text-ink' : 'bg-line text-muted'}`}>
+                            {s.enabled ? 'ACTIVE' : 'DISABLED'}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'verification' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Data Integrity Verification Audit</h3>
+                    <p className="text-muted mt-1">SHA-256 manifest matching and side-by-side catalog comparison.</p>
+                  </div>
+                  <div className="p-4 bg-panel border border-line space-y-2">
+                    <div className="flex justify-between font-bold">
+                      <span>SHA-256 Checksum Manifest:</span>
+                      <span className="text-[#347000]">MATCHED (8f9a2b71...)</span>
+                    </div>
+                    <div className="flex justify-between text-muted">
+                      <span>Catalog Table Count:</span>
+                      <span>{discoveryData?.tableCount || 0} / {discoveryData?.tableCount || 0} Verified</span>
+                    </div>
+                    <div className="flex justify-between text-muted">
+                      <span>Storage Object Count:</span>
+                      <span>{discoveryData?.storageBucketsCount || 0} Buckets Verified</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'storage' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Storage Explorer</h3>
+                    <p className="text-muted mt-1">Supabase Storage buckets and object sync metadata.</p>
+                  </div>
+                  <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
+                    {discoveryData?.buckets?.length ? discoveryData.buckets.map((b, idx) => (
+                      <div key={idx} className="p-4 bg-panel border border-line space-y-2">
+                        <div className="font-bold text-sm">/{b.bucket}</div>
+                        <div className="text-muted">{b.files} · {b.public ? 'Public' : 'Private'} Bucket · {b.size}</div>
+                      </div>
+                    )) : (
+                      <div className="p-4 bg-panel border border-line text-muted col-span-2">No storage buckets synced yet.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'logs' && (
+                <div className="bg-ink text-paper p-6 border-2 border-ink space-y-4 font-mono text-xs">
+                  <div className="flex justify-between items-center border-b border-white/20 pb-3">
+                    <span className="font-bold text-sm text-orange">REALTIME ENGINE LOG STREAM</span>
+                    <span className="text-muted">Live Monitor</span>
+                  </div>
+                  <div className="bg-black/50 p-4 rounded space-y-1.5 h-80 overflow-y-auto">
+                    {logsData.length > 0 && logsData.slice(0, 10).map((job) => (
+                      <div key={job.id} className="leading-relaxed text-muted">
+                        [{new Date(job.created_at).toLocaleTimeString()}] DB_JOB: {job.kind.toUpperCase()} - {job.status.toUpperCase()}
+                      </div>
+                    ))}
+                    {logs.map((log, index) => (
+                      <div key={index} className="leading-relaxed">
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'organizations' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
+                    <div>
+                      <h3 className="font-display font-bold text-xl uppercase">Organizations Management</h3>
+                      <p className="text-muted mt-1">Manage team access and project ownership.</p>
+                    </div>
+                    <button onClick={() => setIsCreateOrgModalOpen(true)} className="button px-4 py-2 border border-ink bg-acid text-ink font-bold uppercase">
+                      + New Organization
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {organizations.map((org) => (
+                      <div key={org.organization.id} className="p-4 bg-panel border border-line flex justify-between items-center">
+                        <div>
+                          <span className="font-bold text-sm mr-2">{org.organization.name}</span>
+                          <span className="text-muted text-[0.7rem] uppercase">Role: {org.role}</span>
+                        </div>
+                        {activeOrgId === org.organization.id && (
+                          <span className="text-acid font-bold">ACTIVE TARGET</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'billing' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+
+                  <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
+                    <div>
+                      <h3 className="font-display font-bold text-xl uppercase text-ink">Paystack Billing & Subscription Plans</h3>
+                      <p className="text-muted mt-1">Manage automated disaster recovery capacity and retention schedules.</p>
+                    </div>
+
+                    {/* Billing Cycle Toggle */}
+                    <div className="flex items-center gap-2 p-1 bg-panel border border-ink font-mono text-[0.7rem] uppercase">
+                      <button
+                        onClick={() => setBillingCycle('monthly')}
+                        className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'monthly' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
+                          }`}
+                      >
+                        Monthly Billing
+                      </button>
+                      <button
+                        onClick={() => setBillingCycle('annual')}
+                        className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'annual' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
+                          }`}
+                      >
+                        Annual (Save 20%)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Plan Cards */}
+                  <div className="grid grid-cols-3 max-md:grid-cols-1 gap-6">
+                    {/* Jamii Tier */}
+                    <div className="p-6 bg-panel border-2 border-ink space-y-4 relative flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="text-orange font-bold uppercase text-[0.7rem]">Tier 1 · Free</div>
+                        <div className="font-display font-bold text-2xl uppercase">Jamii Plan</div>
+                        <div className="text-xl font-bold font-mono">$0 <span className="text-xs font-normal text-muted">/ month</span></div>
+                        <p className="text-muted text-[0.72rem] leading-relaxed">
+                          Community starter tier for individual project auditing and manual backup dumps.
+                        </p>
+                        <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
+                          <li>1 Target Supabase Project</li>
+                          <li>Manual pg_dump Execution</li>
+                          <li><strong>7-Day Retention Auto-Pruning</strong></li>
+                          <li>500 MB max database limit</li>
+                        </ul>
+                      </div>
+                      <button disabled className="w-full py-2.5 border border-ink bg-white/50 text-muted font-bold uppercase text-xs">
+                        Current Active Tier
+                      </button>
+                    </div>
+
+                    {/* Mwananchi Plan */}
+                    <div className="p-6 bg-paper border-2 border-ink shadow-[6px_6px_0_#171714] space-y-4 relative flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="text-acid font-bold uppercase text-[0.7rem] bg-ink px-2 py-0.5 inline-block">Popular Choice</div>
+                        <div className="font-display font-bold text-2xl uppercase">Mwananchi Plan</div>
+                        <div className="text-xl font-bold font-mono">
+                          {billingCycle === 'monthly' ? '$15' : '$150'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                        </div>
+                        <p className="text-muted text-[0.72rem] leading-relaxed">
+                          Automated hourly disaster recovery pipelines, R2 snapshot archival, and custom retention rules.
+                        </p>
+                        <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
+                          <li>Up to 5 Target Projects</li>
+                          <li>Automated Hourly Cron Schedules</li>
+                          <li><strong>30-Day Retention Auto-Pruning</strong></li>
+                          <li>Cloudflare R2 Bucket Sync & Alerts</li>
+                        </ul>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const planCode = billingCycle === 'monthly'
+                            ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
+                            : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
+
+                          openPaystackCheckout({
+                            email: user?.email || 'support@superbaser.co',
+                            amount: billingCycle === 'monthly' ? 1950 : 19500, // KES equivalent approx
+                            planCode,
+                            onSuccess: async (ref) => {
+                              if (activeOrgId) {
+                                await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, ref.reference);
+                              }
+                              alert(`Paystack Subscription Active! Reference: ${ref.reference}`);
+                            }
+                          });
+                        }}
+                        className="button w-full py-2.5 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors"
+                      >
+                        Subscribe with Paystack ↗
+                      </button>
+                    </div>
+
+                    {/* Taifa Plan */}
+                    <div className="p-6 bg-ink text-paper border-2 border-ink shadow-[6px_6px_0_#c6f806] space-y-4 relative flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="text-orange font-bold uppercase text-[0.7rem]">Enterprise DR</div>
+                        <div className="font-display font-bold text-2xl uppercase text-white">Taifa Plan</div>
+                        <div className="text-xl font-bold font-mono text-acid">
+                          {billingCycle === 'monthly' ? '$49' : '$490'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                        </div>
+                        <p className="text-[#aaa99f] text-[0.72rem] leading-relaxed">
+                          High-availability enterprise cluster protection, multi-region replication, and priority worker containers.
+                        </p>
+                        <ul className="list-disc pl-4 space-y-1 text-[#aaa99f] text-[0.7rem] pt-2">
+                          <li>Unlimited Target Projects</li>
+                          <li>Parallel Container Workflows</li>
+                          <li>Dedicated Cloudflare Worker Isolation</li>
+                          <li>Custom SLA & 24/7 Ops Phone Support</li>
+                        </ul>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const planCode = billingCycle === 'monthly'
+                            ? (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
+                            : (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
+
+                          openPaystackCheckout({
+                            email: user?.email || 'support@superbaser.co',
+                            amount: billingCycle === 'monthly' ? 6370 : 63700,
+                            planCode,
+                            onSuccess: async (ref) => {
+                              if (activeOrgId) {
+                                await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
+                              }
+                              alert(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`);
+                            }
+                          });
+                        }}
+                        className="button w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714] hover:bg-orange transition-colors"
+                      >
+                        Subscribe Taifa Tier ↗
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
 
 
-          {activeTab === 'support' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Operations Support & Runbooks</h3>
-                <p className="text-muted mt-1">Disaster recovery guidance and operational playbooks.</p>
-              </div>
-              <div className="p-4 bg-panel border border-line space-y-2">
-                <div className="font-bold">Contact Operations Team:</div>
-                <a href="mailto:ops@superbaser.com" className="text-ink underline">
-                  ops@superbaser.com
-                </a>
-              </div>
-            </div>
-          )}
-          </>
+              {activeTab === 'support' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Operations Support & Runbooks</h3>
+                    <p className="text-muted mt-1">Disaster recovery guidance and operational playbooks.</p>
+                  </div>
+                  <div className="p-4 bg-panel border border-line space-y-2">
+                    <div className="font-bold">Contact Operations Team:</div>
+                    <a href="mailto:support@superbaser.co" className="text-ink underline">
+                      support@superbaser.co
+                    </a>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
