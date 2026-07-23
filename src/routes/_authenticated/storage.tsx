@@ -34,7 +34,8 @@ function StoragePage() {
 
   if (!orgId) return <EmptyState title="Select an organization" />;
 
-  const buckets = new Map<string, typeof (data ?? [])>();
+  type Obj = NonNullable<typeof data>[number];
+  const buckets = new Map<string, Obj[]>();
   for (const o of data ?? []) {
     if (!buckets.has(o.bucket)) buckets.set(o.bucket, []);
     buckets.get(o.bucket)!.push(o);
