@@ -9,8 +9,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Restore Platform — Supabase backup, restore & migration" },
       { name: "description", content: "Production-grade Supabase backup, verified restore, scheduled disaster recovery and migration — with a real operations dashboard." },
-      { property: "og:title", content: "Restore Platform" },
-      { property: "og:description", content: "Production-grade Supabase backup, verified restore and disaster recovery." },
+      { property: "og:title", content: "Restore Platform — Supabase backup, restore & migration" },
+      { property: "og:description", content: "Production-grade Supabase backup, verified restore, scheduled disaster recovery and migration — with a real operations dashboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
