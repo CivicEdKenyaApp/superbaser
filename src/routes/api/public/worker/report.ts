@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
           if (j.errorCode) jobUpdate.error_code = j.errorCode;
           if (j.errorMessage) jobUpdate.error_message = j.errorMessage;
           if (j.result !== undefined) jobUpdate.result = j.result;
-          await supabaseAdmin.from("jobs").update(jobUpdate).eq("id", j.id);
+          await supabaseAdmin.from("jobs").update(jobUpdate as never).eq("id", j.id);
 
           const { data: jobRow } = await supabaseAdmin
             .from("jobs")
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/api/public/worker/report")({
             if (j.status === "succeeded") { bu.status = "completed"; bu.finished_at = new Date().toISOString(); }
             if (j.status === "failed") { bu.status = "failed"; bu.finished_at = new Date().toISOString(); bu.error_code = j.errorCode ?? null; bu.error_message = j.errorMessage ?? null; }
             if (j.status === "cancelled") { bu.status = "cancelled"; bu.finished_at = new Date().toISOString(); }
-            await supabaseAdmin.from("backups").update(bu).eq("id", jobRow.backup_id);
+            await supabaseAdmin.from("backups").update(bu as never).eq("id", jobRow.backup_id);
           }
           if (jobRow?.restore_id) {
             const ru: Record<string, unknown> = { updated_at: new Date().toISOString() };

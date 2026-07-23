@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/public/worker/claim")({
           .from("jobs")
           .select("id")
           .eq("status", "queued")
-          .in("kind", kinds)
+          .in("kind", kinds as ("backup"|"billing"|"cleanup"|"notification"|"restore"|"storage"|"verify")[])
           .lte("scheduled_for", new Date().toISOString())
           .order("priority", { ascending: true })
           .order("scheduled_for", { ascending: true })
