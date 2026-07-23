@@ -34,7 +34,9 @@ import {
   listRestores,
   listSchedules,
   listLogs,
-  getDashboardSummary
+  getDashboardSummary,
+  triggerBackup,
+  triggerRestore
 } from '../lib/queries';
 import {
   createOrganization,
@@ -44,6 +46,7 @@ import {
   updateOrganizationPlan
 } from '../lib/mutations';
 import { openPaystackCheckout } from '../lib/paystack';
+import AIAssistant from './AIAssistant';
 
 
 interface DashboardConsoleProps {
@@ -162,7 +165,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
         const mockOrg = {
           role: 'owner',
           organization: {
-            id: `org-${Math.random().toString(36).substring(7)}`,
+            id: crypto.randomUUID(),
             name: newOrgName.trim(),
             slug: newOrgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             plan: 'free',
@@ -312,7 +315,6 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     { id: 'logs', label: 'Logs', icon: Terminal },
     { id: 'organizations', label: 'Organizations', icon: Building2 },
     { id: 'billing', label: 'Billing', icon: CreditCard },
-    { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ];
 
@@ -504,15 +506,18 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <div className="flex items-center gap-3 max-sm:flex-col max-sm:w-full">
               <button
                 onClick={runBackup}
-                disabled={isBackupRunning}
-                className="button inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-ink text-white font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[5px_5px_0_#c6f806] disabled:opacity-50"
+                disabled={isBackupRunning || projectsData.length === 0}
+                className="button inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-ink text-white font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[5px_5px_0_#c6f806] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                title={projectsData.length === 0 ? "Connect a database first" : ""}
               >
                 {isBackupRunning ? <RefreshCw className="w-4 h-4 animate-spin text-orange mr-2" /> : <Play className="w-4 h-4 text-orange mr-2" />}
                 {isBackupRunning ? 'Running Backup...' : 'Run Backup Now'}
               </button>
               <button
                 onClick={handleDownloadDump}
-                className="inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-paper text-ink font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:bg-ink hover:text-paper"
+                disabled={projectsData.length === 0}
+                className="inline-flex items-center justify-center min-h-[48px] px-5 border border-ink bg-paper text-ink font-mono font-medium text-xs tracking-wider uppercase cursor-pointer transition-all duration-200 hover:bg-ink hover:text-paper disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-paper disabled:hover:text-ink"
+                title={projectsData.length === 0 ? "Connect a database first" : ""}
               >
                 <Download className="w-4 h-4 mr-2" /> Export SQL Dump
               </button>
@@ -700,12 +705,17 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   <h3 className="font-display font-bold text-xl uppercase">Backup Archive Snapshots</h3>
                   <p className="text-muted mt-1">Automated daily and manual pg_dump archives.</p>
                 </div>
-                <button onClick={runBackup} disabled={isBackupRunning} className="button px-4 py-2 border border-ink bg-ink text-white font-bold uppercase disabled:opacity-50">
+                <button onClick={runBackup} disabled={isBackupRunning || projectsData.length === 0} className="button px-4 py-2 border border-ink bg-ink text-white font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
                   + Create Snapshot
                 </button>
               </div>
               <div className="space-y-3">
-                {backupsData.length === 0 ? (
+                {projectsData.length === 0 ? (
+                  <div className="p-8 bg-panel border-2 border-dashed border-line text-center space-y-3">
+                    <div className="font-bold uppercase text-ink">No Connected Database</div>
+                    <div className="text-muted text-xs">You must connect a Supabase project first before you can trigger or view backups.</div>
+                  </div>
+                ) : backupsData.length === 0 ? (
                   <div className="p-4 bg-panel border border-line text-muted">No backups found. Trigger a snapshot to begin.</div>
                 ) : (
                   backupsData.map((b) => (
@@ -740,9 +750,12 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <p className="text-muted">
                   Ingests pg_dump SQL archives over Direct Connection 5432 using ON_ERROR_STOP=0 parameter to preserve existing Supabase system roles.
                 </p>
-                <button onClick={runRestore} disabled={isRestoreRunning} className="button px-5 py-3 border border-ink bg-acid text-ink font-bold uppercase hover:shadow-[4px_4px_0_#171714] transition-all disabled:opacity-50">
+                <button onClick={runRestore} disabled={isRestoreRunning || projectsData.length === 0} className="button px-5 py-3 border border-ink bg-acid text-ink font-bold uppercase hover:shadow-[4px_4px_0_#171714] transition-all disabled:opacity-50 disabled:cursor-not-allowed" title={projectsData.length === 0 ? "Connect a database first" : ""}>
                   {isRestoreRunning ? 'Restoring...' : 'Execute Restoration Pipeline ↗'}
                 </button>
+                {projectsData.length === 0 && (
+                  <p className="text-orange font-bold uppercase text-xs mt-3">Error: No target database connected.</p>
+                )}
               </div>
 
               {restoresData.length > 0 && (
@@ -882,18 +895,6 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
           {activeTab === 'billing' && (
             <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              {/* Unit Economics & Margin Transparency Banner */}
-              <div className="p-4 bg-ink text-paper border-2 border-orange space-y-2 font-mono">
-                <div className="flex justify-between items-center max-sm:flex-col max-sm:items-start max-sm:gap-2">
-                  <div className="text-orange font-bold uppercase text-[0.75rem]">⚡ Unit Economics & Margin Transparency Engine</div>
-                  <span className="bg-acid text-ink px-2 py-0.5 font-bold uppercase text-[0.65rem]">Estimated Gross Margin: 99.5%</span>
-                </div>
-                <div className="grid grid-cols-3 max-sm:grid-cols-1 gap-3 text-[0.68rem] text-[#aaa99f] pt-1">
-                  <div>• <strong>Compute per dump:</strong> ~$0.00012 (1/100th cent)</div>
-                  <div>• <strong>R2 Storage Egress:</strong> $0.00 (Unlimited Free)</div>
-                  <div>• <strong>Auto Garbage Collection:</strong> Active</div>
-                </div>
-              </div>
 
               <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
                 <div>
@@ -1030,18 +1031,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             </div>
           )}
 
-          {activeTab === 'settings' && (
-            <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
-              <div className="border-b border-line pb-4">
-                <h3 className="font-display font-bold text-xl uppercase">Engine Configuration & API Keys</h3>
-                <p className="text-muted mt-1">Manage API tokens and encrypted connection credentials.</p>
-              </div>
-              <div className="p-4 bg-panel border border-line space-y-2">
-                <div className="font-bold">Encryption Status:</div>
-                <div className="text-[#347000] font-bold">AES-256-GCM Envelope Encryption Enabled</div>
-              </div>
-            </div>
-          )}
+
 
           {activeTab === 'support' && (
             <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
@@ -1331,7 +1321,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
         </div>
       )}
 
-
+      <AIAssistant />
     </div>
   );
 }

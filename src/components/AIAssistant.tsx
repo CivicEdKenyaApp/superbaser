@@ -1,328 +1,228 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Bot, 
-  X, 
-  Send, 
-  Mic, 
-  Sparkles, 
-  Sliders, 
-  Database, 
-  RotateCcw, 
-  Calendar, 
-  ShieldCheck, 
-  CreditCard, 
-  Terminal, 
-  ArrowRight,
-  Maximize2,
-  Minimize2,
-  Volume2,
-  VolumeX,
-  CheckCircle2,
-  Copy,
-  Check
-} from 'lucide-react';
-
-export interface AIAssistantProps {
-  onNavigateTab: (tab: 'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings') => void;
-  onOpenConnectModal: () => void;
-  onTriggerBackup?: () => void;
-  userEmail?: string;
-}
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, X, Mic, Terminal, Code, Database, Zap } from 'lucide-react';
+import Lottie from 'lottie-react';
+import fireMicData from '../../context/Fire Mic Animation - LIstening_AI.json';
+import aiChatData from '../../context/AI Chat.json';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-  actions?: { label: string; action: () => void }[];
 }
 
-const WALLPAPER_PRESETS = [
-  { id: 'default', label: 'Default', value: null, preview: '#171714' },
-  { id: 'cosmos', label: 'Cosmos', value: 'linear-gradient(160deg,#0f0c29,#302b63,#24243e)', preview: '#302b63' },
-  { id: 'gold', label: 'Gold Dust', value: 'linear-gradient(160deg,#1a0e00,#3d2500,#1a0e00)', preview: '#3d2500' },
-  { id: 'forest', label: 'Forest', value: 'linear-gradient(160deg,#0a1a0f,#0d2f18,#071208)', preview: '#0d2f18' },
-  { id: 'nebula', label: 'Nebula', value: 'linear-gradient(160deg,#1a0020,#2d0035,#0d0015)', preview: '#2d0035' },
+const SUGGESTIONS = [
+  { id: '1', icon: Terminal, label: 'Write Postgres Function', prompt: 'Write a Postgres function to automatically calculate MRR.' },
+  { id: '2', icon: Database, label: 'Optimize Queries', prompt: 'Help me optimize my slow Supabase queries.' },
+  { id: '3', icon: Code, label: 'Generate RLS Policies', prompt: 'Generate secure RLS policies for a multi-tenant app.' },
+  { id: '4', icon: Zap, label: 'Setup Webhooks', prompt: 'How do I trigger an edge function on database insert?' }
 ];
 
-export default function AIAssistant({ onNavigateTab, onOpenConnectModal, onTriggerBackup, userEmail }: AIAssistantProps) {
+export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputText, setInputText] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [chatWallpaper, setChatWallpaper] = useState<string | null>(null);
-  const [showPersonalize, setShowPersonalize] = useState(false);
-
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 'welcome',
+      id: '1',
       role: 'assistant',
-      content: `Habari! I'm your SuperBaser AI Assistant. I can trigger physical backups, navigate your console, check RLS security policies, or manage Paystack subscriptions. How can I assist you?`,
-      timestamp: new Date(),
-      actions: [
-        { label: '⚡ Run Instant Backup', action: () => { onTriggerBackup?.(); } },
-        { label: '🔌 Connect Database', action: () => { onOpenConnectModal(); } },
-        { label: '💳 View Subscription', action: () => { onNavigateTab('billing'); } }
-      ]
+      content: 'Hello! I am your SuperBaser Copilot. How can I help you architect, secure, or optimize your database today?',
+      timestamp: new Date()
     }
   ]);
-
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SR) {
-        const rec = new SR();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = 'en-US';
-        rec.onresult = (e: any) => {
-          const transcript = e.results[0][0].transcript;
-          setInputText(transcript);
-          setIsListening(false);
-        };
-        rec.onerror = () => setIsListening(false);
-        rec.onend = () => setIsListening(false);
-        recognitionRef.current = rec;
-      }
-    }
-  }, []);
-
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isThinking]);
-
-  const toggleMic = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser.");
-      return;
-    }
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      setIsListening(true);
-      recognitionRef.current.start();
-    }
   };
 
-  const handleSend = (textToSend?: string) => {
-    const text = textToSend || inputText;
-    if (!text.trim() || isThinking) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
-    const userMsg: Message = {
-      id: `u-${Date.now()}`,
+  const handleSend = async (text: string) => {
+    if (!text.trim()) return;
+
+    const newUserMsg: Message = {
+      id: Date.now().toString(),
       role: 'user',
-      content: text.trim(),
+      content: text,
       timestamp: new Date()
     };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputText('');
-    setIsThinking(true);
+    setMessages(prev => [...prev, newUserMsg]);
+    setInputValue('');
+    setIsTyping(true);
 
-    setTimeout(() => {
-      const lower = text.toLowerCase();
-      let replyContent = "I've analyzed your query against your Supabase cluster.";
-      let actions: { label: string; action: () => void }[] = [];
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SB_GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            { role: 'system', content: 'You are SuperBaser Copilot, an expert Postgres and Supabase database architect. Provide concise, direct answers with code.' },
+            ...messages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: text }
+          ]
+        })
+      });
 
-      if (lower.includes('backup') || lower.includes('dump') || lower.includes('run')) {
-        replyContent = "I can trigger an automated pg_dump backup job via Cloudflare Containers for your active target database.";
-        actions = [{ label: '⚡ Execute Backup Now', action: () => { onTriggerBackup?.(); onNavigateTab('backups'); } }];
-      } else if (lower.includes('connect') || lower.includes('uri') || lower.includes('key') || lower.includes('project')) {
-        replyContent = "To connect a project, ensure you provide your Direct PostgreSQL Connection String (port 6543/5432).";
-        actions = [{ label: '🔌 Open Connect Modal', action: () => onOpenConnectModal() }];
-      } else if (lower.includes('billing') || lower.includes('paystack') || lower.includes('upgrade') || lower.includes('plan')) {
-        replyContent = "SuperBaser is integrated with Paystack inline checkout (Mwananchi & Taifa tiers).";
-        actions = [{ label: '💳 Manage Paystack Plan', action: () => onNavigateTab('billing') }];
-      } else if (lower.includes('restore') || lower.includes('disaster')) {
-        replyContent = "Disaster Recovery restores allow piping R2 SQL dumps directly into target PostgreSQL instances.";
-        actions = [{ label: '🔄 Open Restores Console', action: () => onNavigateTab('restores') }];
-      } else {
-        replyContent = `Got it! Running engine query for: "${text}". All operational metrics are healthy across your active organization.`;
-        actions = [
-          { label: '📊 View Dashboard', action: () => onNavigateTab('dashboard') },
-          { label: '📋 Realtime Logs', action: () => onNavigateTab('logs') }
-        ];
-      }
+      if (!response.ok) throw new Error('API Request Failed');
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          content: replyContent,
-          timestamp: new Date(),
-          actions
-        }
-      ]);
-      setIsThinking(false);
-    }, 600);
+      const data = await response.json();
+      const newAiMsg: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: data.choices[0].message.content,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, newAiMsg]);
+    } catch (error) {
+      const errorMsg: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'I encountered an error connecting to my inference engine. Please verify the API key is configured correctly.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 button p-4 bg-acid border-2 border-ink text-ink font-mono font-bold text-xs uppercase shadow-[6px_6px_0_#171714] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex items-center gap-2 group"
-        >
-          <Sparkles className="w-5 h-5 animate-pulse text-ink" />
-          <span>AI Copilot</span>
-        </button>
-      )}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-acid text-ink rounded-full shadow-[6px_6px_0_#171714] border-2 border-ink flex items-center justify-center cursor-pointer transition-colors hover:bg-orange p-1"
+          >
+            <Lottie animationData={aiChatData} loop={true} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      {/* Expandable Assistant Panel */}
-      {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-md h-[550px] bg-paper border-2 border-ink shadow-[14px_14px_0_#171714] flex flex-col font-mono text-xs overflow-hidden">
-          {/* Header */}
-          <div className="p-4 bg-ink text-paper flex items-center justify-between border-b-2 border-ink">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-acid text-ink flex items-center justify-center font-bold rounded-none">
-                <Bot className="w-4 h-4" />
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95, filter: 'blur(4px)' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 right-6 z-50 w-[420px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-48px)] bg-paper/95 backdrop-blur-xl border-2 border-ink shadow-[12px_12px_0_#171714] flex flex-col rounded-xl overflow-hidden font-mono"
+          >
+            {/* Header */}
+            <div className="bg-ink text-white p-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8">
+                  <Lottie animationData={aiChatData} loop={true} />
+                </div>
+                <h3 className="font-display font-bold text-lg uppercase tracking-wider m-0">SuperBaser Copilot</h3>
               </div>
-              <div>
-                <div className="font-bold uppercase tracking-wider text-orange">SuperBaser Copilot</div>
-                <div className="text-[0.62rem] text-[#aaa99f]">Autonomous Ops Assistant</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowPersonalize(!showPersonalize)} 
-                className="text-paper/70 hover:text-orange transition-colors"
-                title="Personalize Theme"
-              >
-                <Sliders className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="text-paper/70 hover:text-orange transition-colors"
-              >
+              <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
 
-          {/* Theme Selector Drawer */}
-          {showPersonalize && (
-            <div className="p-3 bg-panel border-b border-line flex items-center gap-2 overflow-x-auto text-[0.68rem]">
-              <span className="font-bold text-ink uppercase">Wallpaper:</span>
-              {WALLPAPER_PRESETS.map((preset) => (
+            {/* Liquid Island Suggestions */}
+            <div className="bg-ink/5 border-b border-line p-2 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2 shrink-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {SUGGESTIONS.map(s => (
                 <button
-                  key={preset.id}
-                  onClick={() => setChatWallpaper(preset.value)}
-                  className="px-2 py-1 border border-ink font-bold uppercase transition-transform active:scale-95"
-                  style={{ background: preset.preview, color: preset.id === 'default' ? '#fff' : '#fff' }}
+                  key={s.id}
+                  onClick={() => handleSend(s.prompt)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-line text-[0.7rem] uppercase tracking-wider font-bold text-ink hover:bg-acid hover:border-ink hover:shadow-[2px_2px_0_#171714] transition-all cursor-pointer"
                 >
-                  {preset.label}
+                  <s.icon className="w-3 h-3" />
+                  {s.label}
                 </button>
               ))}
             </div>
-          )}
 
-          {/* Message Stream */}
-          <div 
-            className="flex-1 p-4 overflow-y-auto space-y-4"
-            style={{ background: chatWallpaper || 'transparent' }}
-          >
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 border border-ink leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-ink text-white shadow-[3px_3px_0_#c6f806]'
-                      : 'bg-white text-ink shadow-[3px_3px_0_#171714]'
-                  }`}
-                >
-                  {msg.content}
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map(msg => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`max-w-[85%] p-3 text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-ink text-white rounded-2xl rounded-br-sm'
+                        : 'bg-panel border border-line text-ink rounded-2xl rounded-bl-sm shadow-[2px_2px_0_#171714]'
+                    }`}
+                  >
+                    {msg.content}
+                  </motion.div>
                 </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-panel border border-line text-ink rounded-2xl rounded-bl-sm p-3 shadow-[2px_2px_0_#171714] flex gap-1 items-center"
+                  >
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1.5 h-1.5 bg-ink rounded-full" />
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-ink rounded-full" />
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-ink rounded-full" />
+                  </motion.div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-                {/* Quick Action Chips */}
-                {msg.actions && msg.actions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {msg.actions.map((act, i) => (
-                      <button
-                        key={i}
-                        onClick={act.action}
-                        className="px-2.5 py-1 bg-acid text-ink border border-ink font-bold uppercase text-[0.65rem] hover:bg-orange transition-all shadow-[2px_2px_0_#171714]"
-                      >
-                        {act.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {isThinking && (
-              <div className="flex items-center gap-2 text-muted italic">
-                <Bot className="w-4 h-4 animate-spin text-orange" />
-                <span>Copilot processing pipeline request...</span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Prompt Suggestions */}
-          <div className="p-2 bg-panel border-t border-line flex gap-1.5 overflow-x-auto text-[0.65rem]">
-            <button
-              onClick={() => handleSend('How do I run a physical pg_dump backup?')}
-              className="px-2 py-1 bg-white border border-ink font-bold hover:bg-acid transition-colors whitespace-nowrap"
-            >
-              ⚡ Run Backup
-            </button>
-            <button
-              onClick={() => handleSend('How do I upgrade via Paystack?')}
-              className="px-2 py-1 bg-white border border-ink font-bold hover:bg-acid transition-colors whitespace-nowrap"
-            >
-              💳 Paystack Billing
-            </button>
-            <button
-              onClick={() => handleSend('Where is my connection string URI?')}
-              className="px-2 py-1 bg-white border border-ink font-bold hover:bg-acid transition-colors whitespace-nowrap"
-            >
-              🔌 Connection URI
-            </button>
-          </div>
-
-          {/* Input Area */}
-          <div className="p-3 bg-paper border-t-2 border-ink flex items-center gap-2">
-            <button
-              onClick={toggleMic}
-              className={`p-2 border border-ink font-bold uppercase transition-colors ${
-                isListening ? 'bg-orange text-ink animate-bounce' : 'bg-white text-ink hover:bg-panel'
-              }`}
-              title="Voice Control"
-            >
-              <Mic className="w-4 h-4" />
-            </button>
-
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask copilot or type command..."
-              className="flex-1 border border-ink bg-white px-3 py-2 text-xs outline-none focus:border-orange font-mono"
-            />
-
-            <button
-              onClick={() => handleSend()}
-              className="button p-2 bg-ink text-white border border-ink hover:bg-orange hover:text-ink transition-colors"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+            {/* Input */}
+            <div className="p-4 bg-paper border-t border-line shrink-0">
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSend(inputValue);
+                }}
+                className="relative flex items-center"
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsListening(!isListening)}
+                  className={`absolute left-2 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${isListening ? 'text-orange' : 'text-muted hover:text-ink'}`}
+                >
+                  {isListening ? (
+                    <Lottie animationData={fireMicData} loop={true} style={{ width: 40, height: 40 }} />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </button>
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  placeholder="Ask Copilot..."
+                  className="w-full h-12 pl-12 pr-12 bg-white border-2 border-ink rounded-full outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all font-mono text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim()}
+                  className="absolute right-2 w-8 h-8 bg-ink text-white rounded-full flex items-center justify-center disabled:opacity-50 disabled:bg-muted hover:bg-orange transition-colors"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

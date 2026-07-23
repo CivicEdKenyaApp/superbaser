@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 
 interface ContactProps {
   onLaunchConsole?: (projectRef?: string, serviceRoleKey?: string, initialData?: { name: string; email: string; orgName: string }) => void;
+  session?: any;
 }
 
-export default function Contact({ onLaunchConsole }: ContactProps) {
+export default function Contact({ onLaunchConsole, session }: ContactProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -79,8 +80,23 @@ export default function Contact({ onLaunchConsole }: ContactProps) {
           </div>
         </div>
 
-        <form
-          className="form p-[42px] max-sm:p-[28px_22px] bg-paper shadow-[12px_12px_0_#171714] max-sm:shadow-[7px_7px_0_#171714]"
+        {session && session.user && !session.user.is_anonymous ? (
+          <div className="form p-[42px] max-sm:p-[28px_22px] bg-paper shadow-[12px_12px_0_#171714] max-sm:shadow-[7px_7px_0_#171714] flex flex-col justify-center items-center text-center">
+            <div className="w-16 h-16 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#171714] rounded-full mb-6">
+              <span className="font-display font-bold text-2xl uppercase">{session.user.user_metadata?.full_name?.charAt(0) || session.user.email?.charAt(0) || 'U'}</span>
+            </div>
+            <h3 className="font-display font-bold text-3xl mb-2 uppercase">Welcome Back</h3>
+            <p className="text-muted font-mono text-sm mb-8">Signed in as {session.user.user_metadata?.email || session.user.email}</p>
+            <button
+              onClick={() => onLaunchConsole?.()}
+              className="button w-full px-[36px] max-sm:px-[24px] py-[18px] bg-ink text-white font-mono font-bold text-[0.85rem] leading-[1.3] uppercase tracking-[0.05em] cursor-pointer shadow-[6px_6px_0_#c6f806] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_#c6f806] transition-all duration-200"
+            >
+              Launch Console ↗
+            </button>
+          </div>
+        ) : (
+          <form
+            className="form p-[42px] max-sm:p-[28px_22px] bg-paper shadow-[12px_12px_0_#171714] max-sm:shadow-[7px_7px_0_#171714]"
           id="project-form"
           onSubmit={handleSubmit}
           noValidate
@@ -176,6 +192,7 @@ export default function Contact({ onLaunchConsole }: ContactProps) {
             </p>
           )}
         </form>
+        )}
       </div>
     </section>
   );

@@ -125,7 +125,7 @@ export default function App() {
           <Work />
           <Services />
           <Process />
-          <Contact onLaunchConsole={(ref, key) => handleLaunchConsole(ref, key)} />
+          <Contact onLaunchConsole={(ref, key) => handleLaunchConsole(ref, key)} session={session} />
         </main>
         <Footer />
         
