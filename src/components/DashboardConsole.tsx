@@ -27,24 +27,24 @@ import {
 } from 'lucide-react';
 import { executeSupabaseDiscovery, DiscoveryReportPayload } from '../../server/discoveryEngine';
 import { useAuthStore } from '../lib/auth-store';
-import { 
-  listMyOrganizations, 
-  listProjects, 
-  listBackups, 
-  listRestores, 
-  listSchedules, 
-  listLogs, 
-  getDashboardSummary 
+import {
+  listMyOrganizations,
+  listProjects,
+  listBackups,
+  listRestores,
+  listSchedules,
+  listLogs,
+  getDashboardSummary
 } from '../lib/queries';
-import { 
-  createOrganization, 
+import {
+  createOrganization,
   createProject,
-  enqueueBackup, 
+  enqueueBackup,
   enqueueRestore,
   updateOrganizationPlan
 } from '../lib/mutations';
 import { openPaystackCheckout } from '../lib/paystack';
-import AIAssistant from './AIAssistant';
+
 
 interface DashboardConsoleProps {
   projectRef: string;
@@ -59,7 +59,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   >('dashboard');
 
   const { user, organizations, setOrganizations, activeOrgId, setActiveOrgId, signOut } = useAuthStore();
-  
+
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
@@ -158,6 +158,26 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     e.preventDefault();
     if (!newOrgName.trim() || !user) return;
     try {
+      if (user.id === '00000000-0000-0000-0000-000000000000' || user.is_anonymous) {
+        const mockOrg = {
+          role: 'owner',
+          organization: {
+            id: `org-${Math.random().toString(36).substring(7)}`,
+            name: newOrgName.trim(),
+            slug: newOrgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            plan: 'free',
+            created_at: new Date().toISOString()
+          }
+        };
+        setOrganizations([mockOrg as any, ...organizations]);
+        setActiveOrgId(mockOrg.organization.id);
+        setNewOrgName('');
+        setIsCreateOrgModalOpen(false);
+        setIsOrgDropdownOpen(false);
+        setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Local Guest Organization "${newOrgName.trim()}" created.`, ...prev]);
+        return;
+      }
+
       const newOrg = await createOrganization(newOrgName.trim(), user.id);
       const updatedOrgs = await listMyOrganizations(user.id);
       setOrganizations(updatedOrgs);
@@ -173,7 +193,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
   const runBackup = async () => {
     if (isBackupRunning || !activeOrgId) return;
-    
+
     // In production, we'd enqueue the backup to Supabase first
     try {
       // Find the project ID or just use a mock for demonstration if no projects exist
@@ -223,7 +243,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
   const runRestore = async () => {
     if (isRestoreRunning || isBackupRunning || !activeOrgId) return;
-    
+
     try {
       const backupId = backupsData.length > 0 ? backupsData[0].id : null;
       const projectId = projectsData.length > 0 ? projectsData[0].id : null;
@@ -311,7 +331,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <ArrowLeft className="w-3.5 h-3.5" /> Landing Page
           </button>
           <div className="font-display font-extrabold text-xl tracking-[-0.06em]">
-            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-orange fill-current stroke-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z"/></svg>BASER <span className="font-mono font-normal text-xs text-[#aaa99f] ml-2 uppercase">Console</span>
+            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-orange fill-current stroke-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z" /></svg>BASER <span className="font-mono font-normal text-xs text-[#aaa99f] ml-2 uppercase">Console</span>
           </div>
         </div>
 
@@ -342,9 +362,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                           setActiveOrgId(org.organization.id);
                           setIsOrgDropdownOpen(false);
                         }}
-                        className={`w-full text-left px-3 py-2 font-mono text-xs uppercase font-medium transition-colors ${
-                          activeOrgId === org.organization.id ? 'bg-ink text-paper font-bold' : 'hover:bg-panel text-ink'
-                        }`}
+                        className={`w-full text-left px-3 py-2 font-mono text-xs uppercase font-medium transition-colors ${activeOrgId === org.organization.id ? 'bg-ink text-paper font-bold' : 'hover:bg-panel text-ink'
+                          }`}
                       >
                         {org.organization.name}
                       </button>
@@ -384,8 +403,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             {isUserMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-2 z-50 space-y-1 font-mono text-xs">
                 <div className="px-3 py-2 border-b border-line">
-                  <div className="font-bold text-ink truncate">{user?.email || 'Admin User'}</div>
-                  <div className="text-[0.68rem] text-muted truncate">ID: {user?.id.substring(0,8)}...</div>
+                  <div className="font-bold text-ink truncate">{user?.user_metadata?.email || user?.email || 'Guest User'}</div>
+                  <div className="text-[0.68rem] text-muted truncate">ID: {user?.id.substring(0, 8)}...</div>
                 </div>
                 <button
                   onClick={() => {
@@ -421,11 +440,10 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id as any)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border transition-all duration-200 ${
-                      isActive
-                        ? 'bg-ink text-paper border-ink font-bold shadow-[4px_4px_0_#c6f806]'
-                        : 'bg-transparent text-ink border-transparent hover:border-ink hover:bg-paper'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border transition-all duration-200 ${isActive
+                      ? 'bg-ink text-paper border-ink font-bold shadow-[4px_4px_0_#c6f806]'
+                      : 'bg-transparent text-ink border-transparent hover:border-ink hover:bg-paper'
+                      }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-orange' : 'text-muted'}`} />
                     {item.label}
@@ -444,16 +462,34 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             </div>
             <div className="flex justify-between">
               <span>PG Engine:</span>
-              <span>{discoveryData ? discoveryData.postgresVersion : 'PostgreSQL 15.6'}</span>
+              <span>{discoveryData?.postgresVersion || 'Unknown'}</span>
             </div>
             <div className="flex justify-between">
               <span>SSL Connection:</span>
-              <span className="text-ink font-bold">{discoveryData ? discoveryData.sslMode : 'Require (5432)'}</span>
+              <span className="text-ink font-bold">{discoveryData?.sslMode || 'Pending'}</span>
             </div>
           </div>
         </aside>
 
         <main className="flex-1 p-8 max-md:p-4 space-y-8 overflow-y-auto">
+          {organizations.length === 0 ? (
+            <div className="bg-paper p-8 border-2 border-ink shadow-[8px_8px_0_#171714] space-y-6 flex flex-col items-center justify-center text-center py-16 mt-12 max-w-3xl mx-auto">
+              <div className="w-20 h-20 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#171714] rounded-full mb-2">
+                <FolderGit2 className="w-10 h-10 text-ink" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-3xl uppercase tracking-tight text-ink">Step 1: Create an Organization</h3>
+                <p className="text-muted mt-3 max-w-md mx-auto text-sm leading-relaxed">You must create a parent organization before you can connect target databases or configure disaster recovery pipelines.</p>
+              </div>
+              <button
+                onClick={() => setIsCreateOrgModalOpen(true)}
+                className="button px-8 py-4 border-2 border-ink bg-ink text-white font-bold uppercase shadow-[6px_6px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors mt-6 tracking-wider"
+              >
+                + Create First Organization
+              </button>
+            </div>
+          ) : (
+            <>
           <div className="p-6 bg-paper border border-ink shadow-[8px_8px_0_#171714] flex max-md:flex-col items-start md:items-center justify-between gap-6">
             <div>
               <p className="eyebrow font-mono text-[0.7rem] uppercase tracking-widest text-muted m-0">Subpage Console View</p>
@@ -509,18 +545,51 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             </div>
           )}
 
-          {activeTab === 'dashboard' && (
+          {activeTab === 'dashboard' && projectsData.length === 0 && (
+            <div className="bg-paper p-8 border-2 border-ink shadow-[8px_8px_0_#171714] space-y-6 flex flex-col items-center justify-center text-center py-16">
+              <div className="w-16 h-16 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#c6f806] rounded-full mb-2">
+                <Database className="w-8 h-8 text-ink" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-2xl uppercase tracking-tight">No Connected Projects</h3>
+                <p className="text-muted mt-2 max-w-md mx-auto">Connect your first target Supabase database to start generating automated disaster recovery archives.</p>
+              </div>
+              <button
+                onClick={() => setShowConnectModal(true)}
+                className="button px-6 py-3 border-2 border-ink bg-ink text-white font-bold uppercase shadow-[4px_4px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors mt-4"
+              >
+                + Connect Target Database
+              </button>
+
+              {user?.id === '00000000-0000-0000-0000-000000000000' && (
+                <div className="mt-12 p-6 border border-line bg-panel text-left w-full max-w-2xl">
+                  <h4 className="font-bold text-orange uppercase flex items-center gap-2 mb-3">
+                    <ShieldCheck className="w-4 h-4" /> Temporary Anonymous Session
+                  </h4>
+                  <p className="text-xs text-muted leading-relaxed mb-4">
+                    You are currently using SuperBaser in an anonymous guest session. Any target projects or backups you configure now are temporary. 
+                    To permanently save your disaster recovery rules, you must claim your account.
+                  </p>
+                  <button onClick={() => alert('Claim account flow initiated (Integration pending)')} className="text-xs font-bold underline hover:text-orange">
+                    Claim Account / Sign Up ↗
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'dashboard' && projectsData.length > 0 && (
             <div className="space-y-8">
               <div className="grid grid-cols-4 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-6">
                 <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
                   <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Database Size</span>
-                    <Database className="w-4 h-4 text-orange" />
+                    <span>Monitored Projects</span>
+                    <FolderGit2 className="w-4 h-4 text-orange" />
                   </div>
-                  <div className="font-display font-bold text-3xl">{discoveryData ? discoveryData.databaseSize : '145.8 MB'}</div>
-                  <p className="font-mono text-[0.7rem] text-muted uppercase">
-                    {discoveryData ? `${discoveryData.tableCount} Tables` : '42 Tables'} · 19 Functions
-                  </p>
+                  <div className="font-display font-bold text-3xl">
+                    {summaryData?.projectsCount || projectsData.length || 0}
+                  </div>
+                  <p className="font-mono text-[0.7rem] text-muted uppercase">Configured Targets</p>
                 </div>
 
                 <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
@@ -529,7 +598,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                     <HardDrive className="w-4 h-4 text-orange" />
                   </div>
                   <div className="font-display font-bold text-3xl">
-                    {summaryData ? `${(summaryData.storageBytes / (1024*1024)).toFixed(1)} MB` : (discoveryData ? `${discoveryData.storageBucketsCount} Buckets` : '2 Buckets')}
+                    {summaryData ? `${(summaryData.storageBytes / (1024 * 1024)).toFixed(1)} MB` : '0 MB'}
                   </div>
                   <p className="font-mono text-[0.7rem] text-muted uppercase">
                     Total Backup Archive Volume
@@ -538,13 +607,13 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
                 <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
                   <div className="flex justify-between font-mono text-xs uppercase text-muted">
-                    <span>Monitored Projects</span>
-                    <FolderGit2 className="w-4 h-4 text-orange" />
+                    <span>Active Schedules</span>
+                    <Calendar className="w-4 h-4 text-orange" />
                   </div>
                   <div className="font-display font-bold text-3xl">
-                    {summaryData ? summaryData.projectsCount : (projectsData.length || '1')}
+                    {summaryData?.schedulesEnabled || 0}
                   </div>
-                  <p className="font-mono text-[0.7rem] text-muted uppercase">Configured Targets</p>
+                  <p className="font-mono text-[0.7rem] text-muted uppercase">Cron Executions</p>
                 </div>
 
                 <div className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] space-y-2">
@@ -553,55 +622,35 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                     <Play className="w-4 h-4 text-[#347000]" />
                   </div>
                   <div className="font-display font-bold text-3xl">
-                    {summaryData ? summaryData.runningJobs : '0'}
+                    {summaryData?.runningJobs || 0}
                   </div>
                   <p className="font-mono text-[0.7rem] text-[#347000] font-bold uppercase">Executing in Background</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-6">
-                <div className="bg-paper p-6 border border-ink space-y-4 font-mono text-xs">
-                  <div className="flex justify-between border-b border-line pb-3">
-                    <span className="font-display font-bold text-lg uppercase">PostgreSQL Catalog</span>
-                    <span className="text-muted">public schema</span>
-                  </div>
-                  <div className="space-y-2">
-                    {(discoveryData ? discoveryData.tables : [
-                      { table: 'public.profiles', rows: '1,420 rows', size: '2.4 MB' },
-                      { table: 'public.legislative_bills', rows: '842 rows', size: '14.8 MB' },
-                      { table: 'public.contact_submissions', rows: '312 rows', size: '1.1 MB' },
-                      { table: 'public.audit_logs', rows: '14,890 rows', size: '48.2 MB' }
-                    ]).map((t, idx) => (
-                      <div key={idx} className="flex justify-between p-3 bg-panel border border-line">
-                        <span className="font-bold">{t.table}</span>
-                        <span className="text-muted">{t.rows} · {t.size}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-paper p-6 border border-ink space-y-4 font-mono text-xs">
-                  <div className="flex justify-between border-b border-line pb-3">
-                    <span className="font-display font-bold text-lg uppercase">Storage Buckets</span>
-                    <span className="text-muted">REST API</span>
-                  </div>
-                  <div className="space-y-3">
-                    {(discoveryData ? discoveryData.buckets : [
-                      { bucket: 'avatars', public: true, files: '142 files', size: '10.5 MB' },
-                      { bucket: 'documents', public: false, files: '12 files', size: '52.4 MB' }
-                    ]).map((b, idx) => (
-                      <div key={idx} className="p-3 bg-panel border border-line space-y-1">
-                        <div className="flex justify-between font-bold">
-                          <span>/{b.bucket}</span>
-                          <span className="text-orange uppercase">{b.public ? 'PUBLIC' : 'PRIVATE'}</span>
+              <div className="space-y-4">
+                <h3 className="font-display font-bold text-xl uppercase tracking-tight">Connected Projects ({projectsData.length})</h3>
+                <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-6">
+                  {projectsData.map((project) => (
+                    <div key={project.id} className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-bold text-lg uppercase truncate">{project.name}</h4>
+                            <p className="text-muted text-xs font-mono">{project.supabase_project_ref}</p>
+                          </div>
+                          <span className={`px-2 py-1 text-[0.6rem] font-bold uppercase ${project.status === 'active' ? 'bg-[#347000]/10 text-[#347000]' : 'bg-[#347000]/10 text-[#347000]'}`}>
+                            {project.status || 'Active'}
+                          </span>
                         </div>
-                        <div className="flex justify-between text-muted text-[0.7rem]">
-                          <span>{b.files}</span>
-                          <span>{b.size}</span>
-                        </div>
+                        <div className="text-xs font-mono text-muted">Region: {project.region}</div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="pt-4 border-t border-line flex justify-between items-center text-xs font-mono">
+                        <button onClick={() => setActiveTab('backups')} className="text-ink hover:text-orange font-bold uppercase">View Backups ↗</button>
+                        <span className="text-muted">Last sync: {project.last_inventory_at ? new Date(project.last_inventory_at).toLocaleDateString() : 'Pending'}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -631,7 +680,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                       </div>
                       <div className="p-4 bg-panel border border-line space-y-1">
                         <div className="text-muted">Postgres Version</div>
-                        <div className="font-bold text-sm text-ink">{p.postgres_version || discoveryData?.postgresVersion || 'PostgreSQL 15.6'}</div>
+                        <div className="font-bold text-sm text-ink">{p.postgres_version || discoveryData?.postgresVersion || 'Unknown'}</div>
                       </div>
                       <div className="p-4 bg-panel border border-line space-y-1">
                         <div className="text-muted">Region</div>
@@ -662,8 +711,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   backupsData.map((b) => (
                     <div key={b.id} className="flex max-sm:flex-col justify-between items-center p-4 bg-panel border border-line gap-4">
                       <div>
-                        <div className="font-bold text-sm">{b.id.substring(0,18)}... (FULL DUMP)</div>
-                        <div className="text-muted text-[0.7rem]">{new Date(b.created_at).toLocaleString()} · {(b.bytes_total / (1024*1024)).toFixed(1)} MB</div>
+                        <div className="font-bold text-sm">{b.id.substring(0, 18)}... (FULL DUMP)</div>
+                        <div className="text-muted text-[0.7rem]">{new Date(b.created_at).toLocaleString()} · {(b.bytes_total / (1024 * 1024)).toFixed(1)} MB</div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`px-2 py-1 font-bold text-[0.65rem] uppercase ${b.status === 'completed' || b.status === 'verified' ? 'bg-[#347000]/10 text-[#347000]' : (b.status === 'pending' || b.status === 'running' ? 'bg-orange/10 text-orange' : 'bg-red-500/10 text-red-500')}`}>
@@ -695,14 +744,14 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   {isRestoreRunning ? 'Restoring...' : 'Execute Restoration Pipeline ↗'}
                 </button>
               </div>
-              
+
               {restoresData.length > 0 && (
                 <div className="space-y-3 mt-6">
                   <h4 className="font-bold uppercase mb-2">Restore History</h4>
                   {restoresData.map(r => (
                     <div key={r.id} className="flex justify-between items-center p-3 bg-panel border border-line">
                       <div>
-                        <div className="font-bold">{r.id.substring(0,8)}... to Project {r.destination_project_id?.substring(0,8)}</div>
+                        <div className="font-bold">{r.id.substring(0, 8)}... to Project {r.destination_project_id?.substring(0, 8)}</div>
                         <div className="text-muted text-[0.7rem]">{new Date(r.created_at).toLocaleString()}</div>
                       </div>
                       <span className="font-bold uppercase text-xs">{r.status}</span>
@@ -721,12 +770,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               </div>
               <div className="space-y-3">
                 {schedulesData.length === 0 ? (
-                  <div className="p-4 bg-panel border border-line flex justify-between items-center">
-                    <div>
-                      <div className="font-bold">Daily Database Snapshot</div>
-                      <div className="text-muted text-[0.7rem]">Every day at 03:00 UTC · Retain for 90 days</div>
-                    </div>
-                    <span className="px-2 py-1 bg-acid text-ink font-bold">MOCK ACTIVE</span>
+                  <div className="p-4 bg-panel border border-line text-muted">
+                    No active schedules configured. Add a subscription plan to enable automated cron schedules.
                   </div>
                 ) : (
                   schedulesData.map(s => (
@@ -758,11 +803,11 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 </div>
                 <div className="flex justify-between text-muted">
                   <span>Catalog Table Count:</span>
-                  <span>{discoveryData?.tableCount || 42} / {discoveryData?.tableCount || 42} Verified</span>
+                  <span>{discoveryData?.tableCount || 0} / {discoveryData?.tableCount || 0} Verified</span>
                 </div>
                 <div className="flex justify-between text-muted">
                   <span>Storage Object Count:</span>
-                  <span>{discoveryData?.storageBucketsCount || 2} Buckets Verified</span>
+                  <span>{discoveryData?.storageBucketsCount || 0} Buckets Verified</span>
                 </div>
               </div>
             </div>
@@ -775,15 +820,14 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <p className="text-muted mt-1">Supabase Storage buckets and object sync metadata.</p>
               </div>
               <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
-                {(discoveryData ? discoveryData.buckets : [
-                  { bucket: 'avatars', public: true, files: '142 files', size: '10.5 MB' },
-                  { bucket: 'documents', public: false, files: '12 files', size: '52.4 MB' }
-                ]).map((b, idx) => (
+                {discoveryData?.buckets?.length ? discoveryData.buckets.map((b, idx) => (
                   <div key={idx} className="p-4 bg-panel border border-line space-y-2">
                     <div className="font-bold text-sm">/{b.bucket}</div>
                     <div className="text-muted">{b.files} · {b.public ? 'Public' : 'Private'} Bucket · {b.size}</div>
                   </div>
-                ))}
+                )) : (
+                  <div className="p-4 bg-panel border border-line text-muted col-span-2">No storage buckets synced yet.</div>
+                )}
               </div>
             </div>
           )}
@@ -861,17 +905,15 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <div className="flex items-center gap-2 p-1 bg-panel border border-ink font-mono text-[0.7rem] uppercase">
                   <button
                     onClick={() => setBillingCycle('monthly')}
-                    className={`px-3 py-1.5 font-bold transition-all ${
-                      billingCycle === 'monthly' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
-                    }`}
+                    className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'monthly' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
+                      }`}
                   >
                     Monthly Billing
                   </button>
                   <button
                     onClick={() => setBillingCycle('annual')}
-                    className={`px-3 py-1.5 font-bold transition-all ${
-                      billingCycle === 'annual' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
-                    }`}
+                    className={`px-3 py-1.5 font-bold transition-all ${billingCycle === 'annual' ? 'bg-ink text-paper shadow-[2px_2px_0_#c6f806]' : 'text-ink hover:text-orange'
+                      }`}
                   >
                     Annual (Save 20%)
                   </button>
@@ -921,7 +963,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   </div>
                   <button
                     onClick={() => {
-                      const planCode = billingCycle === 'monthly' 
+                      const planCode = billingCycle === 'monthly'
                         ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
                         : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
 
@@ -1014,6 +1056,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 </a>
               </div>
             </div>
+          )}
+          </>
           )}
         </main>
       </div>
@@ -1207,7 +1251,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   const updatedProjects = await listProjects(activeOrgId);
                   setProjectsData(updatedProjects);
                   setShowConnectModal(false);
-                  
+
                   setLogs((prev) => [
                     `[${new Date().toLocaleTimeString()}] Target Project "${newProj.name}" (${projectRefExtracted}) connected securely.`,
                     `[${new Date().toLocaleTimeString()}] Direct Connection String validated for physical pg_dump engine.`,
@@ -1287,20 +1331,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
         </div>
       )}
 
-      {/* In-App SuperBaser AI Assistant Copilot */}
-      <AIAssistant 
-        onNavigateTab={(tab) => setActiveTab(tab)}
-        onOpenConnectModal={() => setShowConnectModal(true)}
-        onTriggerBackup={() => {
-          if (projectsData.length > 0 && activeOrgId) {
-            enqueueBackup(activeOrgId, projectsData[0].id);
-            setLogs((prev) => [`[${new Date().toLocaleTimeString()}] AI Copilot enqueued pg_dump backup job.`, ...prev]);
-          } else {
-            setShowConnectModal(true);
-          }
-        }}
-        userEmail={user?.email}
-      />
+
     </div>
   );
 }

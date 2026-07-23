@@ -56,6 +56,7 @@ export default function App() {
             data: {
               full_name: initialData?.name || 'SuperBaser Guest',
               org_name: initialData?.orgName || 'Demo Org',
+              email: initialData?.email || 'guest@superbaser.com'
             }
           }
         });

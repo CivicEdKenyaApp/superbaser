@@ -45,15 +45,14 @@ export default function Header({ onLaunchConsole }: HeaderProps) {
       <header className="relative z-20 border-b border-line">
         <nav className="nav shell min-h-[86px] max-md:min-h-[72px] grid grid-cols-[1fr_auto_1fr] max-md:grid-cols-[1fr_auto] items-center gap-6" aria-label="Primary navigation">
           <a href="#top" className="brand w-max no-underline font-display font-extrabold text-[1.3rem] leading-none tracking-[-0.06em]">
-            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-orange fill-current stroke-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z"/></svg>BASER
+            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-orange fill-current stroke-[#303a09]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z" /></svg>BASER
           </a>
 
           {/* Desktop Nav Links */}
           <div
             id="nav-links"
-            className={`nav-links flex gap-9 max-md:fixed max-md:inset-0 max-md:z-20 max-md:flex-col max-md:justify-center max-md:items-center max-md:gap-[38px] max-md:bg-acid max-md:transition-transform max-md:duration-450 max-md:ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isMenuOpen ? 'max-md:translate-y-0' : 'max-md:-translate-y-[101%]'
-            }`}
+            className={`nav-links flex gap-9 max-md:fixed max-md:inset-0 max-md:z-20 max-md:flex-col max-md:justify-center max-md:items-center max-md:gap-[38px] max-md:bg-acid max-md:transition-transform max-md:duration-450 max-md:ease-[cubic-bezier(0.22,1,0.36,1)] ${isMenuOpen ? 'max-md:translate-y-0' : 'max-md:-translate-y-[101%]'
+              }`}
           >
             <a
               href="#work"
