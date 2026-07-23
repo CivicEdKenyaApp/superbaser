@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import DashboardConsole from './components/DashboardConsole';
 import AuthModal from './components/AuthModal';
 import ClickSpark from './components/ClickSpark';
+import { SEO } from './components/SEO';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
@@ -50,26 +51,8 @@ export default function App() {
     const activeSession = sessionData?.session;
 
     if (!activeSession) {
-      try {
-        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously({
-          options: {
-            data: {
-              full_name: initialData?.name || 'SuperBaser Guest',
-              org_name: initialData?.orgName || 'Demo Org',
-              email: initialData?.email || 'guest@superbaser.com'
-            }
-          }
-        });
+      // Create a local guest session since anonymous sign-ins are disabled by default
 
-        if (!anonError && anonData.session) {
-          setSession(anonData.session);
-          return;
-        }
-      } catch (e) {
-        console.warn('Anonymous sign-in not available on Supabase instance:', e);
-      }
-
-      // If anonymous sign in is disabled on Supabase, create a local guest session
       setSession({
         access_token: 'guest_token',
         token_type: 'bearer',
@@ -104,20 +87,25 @@ export default function App() {
 
   if (currentView === 'console') {
     return (
-      <ClickSpark sparkColor="#3FCF8E" sparkSize={14} sparkRadius={28} sparkCount={12} duration={500}>
-        <DashboardConsole
-          projectRef={activeProjectRef}
-          serviceRoleKey={activeServiceRoleKey}
-          onBackToLanding={handleBackToLanding}
-        />
-      </ClickSpark>
+      <>
+        <SEO title="SuperBaser Console — Dashboard" />
+        <ClickSpark sparkColor="#3FCF8E" sparkSize={14} sparkRadius={28} sparkCount={12} duration={500}>
+          <DashboardConsole
+            projectRef={activeProjectRef}
+            serviceRoleKey={activeServiceRoleKey}
+            onBackToLanding={handleBackToLanding}
+          />
+        </ClickSpark>
+      </>
     );
   }
 
   return (
-    <ClickSpark sparkColor="#3FCF8E" sparkSize={14} sparkRadius={28} sparkCount={12} duration={500}>
-      <div className="relative min-h-screen bg-paper text-ink font-body selection:bg-acid selection:text-ink">
-        <div className="noise" aria-hidden="true"></div>
+    <>
+      <SEO />
+      <ClickSpark sparkColor="#3FCF8E" sparkSize={14} sparkRadius={28} sparkCount={12} duration={500}>
+        <div className="relative min-h-screen bg-paper text-ink font-body selection:bg-acid selection:text-ink">
+          <div className="noise" aria-hidden="true"></div>
         <Header onLaunchConsole={() => handleLaunchConsole()} />
         <main id="main">
           <Hero onLaunchConsole={() => handleLaunchConsole()} />
@@ -140,5 +128,6 @@ export default function App() {
         )}
       </div>
     </ClickSpark>
+    </>
   );
 }

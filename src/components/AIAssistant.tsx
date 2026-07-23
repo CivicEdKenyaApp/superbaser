@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, Mic, Terminal, Code, Database, Zap } from 'lucide-react';
 import Lottie from 'lottie-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import fireMicData from '../../context/Fire Mic Animation - LIstening_AI.json';
 import aiChatData from '../../context/AI Chat.json';
 
@@ -168,7 +170,15 @@ export default function AIAssistant() {
                         : 'bg-panel border border-line text-ink rounded-2xl rounded-bl-sm shadow-[2px_2px_0_#171714]'
                     }`}
                   >
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <div className="prose prose-sm prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:text-xs">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      msg.content
+                    )}
                   </motion.div>
                 </div>
               ))}
