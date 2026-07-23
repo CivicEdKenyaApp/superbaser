@@ -25,7 +25,7 @@ export default function AIAssistant() {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I am your SuperBaser Copilot. How can I help you architect, secure, or optimize your database today?',
+      content: 'Hello! I am your SUPERB AI. How can I help you architect, secure, or optimize your database today?',
       timestamp: new Date()
     }
   ]);
@@ -66,7 +66,7 @@ export default function AIAssistant() {
         body: JSON.stringify({
           model: 'llama3-8b-8192',
           messages: [
-            { role: 'system', content: 'You are SuperBaser Copilot, an expert Postgres and Supabase database architect. Provide concise, direct answers with code.' },
+            { role: 'system', content: 'You are SUPERB AI, an expert Postgres and Supabase database architect. Provide concise, direct answers with code.' },
             ...messages.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: text }
           ]
@@ -130,7 +130,7 @@ export default function AIAssistant() {
                 <div className="w-8 h-8">
                   <Lottie animationData={aiChatData} loop={true} />
                 </div>
-                <h3 className="font-display font-bold text-lg uppercase tracking-wider m-0">SuperBaser Copilot</h3>
+                <h3 className="font-display font-bold text-lg uppercase tracking-wider m-0">SUPERB AI</h3>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
@@ -208,7 +208,7 @@ export default function AIAssistant() {
                   type="text"
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
-                  placeholder="Ask Copilot..."
+                  placeholder="Ask SUPERB AI..."
                   className="w-full h-12 pl-12 pr-12 bg-white border-2 border-ink rounded-full outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all font-mono text-sm"
                 />
                 <button

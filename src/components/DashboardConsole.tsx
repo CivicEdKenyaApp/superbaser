@@ -34,9 +34,7 @@ import {
   listRestores,
   listSchedules,
   listLogs,
-  getDashboardSummary,
-  triggerBackup,
-  triggerRestore
+  getDashboardSummary
 } from '../lib/queries';
 import {
   createOrganization,
