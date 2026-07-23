@@ -13,9 +13,9 @@ import { formatDateTime } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/verification")({
   head: () => ({
     meta: [
-      { title: "Verification — Restore Platform" },
+      { title: "Verification - Restore Platform" },
       { name: "description", content: "Side-by-side source and destination comparison for every restore." },
-      { property: "og:title", content: "Verification — Restore Platform" },
+      { property: "og:title", content: "Verification - Restore Platform" },
       { property: "og:description", content: "Side-by-side source and destination comparison." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -71,9 +71,9 @@ function VerifyPage() {
                         {items.map(([k, v]) => (
                           <tr key={k}>
                             <td className="py-2 capitalize">{k}</td>
-                            <td className="py-2">{v.source ?? "—"}</td>
-                            <td className="py-2">{v.destination ?? "—"}</td>
-                            <td className="py-2">{v.status ?? "—"}</td>
+                            <td className="py-2">{v.source ?? "-"}</td>
+                            <td className="py-2">{v.destination ?? "-"}</td>
+                            <td className="py-2">{v.status ?? "-"}</td>
                           </tr>
                         ))}
                       </tbody>

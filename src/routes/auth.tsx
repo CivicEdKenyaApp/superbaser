@@ -12,9 +12,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Restore Platform" },
+      { title: "Sign in - Restore Platform" },
       { name: "description", content: "Sign in or create an account for Restore Platform, the operations dashboard for Supabase backup and restore." },
-      { property: "og:title", content: "Sign in — Restore Platform" },
+      { property: "og:title", content: "Sign in - Restore Platform" },
       { property: "og:description", content: "Sign in to Restore Platform." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

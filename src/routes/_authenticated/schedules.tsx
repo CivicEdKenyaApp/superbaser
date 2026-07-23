@@ -21,9 +21,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/schedules")({
   head: () => ({
     meta: [
-      { title: "Schedules — Restore Platform" },
+      { title: "Schedules - Restore Platform" },
       { name: "description", content: "Cron-based schedules for automatic backups across every connected project." },
-      { property: "og:title", content: "Schedules — Restore Platform" },
+      { property: "og:title", content: "Schedules - Restore Platform" },
       { property: "og:description", content: "Cron-based schedules for automatic backups." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -6,9 +6,9 @@ import { GlassCard, SubtleCard } from "@/components/ui-ext/GlassCard";
 export const Route = createFileRoute("/_authenticated/support")({
   head: () => ({
     meta: [
-      { title: "Support — Restore Platform" },
+      { title: "Support - Restore Platform" },
       { name: "description", content: "Docs, runbooks and support channels for Restore Platform." },
-      { property: "og:title", content: "Support — Restore Platform" },
+      { property: "og:title", content: "Support - Restore Platform" },
       { property: "og:description", content: "Docs, runbooks and support channels." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

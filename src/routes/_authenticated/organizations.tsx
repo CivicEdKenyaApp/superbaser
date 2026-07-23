@@ -19,9 +19,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/organizations")({
   head: () => ({
     meta: [
-      { title: "Organizations — Restore Platform" },
+      { title: "Organizations - Restore Platform" },
       { name: "description", content: "Manage organizations, roles and members across your Restore Platform workspace." },
-      { property: "og:title", content: "Organizations — Restore Platform" },
+      { property: "og:title", content: "Organizations - Restore Platform" },
       { property: "og:description", content: "Manage organizations, roles and members." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -4,22 +4,22 @@ const workItems = [
   {
     num: '01',
     name: 'Automated DB & Schema Dump',
-    meta: ['Direct 5432 PG Connection', 'Plain & Custom Archive Formats'],
+    meta: ['Runs automatically', 'No setup after day one'],
   },
   {
     num: '02',
     name: 'Storage Asset Sync',
-    meta: ['Multi-bucket REST sync', 'Metadata alignment & upsert'],
+    meta: ['Every bucket, every file', 'Nothing gets left behind'],
   },
   {
     num: '03',
     name: 'Disaster Recovery & Restores',
-    meta: ['Idempotent psql ingestion', 'ON_ERROR_STOP=0 pre-created roles'],
+    meta: ['One click to restore', 'Works even on a fresh project'],
   },
   {
     num: '04',
     name: 'Data Integrity Audit',
-    meta: ['SHA-256 Checksum validation', 'Table & file count verification'],
+    meta: ['Every backup is checked', 'No surprises on restore day'],
   },
 ];
 

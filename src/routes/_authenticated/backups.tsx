@@ -14,9 +14,9 @@ import { Progress } from "@/components/ui/progress";
 export const Route = createFileRoute("/_authenticated/backups")({
   head: () => ({
     meta: [
-      { title: "Backups — Restore Platform" },
+      { title: "Backups - Restore Platform" },
       { name: "description", content: "Every backup captured across every connected Supabase project, with live progress and verification status." },
-      { property: "og:title", content: "Backups — Restore Platform" },
+      { property: "og:title", content: "Backups - Restore Platform" },
       { property: "og:description", content: "Every backup across every connected Supabase project." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -63,7 +63,7 @@ function BackupsPage() {
                   <tr key={b.id}>
                     <td className="p-4 font-mono text-xs">{b.id.slice(0, 8)}</td>
                     <td className="p-4"><StatusBadge status={b.status} /></td>
-                    <td className="p-4 text-muted-foreground">{b.stage ?? "—"}</td>
+                    <td className="p-4 text-muted-foreground">{b.stage ?? "-"}</td>
                     <td className="p-4 w-40">
                       <Progress value={Number(b.progress_percent ?? 0)} />
                       <div className="mt-1 text-xs text-muted-foreground">{Number(b.progress_percent ?? 0).toFixed(0)}%</div>

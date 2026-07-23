@@ -88,7 +88,7 @@ export default function App() {
   if (currentView === 'console') {
     return (
       <>
-        <SEO title="SuperBaser Console — Dashboard" />
+        <SEO title="SuperBaser Console - Dashboard" />
         <ClickSpark sparkColor="#3FCF8E" sparkSize={14} sparkRadius={28} sparkCount={12} duration={500}>
           <DashboardConsole
             projectRef={activeProjectRef}

@@ -19,9 +19,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/projects")({
   head: () => ({
     meta: [
-      { title: "Projects — Restore Platform" },
+      { title: "Projects - Restore Platform" },
       { name: "description", content: "Connect Supabase projects for backup, restore, verification and scheduled recovery." },
-      { property: "og:title", content: "Projects — Restore Platform" },
+      { property: "og:title", content: "Projects - Restore Platform" },
       { property: "og:description", content: "Connect Supabase projects for backup and restore." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

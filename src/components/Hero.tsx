@@ -23,15 +23,17 @@ export default function Hero({ onLaunchConsole }: HeroProps) {
             Supabase Disaster Recovery & Operations Platform
           </p>
           <h1 className="hero-title max-w-[1000px] my-9 max-md:my-6 font-display font-bold text-[clamp(4.8rem,10.2vw,9rem)] max-md:text-[clamp(4rem,15vw,7.5rem)] leading-[0.82] tracking-[-0.085em] uppercase">
-            <span className="block">Automated</span>
+            <span className="block">Restore</span>
             <span className="text-outline block pl-[clamp(20px,8vw,130px)] max-md:pl-5">Supabase</span>
             <span className="highlight relative inline-block">
-              restores & sync.
+              backups
+              <span className="text-outline block pl-[clamp(20px,8vw,130px)] max-md:pl-5">no-stress.</span>
               <span className="absolute -left-[3%] -right-[5%] bottom-[3%] h-[18%] -z-10 bg-acid animate-draw origin-left"></span>
             </span>
           </h1>
           <div className="hero-copy max-w-[520px] ml-[clamp(0px,18vw,250px)] max-md:ml-0 text-[clamp(1.05rem,1.5vw,1.35rem)] leading-[1.55]">
-            SuperBaser provides <strong>automated database, storage asset, RLS policy, and auth state backups</strong> with 1-click disaster recovery and project cloning across regions.
+            One bad migration, one paused project, one dropped table - and it's gone.
+            <br /> <strong className="relative inline-block z-10 text-ink">SuperBaser<span className="absolute -left-[4%] -right-[4%] bottom-[8%] h-[35%] -z-10 bg-acid animate-draw origin-left"></span></strong> backs up your <strong>database, files, and users automatically</strong>, so getting it all back is one click, not a support ticket.
             <div className="hero-actions flex max-sm:flex-col items-center max-sm:items-start gap-[24px] mt-[34px]">
               <a
                 href="#contact"

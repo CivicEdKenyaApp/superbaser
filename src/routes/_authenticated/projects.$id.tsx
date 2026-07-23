@@ -16,9 +16,9 @@ import { useNavigate } from "@tanstack/react-router";
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   head: ({ params }) => ({
     meta: [
-      { title: `Project ${params.id.slice(0, 8)} — Restore Platform` },
+      { title: `Project ${params.id.slice(0, 8)} - Restore Platform` },
       { name: "description", content: "Project detail: backups, schedules, credentials, verification history." },
-      { property: "og:title", content: "Project — Restore Platform" },
+      { property: "og:title", content: "Project - Restore Platform" },
       { property: "og:description", content: "Backups, schedules and verification for a connected Supabase project." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -92,7 +92,7 @@ function ProjectDetail() {
       <div className="grid gap-4 md:grid-cols-3">
         <SubtleCard>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Status</div>
-          <div className="mt-1 text-lg font-semibold">{p?.status ?? "—"}</div>
+          <div className="mt-1 text-lg font-semibold">{p?.status ?? "-"}</div>
         </SubtleCard>
         <SubtleCard>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Postgres version</div>

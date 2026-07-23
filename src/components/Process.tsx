@@ -3,19 +3,19 @@ import React from 'react';
 const steps = [
   {
     title: 'Connect & Validate',
-    desc: 'Establish direct PostgreSQL 5432 and REST credentials. Validate SSL mode and Postgres major version compatibility.',
+    desc: 'Sign in and link your Supabase project in a couple of minutes. We check everything is compatible before anything else happens.',
   },
   {
     title: 'Discover Catalog',
-    desc: 'Inspect system catalogs, enumerate application schemas, capture Auth users, list Storage buckets, and measure payload sizes.',
+    desc: 'A quick scan of what you have - your tables, your users, your storage buckets - so we know exactly what needs protecting.',
   },
   {
     title: 'Extract & Sync',
-    desc: 'Execute pg_dump with custom/plain formatting, download object assets via Storage REST API, and generate SHA-256 manifest.',
+    desc: 'Your database and your files get backed up automatically, and every backup is checked so you know it’s actually good.',
   },
   {
     title: 'Restore & Cutover',
-    desc: 'Ingest database dump with ON_ERROR_STOP=0, recreate buckets, upload assets with upsert=true, verify logs, and update env keys.',
+    desc: 'One click rebuilds your project - database, files, and all - into a new Supabase project. No manual cleanup after.',
   },
 ];
 

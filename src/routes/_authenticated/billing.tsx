@@ -8,9 +8,9 @@ import { useActiveOrg } from "@/hooks/useActiveOrg";
 export const Route = createFileRoute("/_authenticated/billing")({
   head: () => ({
     meta: [
-      { title: "Billing — Restore Platform" },
+      { title: "Billing - Restore Platform" },
       { name: "description", content: "Current plan, usage and invoices for your Restore Platform organization." },
-      { property: "og:title", content: "Billing — Restore Platform" },
+      { property: "og:title", content: "Billing - Restore Platform" },
       { property: "og:description", content: "Current plan, usage and invoices." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,7 +37,7 @@ function BillingPage() {
         </SubtleCard>
         <SubtleCard>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Next invoice</div>
-          <div className="mt-1 text-lg font-semibold">—</div>
+          <div className="mt-1 text-lg font-semibold">-</div>
         </SubtleCard>
       </div>
       <GlassCard>

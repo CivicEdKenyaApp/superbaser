@@ -10,7 +10,7 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'SuperBaser — Automated Supabase Disaster Recovery & Backups',
+  title = 'SuperBaser - Automated Supabase Disaster Recovery & Backups',
   description = 'SuperBaser|Enterprise Supabase Disaster Recovery, Physical pg_dump Backups & Region-to-Region Restores. Powered by Cloudflare Containers.',
   keywords = 'Supabase, Disaster Recovery, pg_dump, Backups, Restores, Database Backup, Cloudflare Containers, Postgres Backup, SuperBaser',
   image = '/og-image.png',

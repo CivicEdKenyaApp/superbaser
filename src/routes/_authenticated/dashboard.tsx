@@ -14,7 +14,7 @@ import { formatBytes, formatRelative } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Restore Platform" },
+      { title: "Dashboard - Restore Platform" },
       { name: "description", content: "Operational control center for Supabase backups, restores, verification and storage." },
       { property: "og:title", content: "Restore Platform Dashboard" },
       { property: "og:description", content: "Operational control center for Supabase backups and restores." },
@@ -77,10 +77,10 @@ function Dashboard() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric icon={FolderKanban} label="Projects" value={isLoading ? "—" : String(data?.projectsCount ?? 0)} />
-        <Metric icon={Activity} label="Running jobs" value={isLoading ? "—" : String(data?.runningJobs ?? 0)} />
-        <Metric icon={Database} label="Backup storage" value={isLoading ? "—" : formatBytes(data?.storageBytes ?? 0)} />
-        <Metric icon={ShieldCheck} label="Schedules enabled" value={isLoading ? "—" : String(data?.schedulesEnabled ?? 0)} />
+        <Metric icon={FolderKanban} label="Projects" value={isLoading ? "-" : String(data?.projectsCount ?? 0)} />
+        <Metric icon={Activity} label="Running jobs" value={isLoading ? "-" : String(data?.runningJobs ?? 0)} />
+        <Metric icon={Database} label="Backup storage" value={isLoading ? "-" : formatBytes(data?.storageBytes ?? 0)} />
+        <Metric icon={ShieldCheck} label="Schedules enabled" value={isLoading ? "-" : String(data?.schedulesEnabled ?? 0)} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -163,9 +163,9 @@ function Dashboard() {
                   <span className="text-xs text-muted-foreground">v{w.version ?? "?"}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                  <span>CPU {w.cpu_percent ?? "—"}%</span>
-                  <span>RAM {w.ram_mb ?? "—"} MB</span>
-                  <span>Queue {w.queue ?? "—"}</span>
+                  <span>CPU {w.cpu_percent ?? "-"}%</span>
+                  <span>RAM {w.ram_mb ?? "-"} MB</span>
+                  <span>Queue {w.queue ?? "-"}</span>
                   <span>{formatRelative(w.last_seen_at)}</span>
                 </div>
               </SubtleCard>

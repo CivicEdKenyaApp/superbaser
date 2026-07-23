@@ -69,7 +69,7 @@ export default function Contact({ onLaunchConsole, session }: ContactProps) {
             Get Started with SuperBaser.
           </h2>
           <p className="contact-note max-w-[470px] text-[1.08rem]">
-            Sign up your organization to configure automated backup pipelines and disaster recovery snapshotting.
+            Takes about five minutes to connect your project. After that, your entire disaster recovery pipeline operates autonomously.
           </p>
           <div className="contact-details mt-[64px] font-mono text-[0.72rem] leading-[1.8] uppercase">
             Operations Support

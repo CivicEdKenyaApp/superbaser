@@ -12,9 +12,9 @@ import { formatBytes, formatDateTime } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/storage")({
   head: () => ({
     meta: [
-      { title: "Storage — Restore Platform" },
+      { title: "Storage - Restore Platform" },
       { name: "description", content: "Explore backup storage archives object-by-object across every bucket." },
-      { property: "og:title", content: "Storage — Restore Platform" },
+      { property: "og:title", content: "Storage - Restore Platform" },
       { property: "og:description", content: "Explore backup storage archives object-by-object." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -73,7 +73,7 @@ function StoragePage() {
                       <tr key={o.id}>
                         <td className="py-2 font-mono text-xs">{o.path}</td>
                         <td className="py-2">{formatBytes(o.size_bytes)}</td>
-                        <td className="py-2 text-muted-foreground">{o.mime_type ?? "—"}</td>
+                        <td className="py-2 text-muted-foreground">{o.mime_type ?? "-"}</td>
                         <td className="py-2 text-muted-foreground">{formatDateTime(o.last_modified)}</td>
                       </tr>
                     ))}

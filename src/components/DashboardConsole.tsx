@@ -1150,7 +1150,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             {onboardingStep === 3 && (
               <div className="space-y-4 text-xs leading-relaxed text-ink/90">
                 <p>
-                  Physical <code>pg_dump</code> backups require a <strong>Direct PostgreSQL Connection String</strong> — API tokens alone cannot run database binary dumps.
+                  Physical <code>pg_dump</code> backups require a <strong>Direct PostgreSQL Connection String</strong> - API tokens alone cannot run database binary dumps.
                 </p>
 
                 <div className="p-4 bg-ink text-paper border-2 border-orange space-y-3 font-mono">

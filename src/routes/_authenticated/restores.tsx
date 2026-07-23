@@ -21,9 +21,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/restores")({
   head: () => ({
     meta: [
-      { title: "Restores — Restore Platform" },
+      { title: "Restores - Restore Platform" },
       { name: "description", content: "Run and monitor restores from any backup into any connected destination project." },
-      { property: "og:title", content: "Restores — Restore Platform" },
+      { property: "og:title", content: "Restores - Restore Platform" },
       { property: "og:description", content: "Run and monitor Supabase restores." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -116,7 +116,7 @@ function RestoresPage() {
                   <tr key={r.id}>
                     <td className="p-4 font-mono text-xs">{r.id.slice(0, 8)}</td>
                     <td className="p-4"><StatusBadge status={r.status} /></td>
-                    <td className="p-4 text-muted-foreground">{r.stage ?? "—"}</td>
+                    <td className="p-4 text-muted-foreground">{r.stage ?? "-"}</td>
                     <td className="p-4 w-40">
                       <Progress value={Number(r.progress_percent ?? 0)} />
                     </td>
@@ -142,7 +142,7 @@ function RestoresPage() {
                 <SelectTrigger><SelectValue placeholder="Pick a backup" /></SelectTrigger>
                 <SelectContent>
                   {validBackups.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.id.slice(0, 8)} — {formatDateTime(b.created_at)}</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.id.slice(0, 8)} - {formatDateTime(b.created_at)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

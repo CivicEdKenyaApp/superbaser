@@ -1,5 +1,5 @@
 export function formatBytes(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return "-";
   if (n === 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB", "PB"];
   const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
@@ -7,7 +7,7 @@ export function formatBytes(n: number | null | undefined): string {
 }
 
 export function formatRelative(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const then = new Date(iso).getTime();
   const now = Date.now();
   const diff = Math.round((now - then) / 1000);
@@ -21,11 +21,11 @@ export function formatRelative(iso: string | null | undefined): string {
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   return new Date(iso).toLocaleString();
 }
 
 export function formatNumber(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return "-";
   return n.toLocaleString();
 }

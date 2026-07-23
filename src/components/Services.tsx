@@ -4,20 +4,20 @@ const services = [
   {
     icon: '↗',
     title: 'Engine Architecture.',
-    desc: 'Native pg_dump and psql integration with direct port 5432 connections for reliable, large-scale database extractions.',
-    items: ['Direct PG 5432 Connection', 'Custom & Plain Dump Streams', 'Version Matrix Validation'],
+    desc: 'Connect your project once. From then on, backups happen on their own - no scripts to maintain, no reminders to set, nothing to forget.',
+    items: ['Set it and forget it', 'Handles projects of any size', 'Built to just keep working'],
   },
   {
     icon: '✦',
     title: 'Storage & Auth Sync.',
-    desc: 'Extract bucket configurations, public/private access rules, and physical storage assets with automatic upsert restoration.',
-    items: ['Bucket Metadata Manifest', 'Storage REST API Ingestion', 'Auth State Mapping'],
+    desc: 'While your database is critical, your files and your user authentication matter just as much. We back up all three comprehensively, and put them all back together.',
+    items: ['Every file, every bucket', 'Every user and login', 'Restored as one piece, not parts'],
   },
   {
     icon: '⌁',
     title: 'Verification & Audit.',
-    desc: 'Automated side-by-side row count comparison, storage file verification, and log filtering for seamless disaster recovery.',
-    items: ['SHA-256 Checksums', 'Interactive Log Audit', 'Zero-downtime Cut-over'],
+    desc: 'We don’t just store your backups - we verify them. So when the day comes that you actually need one, you already know it works.',
+    items: ['Backups checked automatically', 'Clear, plain-language status', 'No downtime when you switch over'],
   },
 ];
 

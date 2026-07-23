@@ -20,9 +20,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Restore Platform" },
+      { title: "Settings - Restore Platform" },
       { name: "description", content: "Profile, API keys, webhooks and audit log for your Restore Platform organization." },
-      { property: "og:title", content: "Settings — Restore Platform" },
+      { property: "og:title", content: "Settings - Restore Platform" },
       { property: "og:description", content: "Profile, API keys, webhooks and audit log." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -106,7 +106,7 @@ function SettingsPage() {
             </div>
             {revealed ? (
               <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">
-                <div className="font-medium">Copy this key now — it will not be shown again.</div>
+                <div className="font-medium">Copy this key now - it will not be shown again.</div>
                 <code className="mt-2 block break-all font-mono text-xs">{revealed}</code>
               </div>
             ) : null}

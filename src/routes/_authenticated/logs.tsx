@@ -13,9 +13,9 @@ import { formatDateTime } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/logs")({
   head: () => ({
     meta: [
-      { title: "Logs — Restore Platform" },
+      { title: "Logs - Restore Platform" },
       { name: "description", content: "Structured job log stream across every worker with status, attempts, and errors." },
-      { property: "og:title", content: "Logs — Restore Platform" },
+      { property: "og:title", content: "Logs - Restore Platform" },
       { property: "og:description", content: "Structured job log stream." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
