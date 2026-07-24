@@ -16,8 +16,8 @@ import { SEO } from './components/SEO';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
-import { savePendingAction, getPendingAction, clearPendingAction } from './lib/pending-intent';
-
+import { savePendingAction, getPendingAction, clearPendingAction, recordInteraction } from './lib/pending-intent';
+import PendingIntentUI from './components/PendingIntentUI';
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'console'>('landing');
   const [activeProjectRef, setActiveProjectRef] = useState<string>('wzyrmzfgdtzaqmkhtbuk');
@@ -26,10 +26,25 @@ export default function App() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<string>('Pro');
   const [initialUserData, setInitialUserData] = useState<{ email: string; name: string; orgName: string; supabasePlan?: string } | undefined>(undefined);
+  const [intentUIMode, setIntentUIMode] = useState<'intercept' | 'resume' | null>(null);
+  const [activePendingIntent, setActivePendingIntent] = useState<any | null>(null);
 
   const { session, setSession } = useAuthStore();
 
   useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const clickable = target.closest('button, a, input[type="submit"]');
+      if (clickable) {
+        const text = clickable.getAttribute('aria-label') || (clickable as HTMLElement).innerText;
+        if (text) recordInteraction(`Clicked ${text.trim().substring(0, 40)}`);
+      } else if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        const name = target.getAttribute('name') || target.getAttribute('placeholder') || 'input field';
+        recordInteraction(`Interacted with ${name}`);
+      }
+    };
+    document.addEventListener('click', handleGlobalClick, true);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       checkAndResumePendingAction(session);
@@ -42,26 +57,35 @@ export default function App() {
       checkAndResumePendingAction(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('click', handleGlobalClick, true);
+    };
   }, [setSession]);
 
   const checkAndResumePendingAction = (currentSession: any) => {
     // Only resume if user is authenticated with a real permanent account
     if (currentSession?.user && !currentSession.user.is_anonymous) {
       const pending = getPendingAction();
-      if (pending && pending.type === 'CHECKOUT_PLAN') {
-        clearPendingAction();
-        const planToUse = pending.payload.planId || 'Pro';
-        setSelectedPlanForPayment(planToUse);
-        if (pending.payload.userData) {
-          setInitialUserData({
-            email: pending.payload.userData.email || currentSession.user.email || '',
-            name: pending.payload.userData.name || currentSession.user.user_metadata?.full_name || '',
-            orgName: pending.payload.userData.orgName || 'Primary Workspace',
-            supabasePlan: planToUse,
-          });
+      if (pending) {
+        if (pending.type === 'CHECKOUT_PLAN') {
+          clearPendingAction();
+          const planToUse = pending.payload.planId || 'Pro';
+          setSelectedPlanForPayment(planToUse);
+          if (pending.payload.userData) {
+            setInitialUserData({
+              email: pending.payload.userData.email || currentSession.user.email || '',
+              name: pending.payload.userData.name || currentSession.user.user_metadata?.full_name || '',
+              orgName: pending.payload.userData.orgName || 'Primary Workspace',
+              supabasePlan: planToUse,
+            });
+          }
+          setShowPaymentModal(true);
+        } else {
+          // Connect target database or other intents
+          setActivePendingIntent(pending);
+          setIntentUIMode('resume');
         }
-        setShowPaymentModal(true);
       }
     }
   };
@@ -160,8 +184,32 @@ export default function App() {
             serviceRoleKey={activeServiceRoleKey}
             onBackToLanding={handleBackToLanding}
             onOpenAuthModal={() => setShowAuthModal(true)}
+            onTriggerIntercept={(intent) => {
+              setActivePendingIntent(intent);
+              setIntentUIMode('intercept');
+            }}
           />
         </ClickSpark>
+        {intentUIMode && activePendingIntent && (
+          <PendingIntentUI 
+            mode={intentUIMode}
+            intent={activePendingIntent}
+            onComplete={() => {
+              if (intentUIMode === 'intercept') {
+                setShowAuthModal(true);
+                setIntentUIMode(null);
+              } else {
+                window.dispatchEvent(new CustomEvent('RESUME_PENDING_ACTION', { detail: activePendingIntent }));
+                setIntentUIMode(null);
+                clearPendingAction();
+              }
+            }}
+            onAbort={() => {
+              setIntentUIMode(null);
+              setActivePendingIntent(null);
+            }}
+          />
+        )}
       </>
     );
   }
@@ -204,6 +252,27 @@ export default function App() {
               initialData={initialUserData}
               onClose={() => setShowPaymentModal(false)}
               onSuccess={handlePaymentSuccess}
+            />
+          )}
+
+          {intentUIMode && activePendingIntent && (
+            <PendingIntentUI 
+              mode={intentUIMode}
+              intent={activePendingIntent}
+              onComplete={() => {
+                if (intentUIMode === 'intercept') {
+                  setShowAuthModal(true);
+                  setIntentUIMode(null);
+                } else {
+                  window.dispatchEvent(new CustomEvent('RESUME_PENDING_ACTION', { detail: activePendingIntent }));
+                  setIntentUIMode(null);
+                  clearPendingAction();
+                }
+              }}
+              onAbort={() => {
+                setIntentUIMode(null);
+                setActivePendingIntent(null);
+              }}
             />
           )}
         </div>

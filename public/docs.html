@@ -158,7 +158,7 @@
         safe.
       </h1>
       <p class="max-w-[620px] text-[clamp(1.05rem,1.4vw,1.25rem)] leading-[1.6] text-muted">
-        This documentation explains how SuperBaser backs up, verifies, and restores a Supabase project. It also covers
+        This documentation explains how SuperBaser backs up, verifies, and restores a target project. It also covers
         the credentials required, how they're used, and what happens during backup and restore operations.
       </p>
     </div>
@@ -213,20 +213,20 @@
           The short version.
         </h2>
         <p class="text-[1.05rem] leading-[1.75] mb-5">
-          A Supabase project consists of more than a PostgreSQL database. It also includes Storage, Authentication,
-          roles,
-          permissions, and platform-managed schemas. Recovering only the database is often insufficient to restore a
-          working application.<br>
-
-          Supabase gives you a database, file storage, and user accounts. It doesn't give you an easy way back if any of
+          A target project consists of more than a PostgreSQL database. It also includes Storage, Authentication,
+          roles, permissions, and platform-managed schemas. Recovering only the database is often insufficient to restore a
+          working application.
+        </p>
+        <p class="text-[1.05rem] leading-[1.75] mb-5">
+          Your provider gives you a database, file storage, and user accounts. It doesn't give you an easy way back if any of
           that disappears - a paused project past the recovery window, a bad migration, a dropped table, an accidental
-          delete. SuperBaser automates scheduled backups, verification, and restoration of supported Supabase project
+          delete. SuperBaser automates scheduled backups, verification, and restoration of supported target project
           components.
         </p>
         <p class="text-[1.05rem] leading-[1.75] mb-5">
-          You connect a project once. From then on, SuperBaser backs up your database, your Storage files, and your Auth
-          data on a schedule you set, checks every backup to make sure it's actually restorable, and rebuilds the whole
-          thing into a fresh Supabase project in a few clicks when you need it.
+          You connect a project once. From then on, SuperBaser backs up your database and your Storage files on a
+          schedule determined by your plan tier, checks every backup to make sure it's actually restorable, and
+          rebuilds the whole thing into a fresh project in a few clicks when you need it.
         </p>
         <p class="text-[1.05rem] leading-[1.75]">
           The remainder of this document explains how these processes work and what is included in each stage.
@@ -245,7 +245,7 @@
             <span class="font-mono text-orange text-[0.8rem] pt-1">01</span>
             <div>
               <h3 class="font-display font-bold text-[1.5rem] mb-2">Connect your project</h3>
-              <p class="text-muted leading-[1.7]">Sign in, then link your Supabase project from inside your dashboard -
+              <p class="text-muted leading-[1.7]">Sign in, then link your target project from inside your dashboard -
                 never on a public page. We check compatibility before anything else runs.</p>
             </div>
           </div>
@@ -261,16 +261,16 @@
             <span class="font-mono text-orange text-[0.8rem] pt-1">03</span>
             <div>
               <h3 class="font-display font-bold text-[1.5rem] mb-2">Backups run on schedule</h3>
-              <p class="text-muted leading-[1.7]">Your database and your files are captured automatically, wherever you
-                set the frequency - hourly, daily, or as tight as your plan allows - and every backup is checked before
-                it's marked trustworthy.</p>
+              <p class="text-muted leading-[1.7]">Your database and your files are captured automatically based on your
+                plan tier - daily on Free, hourly on Pro, or every 15 minutes on Premium - and every backup is checked
+                before it's marked trustworthy.</p>
             </div>
           </div>
           <div class="grid grid-cols-[50px_1fr] gap-5 py-7 border-t border-line border-b">
             <span class="font-mono text-orange text-[0.8rem] pt-1">04</span>
             <div>
               <h3 class="font-display font-bold text-[1.5rem] mb-2">Restore whenever you need to</h3>
-              <p class="text-muted leading-[1.7]">Point SuperBaser at a new Supabase project and let it rebuild -
+              <p class="text-muted leading-[1.7]">Point SuperBaser at a new project and let it rebuild -
                 database, files, and users, all reconciled into one working project. No manual cleanup after.</p>
             </div>
           </div>
@@ -284,8 +284,8 @@
           Not just your tables.
         </h2>
         <p class="text-[1.05rem] leading-[1.75] mb-8">
-          A lot of "backup" tools only mean your database rows. That's not enough to actually bring a Supabase project
-          back - you'd have your data with no logins that work and no uploaded files. SuperBaser treats a Supabase
+          A lot of "backup" tools only mean your database rows. That's not enough to actually bring a project
+          back - you'd have your data with no logins that work and no uploaded files. SuperBaser treats a target
           project as three things that all have to come back together:
         </p>
 
@@ -293,7 +293,7 @@
           <div class="border border-line p-6 bg-panel/60">
             <h3 class="font-display font-bold text-[1.15rem] mb-2">Your Database</h3>
             <p class="text-muted text-[0.92rem] leading-[1.6]">Every table, every row, every role and permission -
-              captured as a complete, portable snapshot.</p>
+              captured as a complete, portable SQL snapshot via <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>.</p>
           </div>
           <div class="border border-line p-6 bg-panel/60">
             <h3 class="font-display font-bold text-[1.15rem] mb-2">Your Storage Files</h3>
@@ -310,7 +310,7 @@
         <div class="border-l-2 border-orange pl-6 py-1">
           <p class="text-[0.95rem] leading-[1.7] text-muted">
             <strong class="text-ink">Why files need a separate step:</strong> Postgres is a database - it stores rows,
-            not file bytes. When you upload a photo or a PDF to Supabase Storage, the actual file lives in a separate
+            not file bytes. When you upload a photo or a PDF to Storage, the actual file lives in a separate
             object-storage system. Postgres only keeps a record describing it: which bucket, what path, what size, what
             type. A backup that only touches Postgres will faithfully record that a file <em>should</em> exist, without
             ever containing it. SuperBaser exports the files themselves as their own archive, alongside the database
@@ -327,11 +327,11 @@
         </h2>
         <p class="text-[1.05rem] leading-[1.75] mb-6">
           Every database backup SuperBaser produces is a full <strong>cluster</strong> dump - not just your
-          application's tables, but every role Supabase provisions (<code
+          application's tables, but every role your platform provisions (<code
             class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">anon</code>, <code
             class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">authenticated</code>, <code
             class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">service_role</code>, and the rest) and every
-          schema Supabase maintains internally, alongside your own.
+          schema maintained internally, alongside your own.
         </p>
 
         <div class="overflow-x-auto mb-6">
@@ -361,14 +361,15 @@
               </tr>
               <tr>
                 <td class="py-3 pr-4 font-mono text-ink">everything else</td>
-                <td class="py-3">Extensions, GraphQL layer, migration history, and other Supabase internals</td>
+                <td class="py-3">Extensions, GraphQL layer, migration history, and other internal schemas</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <p class="text-[1.05rem] leading-[1.75] mb-4">
-          The format is plain, readable SQL text - not a proprietary binary blob. There's a reason for that: a
+          The format is plain, readable SQL text - produced by <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>,
+          not a proprietary binary blob. There's a reason for that: a
           plain-text backup can be inspected, verified, and restored with standard, well-understood database tooling,
           with nothing locked to us. If SuperBaser disappeared tomorrow, your backups would still be usable.
         </p>
@@ -419,7 +420,8 @@
           <div>
             <h3 class="font-display font-bold text-[1.3rem] mb-2">Pass one - the database</h3>
             <p class="text-muted leading-[1.7]">
-              Your SQL snapshot is loaded into the new project. A brand-new Supabase project already comes with its own
+              Your SQL snapshot is loaded into the new project via <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">psql</code>.
+              A brand-new target project already comes with its own
               default roles and internal schemas set up - SuperBaser expects that, and works around it automatically
               rather than failing or duplicating anything. Your actual data lands cleanly into the tables that matter.
             </p>
@@ -429,7 +431,9 @@
             <p class="text-muted leading-[1.7]">
               Once the database pass has recreated the record of what buckets and files should exist, SuperBaser uploads
               the actual file bytes from your Storage archive to match. Each file lands exactly on the record that's
-              expecting it - nothing duplicated, nothing orphaned.
+              expecting it - nothing duplicated, nothing orphaned. The restore tool uses the
+              <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">service_role</code> key to write files back
+              into private buckets that normal access rules would block.
             </p>
           </div>
           <div>
@@ -464,19 +468,19 @@
             </thead>
             <tbody class="text-muted">
               <tr class="border-b border-line">
-                <td class="py-3 pr-4 align-top">Database connection details</td>
-                <td class="py-3">The only credential that actually lets us take a database snapshot. Used exclusively at
-                  backup time, never stored anywhere in readable form.</td>
+                <td class="py-3 pr-4 align-top">Direct connection string</td>
+                <td class="py-3">The credential that lets the backup engine connect to your Postgres database and run
+                  <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>. Used exclusively at
+                  backup time.</td>
               </tr>
               <tr class="border-b border-line">
                 <td class="py-3 pr-4 align-top">Project URL</td>
                 <td class="py-3">Identifies your project for status checks and dashboard display.</td>
               </tr>
               <tr>
-                <td class="py-3 pr-4 align-top">Elevated Storage access key</td>
-                <td class="py-3">Needed only during a Storage restore, since private buckets are protected by access
-                  rules that a normal key can't bypass - appropriate for a one-time administrative operation, not
-                  everyday use.</td>
+                <td class="py-3 pr-4 align-top">Service Role Key</td>
+                <td class="py-3">Needed for Storage file discovery and restore operations. The service role key bypasses
+                  RLS policies so files can be read from and written to private buckets. Stored securely by the SuperBaser Backend - never in plaintext, never in the frontend.</td>
               </tr>
             </tbody>
           </table>
@@ -499,9 +503,10 @@
               organization. Credentials are only ever collected after authentication, inside your dashboard.</p>
           </div>
           <div class="border border-line p-6">
-            <h3 class="font-display font-bold text-[1.1rem] mb-2">Least privilege, always</h3>
-            <p class="text-muted text-[0.92rem] leading-[1.65]">The elevated Storage key is used strictly for restore
-              operations - never for anything else, and never persisted beyond what a given job needs.</p>
+            <h3 class="font-display font-bold text-[1.1rem] mb-2">Row Level Security enforced</h3>
+            <p class="text-muted text-[0.92rem] leading-[1.65]">Every table is protected by RLS
+              policies. Anonymous users can preview the dashboard but cannot create organizations, connect projects, or
+              trigger backups.</p>
           </div>
         </div>
       </section>
@@ -513,31 +518,54 @@
           Why backups cost almost nothing and run almost instantly.
         </h2>
         <p class="text-[1.05rem] leading-[1.75] mb-8">
-          SuperBaser doesn't run on a server that sits on 24 hours a day waiting for you to click a button. It runs on
-          edge infrastructure that wakes up exactly when a backup job needs to happen, does the work, and shuts back
+          SuperBaser runs on infrastructure that wakes up exactly when a backup job needs to happen, does the work, and shuts back
           down - which is both faster and dramatically cheaper than the traditional always-on approach most backup tools
-          use.
+          use. Three core services work together:
         </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          <div class="border border-line p-6 bg-panel/60">
+            <h3 class="font-display font-bold text-[1.1rem] mb-2">SuperBaser Backend</h3>
+            <p class="text-muted text-[0.88rem] leading-[1.6]">The entry point. Receives events when a job is queued, routes them to the backup engine, and runs a scheduler every 15 minutes to check intervals.</p>
+          </div>
+          <div class="border border-line p-6 bg-panel/60">
+            <h3 class="font-display font-bold text-[1.1rem] mb-2">SuperBaser Backup Engine</h3>
+            <p class="text-muted text-[0.88rem] leading-[1.6]">An isolated backup environment. Wakes up on
+              demand, captures your database and files, streams the output to storage, then shuts back down.</p>
+          </div>
+          <div class="border border-line p-6 bg-panel/60">
+            <h3 class="font-display font-bold text-[1.1rem] mb-2">SuperBaser Storage</h3>
+            <p class="text-muted text-[0.88rem] leading-[1.6]">Secure object storage for backup archives. We pass the savings of zero egress fees directly into generous limits on our lower tiers.</p>
+          </div>
+        </div>
 
         <div class="border border-line bg-panel/50 p-8 font-mono text-[0.8rem] leading-[2.1] mb-8">
           <div>You click "Run Backup"</div>
           <div class="text-muted">↓</div>
-          <div>A job is queued</div>
+          <div>A job is queued in the SuperBaser Backend</div>
           <div class="text-muted">↓</div>
-          <div>The backup engine wakes up automatically</div>
+          <div>The SuperBaser Backup Engine wakes up</div>
           <div class="text-muted">↓</div>
-          <div>Your database and Storage files are captured</div>
+          <div>Your database and files are captured</div>
           <div class="text-muted">↓</div>
-          <div>The backup is verified and stored</div>
+          <div>The backup is verified and saved to SuperBaser Storage</div>
           <div class="text-muted">↓</div>
           <div>The engine shuts back down - no idle cost, no idle wait</div>
         </div>
 
-        <p class="text-[1.05rem] leading-[1.75]">
+        <p class="text-[1.05rem] leading-[1.75] mb-6">
           Because the whole engine only runs for the seconds a job actually takes, we're not paying for - or charging
           you for - hours of idle compute. That's the entire reason SuperBaser can afford generous limits on lower tiers
           without cutting corners on reliability.
         </p>
+
+        <div class="border-l-2 border-orange pl-6 py-1">
+          <p class="text-[0.95rem] leading-[1.7] text-muted">
+            <strong class="text-ink">Automated retention cleanup:</strong> The same scheduler that triggers backups
+            also runs a retention pruner every 15 minutes. Backups older than your tier's retention window (7 days on
+            Free, 30 days on Pro, 90 days on Premium) are automatically deleted from SuperBaser Storage and marked as purged. You never accumulate stale storage costs.
+          </p>
+        </div>
       </section>
 
       <!-- PRICING -->
@@ -547,49 +575,56 @@
           Plans built around how often you actually need protection.
         </h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="border border-line p-6 flex flex-col justify-between">
-            <div>
-              <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted mb-2">Free</p>
-              <p class="font-display font-bold text-[1.8rem] mb-4">$0<span class="text-[0.9rem] font-body font-normal text-muted">/mo</span></p>
-              <ul class="text-[0.85rem] text-muted space-y-2 leading-[1.5]">
-                <li>1 Connected Supabase Project</li>
-                <li>24-Hour Daily Automated pg_dump</li>
-                <li>7-Day Backup Retention History</li>
-                <li>Manual Point-in-Time Restore Trigger</li>
-                <li>Community Support</li>
-              </ul>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div class="border border-line p-6 flex flex-col">
+            <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted mb-2">Free</p>
+            <p class="font-display font-bold text-[1.6rem] mb-4">$0<span
+                class="text-[0.9rem] font-body font-normal text-muted">/mo</span></p>
+            <ul class="text-[0.85rem] text-muted space-y-2 leading-[1.5]">
+              <li>1 Connected Project</li>
+              <li>Daily automated backups</li>
+              <li>7-day retention history</li>
+              <li>Manual restore</li>
+              <li>Community support</li>
+            </ul>
           </div>
-          <div class="border border-ink p-6 flex flex-col justify-between bg-ink text-paper relative">
-            <span class="absolute top-4 right-4 font-mono text-[0.62rem] uppercase tracking-[0.05em] bg-acid text-ink px-2 py-1">Popular</span>
-            <div>
-              <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-[#aaa99f] mb-2">Pro</p>
-              <p class="font-display font-bold text-[1.8rem] mb-4">$15<span class="text-[0.9rem] font-body font-normal text-[#aaa99f]">/mo</span></p>
-              <ul class="text-[0.85rem] text-[#d3d1c9] space-y-2 leading-[1.5]">
-                <li>Up to 5 Connected Supabase Projects</li>
-                <li>1-Hour Automated DB & Storage Snapshots</li>
-                <li>30-Day Backup Retention History</li>
-                <li>1-Click Zero-Downtime Verified Restore</li>
-                <li>AES-256 Encrypted Storage Vault & Storage Sync</li>
-                <li>Priority Operations Support</li>
-              </ul>
-            </div>
+          <div class="border border-ink p-6 flex flex-col bg-ink text-paper relative">
+            <span
+              class="absolute top-4 right-4 font-mono text-[0.62rem] uppercase tracking-[0.05em] bg-acid text-ink px-2 py-1">Popular</span>
+            <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-[#aaa99f] mb-2">Pro</p>
+            <p class="font-display font-bold text-[1.6rem] mb-4">$15<span
+                class="text-[0.9rem] font-body font-normal text-[#aaa99f]">/mo</span></p>
+            <ul class="text-[0.85rem] text-[#d3d1c9] space-y-2 leading-[1.5]">
+              <li>Up to 5 Connected Projects</li>
+              <li>Hourly automated snapshots</li>
+              <li>30-day retention history</li>
+              <li>One-click verified restore</li>
+              <li>Secure Storage Sync</li>
+              <li>Priority email support</li>
+            </ul>
           </div>
-          <div class="border border-line p-6 flex flex-col justify-between">
-            <div>
-              <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted mb-2">Premium</p>
-              <p class="font-display font-bold text-[1.8rem] mb-4">$49<span class="text-[0.9rem] font-body font-normal text-muted">/mo</span></p>
-              <ul class="text-[0.85rem] text-muted space-y-2 leading-[1.5]">
-                <li>Unlimited Connected Supabase Projects & Orgs</li>
-                <li>15-Minute Continuous Backup & Log Streaming</li>
-                <li>90-Day Point-in-Time Recovery (PITR)</li>
-                <li>Multi-Region Replication & One-Click Migration</li>
-                <li>Team RBAC, Audit Logging, Dedicated Worker Agent</li>
-                <li>1-Hour Response SLA</li>
-              </ul>
-            </div>
+          <div class="border border-line p-6 flex flex-col">
+            <p class="font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted mb-2">Premium</p>
+            <p class="font-display font-bold text-[1.6rem] mb-4">$49<span
+                class="text-[0.9rem] font-body font-normal text-muted">/mo</span></p>
+            <ul class="text-[0.85rem] text-muted space-y-2 leading-[1.5]">
+              <li>Unlimited Projects & Organizations</li>
+              <li>15-minute backup frequency</li>
+              <li>90-day retention history</li>
+              <li>One-click verified restore</li>
+              <li>Secure Storage Sync</li>
+              <li>1-hour response SLA</li>
+            </ul>
           </div>
+        </div>
+
+        <div class="border-l-2 border-orange pl-6 py-1 mt-8">
+          <p class="text-[0.95rem] leading-[1.7] text-muted">
+            <strong class="text-ink">How tiers are enforced:</strong> Your organization's plan is checked by the SuperBaser Backend every 15 minutes. The scheduler compares the time
+            since your last backup against your tier's interval - 24 hours for Free, 1 hour for Pro, 15 minutes for
+            Premium - and only enqueues a new backup job when enough time has passed. Retention cleanup runs on the same
+            schedule, deleting archives that exceed your tier's window from SuperBaser Storage.
+          </p>
         </div>
       </section>
 
@@ -607,8 +642,9 @@
               Will this slow down my live database?
               <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
             </summary>
-            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">No. Backups read from your database the same way any
-              client connection does - they don't lock tables or block normal application traffic.</p>
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">No. <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>
+              reads from your database the same way any client connection does - it doesn't lock tables or block normal
+              application traffic.</p>
           </details>
           <details class="group py-5">
             <summary
@@ -618,7 +654,7 @@
             </summary>
             <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">If you already have backups running through
               SuperBaser, restoring works the same whether the original project is paused, deleted, or still live. If a
-              project paused before you connected it, we can only work from whatever backup files Supabase itself still
+              project paused before you connected it, we can only work from whatever backup files your provider still
               lets you download.</p>
           </details>
           <details class="group py-5">
@@ -634,12 +670,12 @@
           <details class="group py-5">
             <summary
               class="flex items-center justify-between cursor-pointer font-display font-bold text-[1.1rem] list-none">
-              How is this different from Supabase's own backups?
+              How is this different from built-in provider backups?
               <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
             </summary>
-            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">Supabase's built-in backups depend on your plan tier
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">Built-in backups depend on your plan tier
               and stop being restorable through the dashboard once a project's been paused too long. SuperBaser runs
-              independently of your project's own state - including Storage files, which Supabase's database-only
+              independently of your project's own state - including Storage files, which database-only
               backups don't cover at all.</p>
           </details>
           <details class="group py-5">
@@ -648,9 +684,42 @@
               Do you ever see my actual data?
               <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
             </summary>
-            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">Backups are encrypted and handled by automated
-              processes, not viewed by anyone. Access credentials are encrypted at rest and only decrypted transiently,
-              for the seconds a job is actually running.</p>
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">Backups are handled by automated processes running on
+              SuperBaser infrastructure, not viewed by anyone. Access credentials are encrypted at rest and only decrypted transiently, for the seconds a job is actually running.</p>
+          </details>
+          <details class="group py-5">
+            <summary
+              class="flex items-center justify-between cursor-pointer font-display font-bold text-[1.1rem] list-none">
+              What's the difference between snapshot backups and continuous WAL streaming?
+              <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
+            </summary>
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">SuperBaser uses <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>
+              to take complete point-in-time snapshots of your database. Premium tier runs these every 15 minutes,
+              giving you near-continuous recovery points. Continuous WAL (Write-Ahead Log) streaming - which captures
+              every single transaction in real time - is on the roadmap but not yet implemented.</p>
+          </details>
+          <details class="group py-5">
+            <summary
+              class="flex items-center justify-between cursor-pointer font-display font-bold text-[1.1rem] list-none">
+              Can I download my backups directly?
+              <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
+            </summary>
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">Yes. Every completed backup has a download button in
+              the dashboard. The download request goes through the SuperBaser Backend, which streams the file directly
+              from SuperBaser Storage to your browser. The backup is plain SQL text, so you can inspect it, grep it, or restore it
+              manually with <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">psql</code> if you ever need
+              to.</p>
+          </details>
+          <details class="group py-5">
+            <summary
+              class="flex items-center justify-between cursor-pointer font-display font-bold text-[1.1rem] list-none">
+              What happens to old backups?
+              <span class="font-mono text-orange group-open:rotate-45 transition-transform">+</span>
+            </summary>
+            <p class="text-muted leading-[1.7] mt-3 max-w-[600px]">The retention pruner runs every 15 minutes as part of
+              the scheduler. Backups older than your tier's retention window - 7 days (Free), 30 days (Pro), or 90
+              days (Premium) - are automatically deleted from SuperBaser Storage and marked as purged. You're never charged for stale
+              storage.</p>
           </details>
         </div>
       </section>
@@ -665,7 +734,8 @@
           <div>
             <dt class="font-display font-bold text-[1.05rem]">Cluster dump</dt>
             <dd class="text-muted leading-[1.7] mt-1">A complete backup of everything in your database - not just your
-              own tables, but every internal role and schema Supabase manages behind the scenes too.</dd>
+              own tables, but every internal role and schema managed behind the scenes too. Produced by
+              <code class="mono text-[0.85em] bg-panel px-1.5 py-0.5 rounded">pg_dumpall</code>.</dd>
           </div>
           <div>
             <dt class="font-display font-bold text-[1.05rem]">Verification</dt>
@@ -674,18 +744,28 @@
           </div>
           <div>
             <dt class="font-display font-bold text-[1.05rem]">Restore</dt>
-            <dd class="text-muted leading-[1.7] mt-1">Rebuilding a working Supabase project - database, files, and users
+            <dd class="text-muted leading-[1.7] mt-1">Rebuilding a working project - database, files, and users
               together - from a backup.</dd>
           </div>
           <div>
-            <dt class="font-display font-bold text-[1.05rem]">Elevated Storage key</dt>
-            <dd class="text-muted leading-[1.7] mt-1">A credential that can bypass a bucket's normal access rules, used
-              only during a Storage restore so files can be written back into private buckets.</dd>
+            <dt class="font-display font-bold text-[1.05rem]">Service Role Key</dt>
+            <dd class="text-muted leading-[1.7] mt-1">A credential that bypasses Row Level Security policies.
+              Used by SuperBaser for Storage file discovery and restore operations so files can be read from and
+              written to private buckets. Stored securely by the SuperBaser Backend.</dd>
+          </div>
+          <div>
+            <dt class="font-display font-bold text-[1.05rem]">Retention window</dt>
+            <dd class="text-muted leading-[1.7] mt-1">How long backups are kept before automatic deletion. Determined by
+              your plan tier: 7 days (Free), 30 days (Pro), 90 days (Premium).</dd>
           </div>
           <div>
             <dt class="font-display font-bold text-[1.05rem]">Least privilege</dt>
             <dd class="text-muted leading-[1.7] mt-1">A security principle meaning: only ever ask for the exact access a
               task needs, and nothing more.</dd>
+          </div>
+          <div>
+            <dt class="font-display font-bold text-[1.05rem]">SuperBaser Storage</dt>
+            <dd class="text-muted leading-[1.7] mt-1">Secure object storage where SuperBaser saves your backup archives safely.</dd>
           </div>
         </dl>
       </section>

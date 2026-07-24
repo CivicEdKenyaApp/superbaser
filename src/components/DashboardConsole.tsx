@@ -60,6 +60,7 @@ interface DashboardConsoleProps {
   serviceRoleKey?: string;
   onBackToLanding: () => void;
   onOpenAuthModal?: () => void;
+  onTriggerIntercept?: (intent: any) => void;
 }
 
 const renderBoringAvatar = (name: string, size = 32) => {
@@ -78,7 +79,7 @@ const renderBoringAvatar = (name: string, size = 32) => {
   );
 };
 
-export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal }: DashboardConsoleProps) {
+export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal, onTriggerIntercept }: DashboardConsoleProps) {
   const activeProject = projectRef;
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings' | 'support'
@@ -132,6 +133,21 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     `[${new Date().toLocaleTimeString()}] Dispatching discovery request to /api/discover proxy route...`,
     `[${new Date().toLocaleTimeString()}] Direct Connection 5432 SSL Mode: Require verified.`
   ]);
+
+  useEffect(() => {
+    const handleResume = (e: any) => {
+      const pending = e.detail;
+      if (pending && pending.type === 'CONNECT_PROJECT' && pending.payload) {
+        setTargetProjectName(pending.payload.targetProjectName || '');
+        setTargetConnectionString(pending.payload.targetConnectionString || '');
+        setTargetProjectUrl(pending.payload.targetProjectUrl || '');
+        setTargetServiceKey(pending.payload.targetServiceKey || '');
+        setShowConnectModal(true);
+      }
+    };
+    window.addEventListener('RESUME_PENDING_ACTION', handleResume);
+    return () => window.removeEventListener('RESUME_PENDING_ACTION', handleResume);
+  }, []);
 
   // Load User's Organizations
   useEffect(() => {
@@ -1565,7 +1581,31 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (!targetConnectionString || !user || !activeOrgId) return;
+                if (!targetConnectionString) return;
+                
+                if (user?.is_anonymous && onTriggerIntercept) {
+                  import('../lib/pending-intent').then(({ savePendingAction, getInteractionHistory }) => {
+                    const intentPayload = {
+                      type: 'CONNECT_PROJECT' as const,
+                      payload: {
+                        targetProjectName,
+                        targetConnectionString,
+                        targetProjectUrl,
+                        targetServiceKey
+                      },
+                      interactionHistory: getInteractionHistory()
+                    };
+                    savePendingAction(intentPayload);
+                    onTriggerIntercept(intentPayload);
+                    setShowConnectModal(false);
+                  });
+                  return;
+                }
+
+                if (!user || !activeOrgId) {
+                  alert("You must create an organization first.");
+                  return;
+                }
 
                 const projectRefExtracted = targetProjectRef || (targetProjectUrl.match(/https:\/\/(.+)\.supabase\.co/)?.[1] ?? 'custom-project');
 
