@@ -45,7 +45,7 @@ export default function Header({ onLaunchConsole }: HeaderProps) {
       <header className="relative z-20 border-b border-line">
         <nav className="nav shell min-h-[86px] max-md:min-h-[72px] grid grid-cols-[1fr_auto_1fr] max-md:grid-cols-[1fr_auto] items-center gap-6" aria-label="Primary navigation">
           <a href="#top" className="brand w-max no-underline font-display font-extrabold text-[1.3rem] leading-none tracking-[-0.06em]">
-            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-neon fill-current stroke-[#303a09]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z" /></svg>BASER
+            SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-neon fill-[#b7f210] stroke-[#303a09]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z" /></svg>BASER
           </a>
 
           {/* Desktop Nav Links */}

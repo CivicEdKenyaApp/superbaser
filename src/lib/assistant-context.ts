@@ -2,36 +2,53 @@
 
 export const SUPERBASER_KNOWLEDGE_BASE = `
 SUPERBASER IDENTITY:
-- Type: Cloudflare-powered automated disaster recovery & database backup engine for Supabase
-- Architecture: Cloudflare Workers + Cloudflare R2 Storage Buckets + Supabase Postgres Port 5432 Direct Connections
-- System Motto: "Automated Postgres Backups, Continuous R2 Sync & Zero-Downtime Restores"
+- Type: Cloudflare Workers + Cloudflare Containers + Cloudflare R2 disaster recovery & pg_dumpall backup engine for Supabase
+- Architecture: Edge Worker trigger (cron */15 * * * *) -> Durable Object Container (runs native pg_dumpall) -> Cloudflare R2 Vault (superbaser-backups)
+- System Motto: "Automated Postgres Snapshots, Cloudflare R2 Vault Sync & 1-Click Zero-Downtime Restores"
 
 CONSOLE NAVIGATION & SUBPAGES:
 - Dashboard (#dashboard): High-level system inventory, total archive volume, active schedules, and live backup trigger.
 - Projects (#projects): Direct PG host configuration, Port 5432 SSL mode parameters, region info.
 - Backups (#backups): SQL snapshot download links, R2 bucket key inspector, status tags.
 - Restores (#restores): 1-click psql database ingestion, storage bucket reconstruction.
-- Schedules (#schedules): Automated hourly/daily cron pipeline configuration.
+- Schedules (#schedules): Tier-based automated backup cron pipeline configuration.
 - Verification (#verification): Automated archive integrity checksum tests.
 - Storage (#storage): Cloudflare R2 archive volume metrics & object key browser.
 - Logs (#logs): Real-time engine execution logs & container telemetry.
 - Organizations (#organizations): Multi-tenant organization creation & team management.
-- Billing (#billing): Paystack payment subscription checkout (Jamii, Mwananchi, Taifa) & Lifetime Pro promo codes.
-- Settings (#settings): Profile display name & Boring Avatars SVG palette configuration.
+- Billing (#billing): Subscription management for Free ($0/mo), Pro ($15/mo), and Premium ($49/mo) tiers.
+- Settings (#settings): Profile display name & avatar configuration.
 - Support (#support): Operations runbooks & emergency disaster recovery contact info.
 
-PAYMENT & BILLING TIERS:
-- Jamii Tier (Tier 1 Free): $0/mo — 1 Target Project, Manual pg_dump, 7-Day Retention Auto-Pruning, 500 MB limit.
-- Mwananchi Plan (Tier 2 Pro): $15/mo ($150/yr) — Up to 5 Target Projects, Automated Hourly Cron, 30-Day Retention, Cloudflare R2 Sync.
-- Taifa Plan (Tier 3 Enterprise / Premium): $49/mo ($490/yr) — Unlimited Target Projects, Parallel Container Workflows, Dedicated Isolation, 24/7 Support.
+SUPERBASER CORE PRICING & TIER SPECS (3 TIERS ONLY):
+1. Free Tier ($0/mo):
+   - 1 Connected Supabase Project
+   - 24-Hour Daily Automated pg_dump
+   - 7-Day Backup Retention History
+   - Manual Point-in-Time Restore Trigger
+   - Community Support
+
+2. Pro Tier ($15/mo):
+   - Up to 5 Connected Supabase Projects
+   - 1-Hour Automated DB & Storage Snapshots
+   - 30-Day Backup Retention History
+   - 1-Click Zero-Downtime Verified Restore
+   - AES-256 Encrypted Storage Vault & Storage Sync
+   - Priority Operations Support
+
+3. Premium Tier ($49/mo):
+   - Unlimited Connected Supabase Projects & Orgs
+   - 15-Minute Continuous Backup & Log Streaming
+   - 90-Day Point-in-Time Recovery (PITR)
+   - Multi-Region Replication & One-Click Migration
+   - Team RBAC, Audit Logging, Dedicated Worker Agent
+   - 1-Hour Response SLA
 
 SECURITY & PRIVACY GUARANTEES:
-- Passwords and connection URIs are processed over TLS 1.3 (Port 5432) and stored strictly in browser memory.
-- Backup SQL dumps streamed to Cloudflare R2 enforce SSE-S3 AES-256 encryption at rest.
-- No plain-text database credentials or secret service role keys ever leave your session.
-
-PROMO CODES:
-- Lifetime Pro codes (e.g. LIFETIME-PRO-H7X9K) unlock Lifetime Pro tier with unlimited backup retention.
+- Database connection strings are processed securely and utilized inside isolated Cloudflare Container execution environments for pg_dumpall.
+- Backup SQL dumps streamed to Cloudflare R2 enforce AES-256 encryption at rest.
+- Row Level Security (RLS) policies enforce strict data isolation: Anonymous users (is_anonymous = true) are blocked from INSERT, UPDATE, SELECT, and DELETE operations.
+- Unauthenticated checkout/action progress is saved via localStorage (superbaser_pending_action) and automatically resumed post sign-in.
 `;
 
 export const FRIENDLY_SECURITY_AFFIRMATIONS = [
