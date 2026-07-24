@@ -10,6 +10,7 @@
     "deploy:live": "npm run build && npx vercel --prod"
   },
   "dependencies": {
+    "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@supabase/supabase-js": "^2.110.8",
     "@tailwindcss/typography": "^0.5.20",
     "framer-motion": "^12.42.2",

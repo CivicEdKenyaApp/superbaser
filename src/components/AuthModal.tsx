@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, Mail, Lock, Loader2, User } from 'lucide-react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 interface AuthModalProps {
   initialEmail?: string;
@@ -18,6 +19,8 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha>(null);
 
   useEffect(() => {
     if (initialEmail) setEmail(initialEmail);
@@ -37,6 +40,12 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!captchaToken) {
+      setError('Please complete the security verification.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -56,13 +65,20 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
         });
         if (error) throw error;
       } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email, 
+          password,
+          options: {
+            captchaToken,
+          }
+        });
         if (error) throw error;
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            captchaToken,
             data: {
               full_name: name,
               org_name: orgName,
@@ -74,7 +90,11 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
         // Auto-login fallback if signUp returns session: null (guarantees session state for instant redirect)
         if (!data.session) {
           try {
-            await supabase.auth.signInWithPassword({ email, password });
+            await supabase.auth.signInWithPassword({ 
+              email, 
+              password,
+              options: { captchaToken }
+            });
           } catch (loginErr) {
             // Ignore if email confirmation is required by Supabase policy
           }
@@ -82,6 +102,11 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
       }
       onSuccess();
     } catch (err: any) {
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+      }
+      setCaptchaToken(null);
+      
       const msg = err.message || 'An error occurred during authentication.';
       if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('user_already_exists')) {
         setIsLogin(true);
@@ -195,9 +220,22 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
               </div>
             )}
 
+            <div className="flex justify-center pt-2 pb-2">
+              <HCaptcha
+                ref={captchaRef}
+                sitekey="4e508f3c-bc1a-47b8-ad16-c47643189a8a"
+                onVerify={(token) => {
+                  setCaptchaToken(token);
+                  setError(null);
+                }}
+                onExpire={() => setCaptchaToken(null)}
+                theme="light"
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !captchaToken}
               className="w-full mt-2 button flex items-center justify-center min-h-[50px] border border-ink bg-ink text-white font-mono font-bold text-xs uppercase tracking-widest hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[5px_5px_0_#c6f806] transition-all duration-200 disabled:opacity-70 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-none"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isLogin ? 'Sign In ↗' : 'Sign Up ↗')}
@@ -207,7 +245,12 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
           <div className="mt-6 pt-4 border-t border-line text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                if (captchaRef.current) captchaRef.current.resetCaptcha();
+                setCaptchaToken(null);
+                setError(null);
+              }}
               className="font-mono text-xs text-ink hover:text-neon underline decoration-ink/30 underline-offset-4"
             >
               {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
