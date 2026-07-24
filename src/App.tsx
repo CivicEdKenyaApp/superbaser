@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Ticker from './components/Ticker';
@@ -28,8 +29,14 @@ export default function App() {
   const [initialUserData, setInitialUserData] = useState<{ email: string; name: string; orgName: string; supabasePlan?: string } | undefined>(undefined);
   const [intentUIMode, setIntentUIMode] = useState<'intercept' | 'resume' | null>(null);
   const [activePendingIntent, setActivePendingIntent] = useState<any | null>(null);
+  const [showResetToast, setShowResetToast] = useState(false);
+  const lastViewRef = useRef(typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('sb_last_view') : null);
 
   const { session, setSession } = useAuthStore();
+
+  useEffect(() => {
+    sessionStorage.setItem('sb_last_view', currentView);
+  }, [currentView]);
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
@@ -47,6 +54,13 @@ export default function App() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user && !session.user.is_anonymous) {
+        setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
+      } else if (session?.user?.is_anonymous) {
+        if (lastViewRef.current === 'console') {
+          setTimeout(() => setShowResetToast(true), 1500);
+        }
+      }
       checkAndResumePendingAction(session);
     });
 
@@ -54,6 +68,9 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user && !session.user.is_anonymous) {
+        setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
+      }
       checkAndResumePendingAction(session);
     });
 
@@ -274,6 +291,22 @@ export default function App() {
                 setActivePendingIntent(null);
               }}
             />
+          )}
+
+          {showResetToast && (
+            <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-4 max-w-sm flex items-start gap-4">
+                <div className="flex-1 space-y-1">
+                  <h4 className="font-bold text-ink uppercase text-xs font-mono">Session Reset</h4>
+                  <p className="text-muted text-[0.65rem] font-mono leading-relaxed">
+                    Your temporary session was reset upon refresh. Sign up to save your progress and maintain continuous access.
+                  </p>
+                </div>
+                <button onClick={() => setShowResetToast(false)} className="text-muted hover:text-ink transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </ClickSpark>

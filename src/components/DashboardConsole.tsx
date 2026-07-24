@@ -109,6 +109,28 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [targetConnectionString, setTargetConnectionString] = useState('');
   const [targetServiceKey, setTargetServiceKey] = useState('');
 
+  useEffect(() => {
+    const saved = localStorage.getItem('superbaser_connect_form');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.targetProjectName) setTargetProjectName(parsed.targetProjectName);
+        if (parsed.targetProjectUrl) setTargetProjectUrl(parsed.targetProjectUrl);
+        if (parsed.targetConnectionString) setTargetConnectionString(parsed.targetConnectionString);
+        if (parsed.targetServiceKey) setTargetServiceKey(parsed.targetServiceKey);
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('superbaser_connect_form', JSON.stringify({
+      targetProjectName,
+      targetProjectUrl,
+      targetConnectionString,
+      targetServiceKey
+    }));
+  }, [targetProjectName, targetProjectUrl, targetConnectionString, targetServiceKey]);
+
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const [promoCode, setPromoCode] = useState('');
@@ -548,6 +570,17 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
           </div>
         </div>
       </header>
+
+      {user?.is_anonymous && (
+        <div className="bg-paper text-ink px-6 py-2 border-b border-ink shadow-[0_4px_0_#171714] relative z-10 flex items-center justify-between font-mono text-[0.65rem] uppercase">
+          <div className="flex items-center gap-2">
+            <span className="font-bold">Temporary Dashboard Access</span>
+          </div>
+          <div>
+            To unlock full execution permissions and save progress, <button onClick={() => onOpenAuthModal && onOpenAuthModal()} className="font-bold underline hover:text-orange transition-colors">Sign in</button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 flex max-md:flex-col relative z-10">
         <aside className="w-[280px] max-md:w-full bg-panel border-r border-line p-6 flex flex-col justify-between shrink-0">
@@ -1623,6 +1656,12 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   const updatedProjects = await listProjects(activeOrgId);
                   setProjectsData(updatedProjects);
                   setShowConnectModal(false);
+
+                  localStorage.removeItem('superbaser_connect_form');
+                  setTargetProjectName('');
+                  setTargetProjectUrl('');
+                  setTargetConnectionString('');
+                  setTargetServiceKey('');
 
                   setLogs((prev) => [
                     `[${new Date().toLocaleTimeString()}] Target Project "${newProj.name}" (${projectRefExtracted}) connected securely.`,
