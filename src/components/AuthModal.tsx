@@ -131,7 +131,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-9 pr-4 py-3 bg-white border border-ink font-mono text-sm focus:border-orange focus:ring-1 focus:ring-orange outline-none transition-all"
-                      placeholder="Ada Lovelace"
+                      placeholder="Your Name"
                     />
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
                       className="w-full pl-9 pr-4 py-3 bg-white border border-ink font-mono text-sm focus:border-orange focus:ring-1 focus:ring-orange outline-none transition-all"
-                      placeholder="Acme Corp"
+                      placeholder="Your Organization"
                     />
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 bg-white border border-ink font-mono text-sm focus:border-orange focus:ring-1 focus:ring-orange outline-none transition-all"
-                  placeholder="admin@company.com"
+                  placeholder="Your Email"
                 />
               </div>
             </div>

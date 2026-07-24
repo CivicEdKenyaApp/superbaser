@@ -1255,18 +1255,28 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault();
+                      const statusEl = document.getElementById('settings-feedback-status');
                       try {
                         const formEl = e.currentTarget;
                         const nameInput = (formEl.elements.namedItem('fullName') as HTMLInputElement).value;
                         await supabase.auth.updateUser({ data: { full_name: nameInput } });
-                        alert("Profile settings updated successfully!");
+                        if (statusEl) {
+                          statusEl.textContent = "✓ Profile settings updated successfully!";
+                          statusEl.className = "p-3 bg-acid border border-ink text-ink font-mono font-bold text-xs uppercase tracking-wide animate-fadeIn";
+                          setTimeout(() => { statusEl.className = "hidden"; }, 4000);
+                        }
                       } catch (err: any) {
-                        alert("Failed to update profile: " + err.message);
+                        if (statusEl) {
+                          statusEl.textContent = "✕ Failed to update profile: " + (err.message || 'Error occurred');
+                          statusEl.className = "p-3 bg-red-100 border border-ink text-red-700 font-mono font-bold text-xs uppercase tracking-wide";
+                        }
                       }
                     }}
                     className="p-6 bg-panel border-2 border-ink space-y-5 max-w-xl shadow-[6px_6px_0_#171714]"
                   >
                     <div className="font-bold text-sm uppercase text-ink">User Profile & Avatar</div>
+                    <div id="settings-feedback-status" className="hidden" role="status" aria-live="polite"></div>
+
                     <div className="flex items-center gap-4 p-4 bg-paper border border-line">
                       {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 48)}
                       <div>
@@ -1287,7 +1297,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                       />
                     </div>
 
-                    <button type="submit" className="button px-5 py-3 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors">
+                    <button type="submit" className="button px-5 py-3 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors cursor-pointer">
                       Save Profile Settings ↗
                     </button>
                   </form>

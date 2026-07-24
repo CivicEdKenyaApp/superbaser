@@ -35,6 +35,6 @@
     "SUPABASE_URL": "https://vkepcsrjgeyquzmvwvmf.supabase.co"
   },
   "triggers": {
-    "crons": ["0 0 * * *"]
+    "crons": ["*/15 * * * *"]
   }
 }
