@@ -138,8 +138,47 @@ export class BackupContainer extends Container {
 export default {
   async fetch(request, env) {
     try {
+      const url = new URL(request.url);
+
+      if (url.pathname === '/download') {
+        const key = url.searchParams.get('key');
+        if (!key) {
+          return Response.json({ error: 'Missing key parameter' }, { status: 400 });
+        }
+        const object = await env.BACKUPS.get(key);
+        if (!object) {
+          return Response.json({ error: 'Backup object not found in R2' }, { status: 404 });
+        }
+        const filename = key.split('/').pop() || 'backup.sql';
+        return new Response(object.body, {
+          headers: {
+            'Content-Type': 'application/x-sql',
+            'Content-Disposition': `attachment; filename="${filename}"`
+          }
+        });
+      }
+
+      if (url.pathname === '/api/paystack-webhook') {
+        const body = await request.json();
+        const event = body.event;
+        
+        if (event === 'charge.success' || event === 'subscription.create' || event === 'subscription.enable') {
+          const orgId = body.data?.metadata?.organization_id;
+          const planCode = body.data?.plan?.plan_code || 'pro';
+          
+          if (orgId && env.SUPABASE_SERVICE_ROLE_KEY) {
+            const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+            await supabase
+              .from('organizations')
+              .update({ plan: planCode, updated_at: new Date().toISOString() })
+              .eq('id', orgId);
+          }
+        }
+        return new Response('OK', { status: 200 });
+      }
+
       const job = await request.json();
-      const container = getContainer(env.BACKUP_CONTAINER, String(job.id));
+      const container = getContainer(env.BACKUP_CONTAINER, String(job.id || 'default'));
 
       // Forward to the container instance — it handles the backup
       const response = await container.fetch(request);
@@ -156,4 +195,35 @@ export default {
       return Response.json({ success: false, error: err.message }, { status: 500 });
     }
   },
+
+  async scheduled(event, env, ctx) {
+    console.log("[Cloudflare Scheduled Cron] Running automated daily backup trigger...");
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return;
+
+    try {
+      const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data: schedules, error } = await supabase
+        .from('schedules')
+        .select('*')
+        .eq('enabled', true);
+
+      if (error || !schedules || schedules.length === 0) {
+        console.log("[Cloudflare Scheduled Cron] No active schedules found.");
+        return;
+      }
+
+      for (const schedule of schedules) {
+        console.log(`[Cloudflare Scheduled Cron] Triggering backup for project ${schedule.project_id}`);
+        await supabase.from('jobs').insert({
+          organization_id: schedule.organization_id,
+          project_id: schedule.project_id,
+          kind: 'backup',
+          status: 'queued',
+          payload: { project_id: schedule.project_id, schedule_id: schedule.id }
+        });
+      }
+    } catch (err) {
+      console.error("[Cloudflare Scheduled Cron] Error:", err);
+    }
+  }
 };

@@ -2,17 +2,6 @@ import { supabase } from './supabase';
 
 export async function createOrganization(name: string, userId: string) {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).slice(2, 6);
-  
-  if (userId === 'guest_user_id' || userId === '00000000-0000-0000-0000-000000000000') {
-    return {
-      id: 'mock-org-' + Math.random().toString(36).slice(2, 10),
-      name,
-      slug,
-      created_by: userId,
-      plan: 'free',
-      created_at: new Date().toISOString()
-    };
-  }
 
   const { data, error } = await supabase
     .from('organizations')
@@ -74,9 +63,7 @@ export async function createProject(
 }
 
 export async function enqueueBackup(organizationId: string, projectId: string) {
-  // In a real full production environment, this would call an Edge Function or insert into a job queue
-  // Since we are mocking the queue worker logic directly, we just insert a backup record
-  const { data, error } = await supabase
+  const { data: backup, error: backupErr } = await supabase
     .from('backups')
     .insert({
       organization_id: organizationId,
@@ -87,8 +74,22 @@ export async function enqueueBackup(organizationId: string, projectId: string) {
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
-  return data;
+  if (backupErr) throw new Error(backupErr.message);
+
+  const { data: job, error: jobErr } = await supabase
+    .from('jobs')
+    .insert({
+      organization_id: organizationId,
+      project_id: projectId,
+      backup_id: backup.id,
+      kind: 'backup',
+      status: 'queued',
+      payload: { project_id: projectId, backup_id: backup.id }
+    })
+    .select()
+    .maybeSingle();
+
+  return { backup, job };
 }
 
 export async function enqueueRestore(organizationId: string, backupId: string, targetProjectId: string) {

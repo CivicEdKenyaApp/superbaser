@@ -42,24 +42,14 @@ export async function executeSupabaseDiscovery(
   const { projectRef, serviceRoleKey } = payload;
   const projectUrl = `https://${projectRef}.supabase.co`;
 
-  let databaseSizeBytes = 152880000; // ~145.8 MB
-  let tableCount = 42;
-  let authUsersCount = 1420;
-  let rlsCoveragePct = 100;
+  let databaseSizeBytes = 0;
+  let tableCount = 0;
+  let authUsersCount = 0;
+  let rlsCoveragePct = 0;
   let postgresVersion = 'PostgreSQL 15.6';
 
-  let tables: TableCatalogItem[] = [
-    { table: 'public.profiles', rows: '1,420 rows', size: '2.4 MB', bytes: 2516582, rls: 'Enabled' },
-    { table: 'public.legislative_bills', rows: '842 rows', size: '14.8 MB', bytes: 15518924, rls: 'Enabled' },
-    { table: 'public.contact_submissions', rows: '312 rows', size: '1.1 MB', bytes: 1153433, rls: 'Enabled' },
-    { table: 'public.audit_logs', rows: '14,890 rows', size: '48.2 MB', bytes: 50541363, rls: 'Enabled' },
-    { table: 'public.user_settings', rows: '1,420 rows', size: '3.6 MB', bytes: 3774873, rls: 'Enabled' }
-  ];
-
-  let buckets: StorageBucketItem[] = [
-    { bucket: 'avatars', public: true, files: '142 files', size: '10.5 MB', bytes: 11010048 },
-    { bucket: 'documents', public: false, files: '12 files', size: '52.4 MB', bytes: 54945792 }
-  ];
+  let tables: TableCatalogItem[] = [];
+  let buckets: StorageBucketItem[] = [];
 
   if (serviceRoleKey && serviceRoleKey.trim() !== '') {
     try {

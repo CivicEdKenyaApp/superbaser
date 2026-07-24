@@ -61,10 +61,17 @@ export default function Contact({ onLaunchConsole, session }: ContactProps) {
   };
 
   return (
-    <section className="section py-[120px] max-md:py-[88px] bg-orange border-0 text-ink" id="contact">
-      <div className="shell contact-grid grid grid-cols-[0.85fr_1.15fr] max-md:grid-cols-1 gap-[clamp(50px,9vw,130px)] max-md:gap-[55px]">
+    <section className="section py-[120px] max-md:py-[88px] bg-orange border-0 text-ink relative overflow-hidden" id="contact">
+      {/* Offscreen background logo representation */}
+      <div className="absolute top-0 left-0 -translate-y-[20%] -translate-x-[35%] w-[800px] h-[800px] max-md:w-[450px] max-md:h-[450px] max-md:-translate-x-[30%] max-md:-translate-y-[15%] pointer-events-none opacity-[0.15] z-0">
+        <svg width="100%" height="100%" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <path fill="#bce21c" stroke="#303a09" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 14 14 3v7h6L10 21v-7H4z" />
+        </svg>
+      </div>
+
+      <div className="shell contact-grid grid grid-cols-[0.85fr_1.15fr] max-md:grid-cols-1 gap-[clamp(50px,9vw,130px)] max-md:gap-[55px] relative z-10">
         <div>
-          <p className="eyebrow font-mono font-medium text-[0.72rem] tracking-[0.11em] uppercase m-0 before:content-['✦'] before:mr-[0.65rem]">SuperBaser Console</p>
+          <p className="eyebrow font-mono font-medium text-[0.72rem] tracking-[0.11em] uppercase m-0 before:content-['✦'] before:mr-[0.65rem]">A New Dawn for your data</p>
           <h2 className="section-title my-[28px] font-display font-bold text-[clamp(2.8rem,6vw,5.8rem)] leading-[0.95] tracking-[-0.065em]">
             Get Started with SuperBaser.
           </h2>

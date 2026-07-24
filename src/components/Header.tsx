@@ -73,7 +73,14 @@ export default function Header({ onLaunchConsole }: HeaderProps) {
               onClick={closeMenu}
               className="relative no-underline font-mono font-medium text-[0.76rem] max-md:text-[2.4rem] uppercase tracking-[0.05em] max-md:tracking-[-0.05em] max-md:font-display max-md:font-bold after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[7px] after:h-[2px] after:bg-orange after:scale-x-0 after:origin-right after:transition-transform after:duration-250 hover:after:scale-x-100 hover:after:origin-left"
             >
-              Engine Pipeline
+              Pipeline
+            </a>
+            <a
+              href="/docs.html"
+              onClick={closeMenu}
+              className="relative no-underline font-mono font-medium text-[0.76rem] max-md:text-[2.4rem] uppercase tracking-[0.05em] max-md:tracking-[-0.05em] max-md:font-display max-md:font-bold after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[7px] after:h-[2px] after:bg-orange after:scale-x-0 after:origin-right after:transition-transform after:duration-250 hover:after:scale-x-100 hover:after:origin-left"
+            >
+              Docs
             </a>
             <a
               href="#contact"

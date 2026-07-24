@@ -2,13 +2,14 @@ import React from 'react';
 
 export default function Ticker() {
   const items = [
-    'Your database, backed up daily',
-    'Your files, backed up too',
-    'Your users and logins, preserved',
-    'Restore in one click',
-    'Move to a new project instantly',
-    'Every backup checked before you need it',
-    'Nothing left behind, nothing left to guess',
+    'Backed up frequently, no exceptions',
+    'Your files, covered too',
+    'Your users, still logged in after',
+    'One click to restore',
+    'One click to migrate',
+    'Every backup, checked before you need it',
+    'Nothing skipped, nothing guessed',
+    'Set once, forget forever',
   ];
 
   return (

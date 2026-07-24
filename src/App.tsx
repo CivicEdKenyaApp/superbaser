@@ -42,36 +42,26 @@ export default function App() {
     if (serviceRoleKey) setActiveServiceRoleKey(serviceRoleKey);
     if (initialData) setInitialUserData(initialData);
 
-    // 1. Immediately switch view to console so user is ALWAYS redirected to dashboard
-    setCurrentView('console');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // 2. Attempt anonymous sign-in or guest session creation in background
     const { data: sessionData } = await supabase.auth.getSession();
     const activeSession = sessionData?.session;
 
     if (!activeSession) {
-      // Create a local guest session since anonymous sign-ins are disabled by default
-
-      setSession({
-        access_token: 'guest_token',
-        token_type: 'bearer',
-        expires_in: 3600,
-        refresh_token: 'guest_refresh',
-        user: {
-          id: '00000000-0000-0000-0000-000000000000',
-          aud: 'authenticated',
-          role: 'authenticated',
-          email: initialData?.email || 'guest@superbaser.com',
-          user_metadata: {
-            full_name: initialData?.name || 'Operations Guest',
-            org_name: initialData?.orgName || 'Primary Workspace',
-          },
-          app_metadata: {},
-          created_at: new Date().toISOString(),
-        }
-      } as any);
+      try {
+        await supabase.auth.signInAnonymously({
+          options: {
+            data: {
+              full_name: initialData?.name || 'Operations Guest',
+              org_name: initialData?.orgName || 'Primary Workspace',
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Anonymous auth error", err);
+      }
     }
+
+    setCurrentView('console');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAuthSuccess = () => {
@@ -94,6 +84,7 @@ export default function App() {
             projectRef={activeProjectRef}
             serviceRoleKey={activeServiceRoleKey}
             onBackToLanding={handleBackToLanding}
+            onOpenAuthModal={() => setShowAuthModal(true)}
           />
         </ClickSpark>
       </>

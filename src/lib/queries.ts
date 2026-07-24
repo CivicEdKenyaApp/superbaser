@@ -1,10 +1,6 @@
 import { supabase } from './supabase';
 
 export async function listMyOrganizations(userId: string) {
-  if (userId === 'guest_user_id' || userId === '00000000-0000-0000-0000-000000000000') {
-    return [{ role: 'owner', organization: { id: '11111111-1111-1111-1111-111111111111', name: 'Demo Organization', slug: 'demo-org', plan: 'free', created_at: new Date().toISOString() } }];
-  }
-
   const { data, error } = await supabase
     .from("organization_members")
     .select("role, organizations:organization_id(id, name, slug, plan, created_at)")

@@ -23,6 +23,16 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
     if (initialEmail) setEmail(initialEmail);
     if (initialName) setName(initialName);
     if (initialOrgName) setOrgName(initialOrgName);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const u = session?.user;
+      if (u) {
+        const meta = u.user_metadata || {};
+        if (!initialEmail && (u.email || meta.email)) setEmail(u.email || meta.email || '');
+        if (!initialName && meta.full_name) setName(meta.full_name);
+        if (!initialOrgName && meta.org_name) setOrgName(meta.org_name);
+      }
+    });
   }, [initialEmail, initialName, initialOrgName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,7 +82,13 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
       }
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication.');
+      const msg = err.message || 'An error occurred during authentication.';
+      if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('user_already_exists')) {
+        setIsLogin(true);
+        setError('Account already registered! Switched to Sign In — enter password to sign in.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -30,5 +30,11 @@
       "binding": "BACKUPS",
       "bucket_name": "superbaser-backups"
     }
-  ]
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://vkepcsrjgeyquzmvwvmf.supabase.co"
+  },
+  "triggers": {
+    "crons": ["0 0 * * *"]
+  }
 }

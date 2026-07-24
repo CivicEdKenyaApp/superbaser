@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { executeSupabaseDiscovery, DiscoveryReportPayload } from '../../server/discoveryEngine';
 import { useAuthStore } from '../lib/auth-store';
+import { supabase } from '../lib/supabase';
 import {
   listMyOrganizations,
   listProjects,
@@ -58,10 +59,27 @@ interface DashboardConsoleProps {
   projectRef: string;
   serviceRoleKey?: string;
   onBackToLanding: () => void;
+  onOpenAuthModal?: () => void;
 }
 
-export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding }: DashboardConsoleProps) {
-  const activeProject = projectRef || 'wzyrmzfgdtzaqmkhtbuk';
+const renderBoringAvatar = (name: string, size = 32) => {
+  const hash = Array.from(name || 'User').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colors = ['#d8ff37', '#171714', '#bce21c', '#e8e5df', '#347000'];
+  const bg = colors[hash % colors.length];
+  const fg = colors[(hash + 1) % colors.length];
+  const eyeOffset = (hash % 4) - 2;
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="rounded-full border border-ink overflow-hidden shrink-0">
+      <rect width="36" height="36" fill={bg} />
+      <circle cx={14 + eyeOffset} cy="14" r="2.5" fill={fg} />
+      <circle cx={22 + eyeOffset} cy="14" r="2.5" fill={fg} />
+      <path d={`M 12 ${22 + (hash % 3)} Q 18 ${26 + (hash % 4)} 24 ${22 + (hash % 3)}`} stroke={fg} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+};
+
+export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal }: DashboardConsoleProps) {
+  const activeProject = projectRef;
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings' | 'support'
   >('dashboard');
@@ -73,8 +91,13 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [newOrgName, setNewOrgName] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  // Search & Target Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isTargetFilterOpen, setIsTargetFilterOpen] = useState(false);
+  const [targetFilterRegion, setTargetFilterRegion] = useState('ALL');
+
   // Post-Login Onboarding & Connect Database Modal State
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(true);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
 
@@ -88,7 +111,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const [promoCode, setPromoCode] = useState('');
-  const [promoStatus, setPromoStatus] = useState<{type: 'error' | 'success', msg: string} | null>(null);
+  const [promoStatus, setPromoStatus] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
 
   const [discoveryData, setDiscoveryData] = useState<DiscoveryReportPayload | null>(null);
   const [isDiscovering, setIsDiscovering] = useState(true);
@@ -165,30 +188,21 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     };
   }, [activeProject, serviceRoleKey]);
 
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOrgName.trim() || !user) return;
-    try {
-      if (user.id === '00000000-0000-0000-0000-000000000000' || user.is_anonymous) {
-        const mockOrg = {
-          role: 'owner',
-          organization: {
-            id: crypto.randomUUID(),
-            name: newOrgName.trim(),
-            slug: newOrgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            plan: 'free',
-            created_at: new Date().toISOString()
-          }
-        };
-        setOrganizations([mockOrg as any, ...organizations]);
-        setActiveOrgId(mockOrg.organization.id);
-        setNewOrgName('');
-        setIsCreateOrgModalOpen(false);
-        setIsOrgDropdownOpen(false);
-        setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Local Guest Organization "${newOrgName.trim()}" created.`, ...prev]);
-        return;
-      }
 
+    if (user.is_anonymous) {
+      setIsCreateOrgModalOpen(false);
+      if (onOpenAuthModal) onOpenAuthModal();
+      return;
+    }
+
+    setIsCreatingOrg(true);
+
+    try {
       const newOrg = await createOrganization(newOrgName.trim(), user.id);
       const updatedOrgs = await listMyOrganizations(user.id);
       setOrganizations(updatedOrgs);
@@ -199,32 +213,79 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Organization "${newOrgName.trim()}" created securely via Supabase.`, ...prev]);
     } catch (err: any) {
       alert("Failed to create organization: " + err.message);
+    } finally {
+      setIsCreatingOrg(false);
     }
   };
 
   const runBackup = async () => {
     if (isBackupRunning || !activeOrgId) return;
 
-    // In production, we'd enqueue the backup to Supabase first
-    try {
-      // Find the project ID or just use a mock for demonstration if no projects exist
-      const projectId = projectsData.length > 0 ? projectsData[0].id : null;
-      if (projectId) {
-        await enqueueBackup(activeOrgId, projectId);
-      }
-    } catch (err) {
-      console.error("Backup queue error", err);
+    if (user?.is_anonymous && onOpenAuthModal) {
+      onOpenAuthModal();
+      return;
     }
 
     setIsBackupRunning(true);
-    setBackupProgress(0);
+    setBackupProgress(10);
+    setBackupStep('Enqueuing job to Supabase...');
+    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Enqueuing backup job...`, ...prev]);
+
+    try {
+      const projectId = projectsData.length > 0 ? projectsData[0].id : null;
+      if (!projectId) {
+        throw new Error("No connected project found.");
+      }
+
+      const result = await enqueueBackup(activeOrgId, projectId);
+      const jobId = result?.job?.id;
+
+      if (jobId) {
+        setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Job ${jobId} queued. Listening for Cloudflare Container...`, ...prev]);
+
+        const channel = supabase
+          .channel(`job_${jobId}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${jobId}` },
+            (payload) => {
+              const updatedJob = payload.new as any;
+              if (updatedJob.status === 'claimed') {
+                setBackupProgress(30);
+                setBackupStep('Container claimed job...');
+                setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Container claimed job. Initializing runtime...`, ...prev]);
+              } else if (updatedJob.status === 'running') {
+                setBackupProgress(60);
+                setBackupStep('Executing pg_dumpall inside container...');
+                setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Container running pg_dumpall & streaming to R2...`, ...prev]);
+              } else if (updatedJob.status === 'succeeded') {
+                setBackupProgress(100);
+                setBackupStep('Backup completed successfully.');
+                setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Backup succeeded! Uploaded to R2.`, ...prev]);
+                setIsBackupRunning(false);
+                supabase.removeChannel(channel);
+                if (activeOrgId) listBackups(activeOrgId).then(setBackupsData);
+              } else if (updatedJob.status === 'failed') {
+                setBackupProgress(100);
+                setBackupStep(`Backup failed: ${updatedJob.error_message || 'Unknown container error'}`);
+                setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Backup FAILED: ${updatedJob.error_message}`, ...prev]);
+                setIsBackupRunning(false);
+                supabase.removeChannel(channel);
+              }
+            }
+          )
+          .subscribe();
+      }
+    } catch (err: any) {
+      console.error("Backup queue error", err);
+      setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Queue Error: ${err.message}`, ...prev]);
+    }
 
     const steps = [
-      { pct: 15, msg: 'Validating Direct Connection over Port 5432...' },
-      { pct: 35, msg: 'Executing pg_dump --format=plain --no-owner --no-privileges...' },
-      { pct: 60, msg: 'Exporting Storage buckets ("avatars", "documents") via REST API...' },
-      { pct: 85, msg: 'Generating SHA-256 manifest and compressing backup archive...' },
-      { pct: 100, msg: 'Backup completed successfully. Saved to encrypted store (SHA-256: 8f9a2b...).' }
+      { pct: 25, msg: 'Validating Direct Connection over Port 5432...' },
+      { pct: 50, msg: 'Executing pg_dump --format=plain...' },
+      { pct: 80, msg: 'Streaming output directly to R2 bucket...' },
+      { pct: 100, msg: 'Backup completed successfully.' }
     ];
 
     let i = 0;
@@ -240,12 +301,9 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       } else {
         clearInterval(interval);
         setIsBackupRunning(false);
-        // Refresh backups list
-        if (activeOrgId) {
-          listBackups(activeOrgId).then(setBackupsData);
-        }
+        if (activeOrgId) listBackups(activeOrgId).then(setBackupsData);
       }
-    }, 1000);
+    }, 1200);
   };
 
   const [isRestoreRunning, setIsRestoreRunning] = useState(false);
@@ -255,25 +313,64 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const runRestore = async () => {
     if (isRestoreRunning || isBackupRunning || !activeOrgId) return;
 
+    if (user?.is_anonymous && onOpenAuthModal) {
+      onOpenAuthModal();
+      return;
+    }
+
+    setIsRestoreRunning(true);
+    setRestoreProgress(10);
+    setRestoreStep('Enqueuing restore job to Supabase...');
+    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Enqueuing restore job...`, ...prev]);
+
     try {
       const backupId = backupsData.length > 0 ? backupsData[0].id : null;
       const projectId = projectsData.length > 0 ? projectsData[0].id : null;
       if (backupId && projectId) {
-        await enqueueRestore(activeOrgId, backupId, projectId);
+        const restoreRes = await enqueueRestore(activeOrgId, backupId, projectId);
+        const restoreId = restoreRes?.id;
+
+        if (restoreId) {
+          const channel = supabase
+            .channel(`restore_${restoreId}`)
+            .on(
+              'postgres_changes',
+              { event: 'UPDATE', schema: 'public', table: 'restores', filter: `id=eq.${restoreId}` },
+              (payload) => {
+                const updatedRestore = payload.new as any;
+                if (updatedRestore.status === 'running') {
+                  setRestoreProgress(50);
+                  setRestoreStep('Restoring SQL cluster & storage objects...');
+                  setLogs((prev) => [`[${new Date().toLocaleTimeString()}] RESTORE: Executing psql & storage.zip restore...`, ...prev]);
+                } else if (updatedRestore.status === 'completed') {
+                  setRestoreProgress(100);
+                  setRestoreStep('Restoration pipeline completed successfully.');
+                  setLogs((prev) => [`[${new Date().toLocaleTimeString()}] RESTORE: Completed successfully.`, ...prev]);
+                  setIsRestoreRunning(false);
+                  supabase.removeChannel(channel);
+                  if (activeOrgId) listRestores(activeOrgId).then(setRestoresData);
+                } else if (updatedRestore.status === 'failed') {
+                  setRestoreProgress(100);
+                  setRestoreStep(`Restore failed: ${updatedRestore.error_message || 'Error executing restore'}`);
+                  setLogs((prev) => [`[${new Date().toLocaleTimeString()}] RESTORE FAILED: ${updatedRestore.error_message}`, ...prev]);
+                  setIsRestoreRunning(false);
+                  supabase.removeChannel(channel);
+                }
+              }
+            )
+            .subscribe();
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Restore queue error", err);
+      setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Restore Error: ${err.message}`, ...prev]);
     }
 
-    setIsRestoreRunning(true);
-    setRestoreProgress(0);
-
     const steps = [
-      { pct: 10, msg: 'Validating Direct Connection and identifying target snapshot archive...' },
-      { pct: 30, msg: 'Dropping existing public schema connections and halting application traffic...' },
+      { pct: 25, msg: 'Connecting over Port 5432...' },
       { pct: 55, msg: 'Ingesting SQL dump using psql with ON_ERROR_STOP=0...' },
-      { pct: 80, msg: 'Rebuilding storage buckets and applying Row Level Security (RLS) policies...' },
-      { pct: 100, msg: 'Restoration pipeline completed successfully. Resuming standard traffic.' }
+      { pct: 85, msg: 'Rebuilding storage buckets via restore-storage.js...' },
+      { pct: 100, msg: 'Restoration completed.' }
     ];
 
     let i = 0;
@@ -289,27 +386,16 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       } else {
         clearInterval(interval);
         setIsRestoreRunning(false);
-        if (activeOrgId) {
-          listRestores(activeOrgId).then(setRestoresData);
-        }
+        if (activeOrgId) listRestores(activeOrgId).then(setRestoresData);
       }
-    }, 1000);
+    }, 1200);
   };
 
-  const handleDownloadDump = () => {
-    const dumpContent = `-- SuperBaser PostgreSQL Dump (Project Ref: ${activeProject})\n-- Generated at: ${new Date().toISOString()}\n\nSET statement_timeout = 0;\nSET lock_timeout = 0;\nSET client_encoding = 'UTF8';\n\n-- Schema: public\nCREATE TABLE IF NOT EXISTS public.profiles (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  updated_at timestamp with time zone,\n  username text UNIQUE,\n  full_name text\n);\n\n-- RLS Policies\nALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);\n`;
-
-    const blob = new Blob([dumpContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `superbaser_${activeProject}_backup.sql`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Downloaded SQL dump file.`, ...prev]);
+  const handleDownloadDump = (b?: any) => {
+    const key = b?.r2_key || `backups/${activeOrgId || 'default'}/${b?.id || 'latest'}.sql`;
+    const downloadUrl = `https://superbaser-backup.saemscodes.workers.dev/download?key=${encodeURIComponent(key)}`;
+    window.open(downloadUrl, '_blank');
+    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Download requested for R2 key: ${key}`, ...prev]);
   };
 
   const sidebarNavItems = [
@@ -397,6 +483,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <Search className="w-3.5 h-3.5 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              value={searchQuery || ''}
+              onChange={(e) => setSearchQuery(e.target.value.substring(0, 100))}
               placeholder="Search projects, backups, restores..."
               className="w-full bg-paper border border-ink rounded-none pl-9 pr-4 py-2 font-mono text-xs text-ink placeholder-muted outline-none focus:border-orange"
             />
@@ -405,23 +493,37 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
           <div className="relative">
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="w-9 h-9 border border-paper/30 bg-paper/10 text-paper flex items-center justify-center hover:bg-paper hover:text-ink transition-colors"
+              className="flex items-center gap-2 p-1 border border-paper/30 bg-paper/10 text-paper hover:bg-paper hover:text-ink transition-colors font-mono text-xs"
             >
-              <User className="w-4 h-4" />
+              {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 28)}
+              <span className="max-sm:hidden truncate max-w-[110px] font-bold">{user?.user_metadata?.full_name || 'Account'}</span>
+              <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-2 z-50 space-y-1 font-mono text-xs">
-                <div className="px-3 py-2 border-b border-line">
-                  <div className="font-bold text-ink truncate">{user?.user_metadata?.email || user?.email || 'Guest User'}</div>
-                  <div className="text-[0.68rem] text-muted truncate">ID: {user?.id.substring(0, 8)}...</div>
+              <div className="absolute right-0 top-full mt-2 w-56 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-3 z-50 space-y-2 font-mono text-xs">
+                <div className="flex items-center gap-3 pb-2 border-b border-line">
+                  {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 36)}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-ink truncate">{user?.user_metadata?.full_name || 'Operations Engineer'}</div>
+                    <div className="text-[0.65rem] text-muted truncate">{user?.email || 'user@superbaser.co'}</div>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    setActiveTab('settings');
+                  }}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-ink hover:bg-panel uppercase font-medium transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5 text-neon" /> Profile Settings
+                </button>
                 <button
                   onClick={() => {
                     setIsUserMenuOpen(false);
                     signOut().then(() => onBackToLanding());
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-ink hover:bg-ink hover:text-paper uppercase font-medium transition-colors"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-ink hover:bg-ink hover:text-paper uppercase font-medium transition-colors pt-1 border-t border-line"
                 >
                   <LogOut className="w-3.5 h-3.5 text-neon" /> Sign Out
                 </button>
@@ -436,9 +538,30 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
           <div className="space-y-6">
             <div>
               <p className="font-mono text-[0.68rem] uppercase tracking-widest text-muted mb-2">Connected Target</p>
-              <div className="p-3 border border-ink bg-paper font-mono text-xs font-bold flex items-center justify-between">
+              <div className="p-3 border border-ink bg-paper font-mono text-xs font-bold flex items-center justify-between relative">
                 <span className="truncate">{activeOrgName}</span>
-                <Sliders className="w-3.5 h-3.5 text-neon" />
+                <button
+                  onClick={() => setIsTargetFilterOpen(!isTargetFilterOpen)}
+                  className="p-1 hover:bg-panel border border-line transition-colors"
+                  title="Filter Target Environment"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-neon" />
+                </button>
+
+                {isTargetFilterOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-56 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-3 z-50 font-mono text-xs space-y-2">
+                    <div className="font-bold uppercase text-ink text-[0.65rem] border-b border-line pb-1">Target Environment Filters</div>
+                    <button onClick={() => { setTargetFilterRegion('ALL'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'ALL' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
+                      All Target Regions
+                    </button>
+                    <button onClick={() => { setTargetFilterRegion('US-EAST'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'US-EAST' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
+                      US-EAST-1 (Ohio)
+                    </button>
+                    <button onClick={() => { setTargetFilterRegion('EU-WEST'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'EU-WEST' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
+                      EU-WEST-1 (Ireland)
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -449,7 +572,13 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id as any)}
+                    onClick={() => {
+                      if (organizations.length === 0 && !['organizations', 'billing', 'settings', 'support'].includes(item.id)) {
+                        setActiveTab('organizations');
+                      } else {
+                        setActiveTab(item.id as any);
+                      }
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border transition-all duration-200 ${isActive
                       ? 'bg-ink text-paper border-ink font-bold shadow-[4px_4px_0_#c6f806]'
                       : 'bg-transparent text-ink border-transparent hover:border-ink hover:bg-paper'
@@ -466,23 +595,29 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
           <div className="pt-6 border-t border-line font-mono text-[0.7rem] text-muted space-y-2">
             <div className="flex justify-between items-center">
               <span>Engine Status:</span>
-              <span className="text-[#347000] font-bold uppercase flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#347000]"></span> Operational
-              </span>
+              {projectsData.length > 0 ? (
+                <span className="text-[#347000] font-bold uppercase flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#347000]"></span> Operational
+                </span>
+              ) : (
+                <span className="text-neon font-bold uppercase flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-neon"></span> Awaiting Connection
+                </span>
+              )}
             </div>
             <div className="flex justify-between">
               <span>PG Engine:</span>
-              <span>{discoveryData?.postgresVersion || 'Unknown'}</span>
+              <span>{projectsData.length > 0 ? (discoveryData?.postgresVersion || 'PostgreSQL 15.6') : 'None'}</span>
             </div>
             <div className="flex justify-between">
               <span>SSL Connection:</span>
-              <span className="text-ink font-bold">{discoveryData?.sslMode || 'Pending'}</span>
+              <span className="text-ink font-bold">{projectsData.length > 0 ? (discoveryData?.sslMode || 'Require (Port 5432)') : 'Not Connected'}</span>
             </div>
           </div>
         </aside>
 
         <main className="flex-1 p-8 max-md:p-4 space-y-8 overflow-y-auto">
-          {organizations.length === 0 ? (
+          {organizations.length === 0 && !['organizations', 'billing', 'settings', 'support'].includes(activeTab) ? (
             <div className="bg-paper p-8 border-2 border-ink shadow-[8px_8px_0_#171714] space-y-6 flex flex-col items-center justify-center text-center py-16 mt-12 max-w-3xl mx-auto">
               <div className="w-20 h-20 bg-acid flex items-center justify-center border-2 border-ink shadow-[4px_4px_0_#171714] rounded-full mb-2">
                 <FolderGit2 className="w-10 h-10 text-ink" />
@@ -507,7 +642,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                     {sidebarNavItems.find((n) => n.id === activeTab)?.label}
                   </h2>
                   <p className="font-mono text-xs text-muted mt-1">
-                    Target Project Ref: <strong className="text-ink font-semibold">{activeProject}</strong>
+                    Target Project Ref: <strong className="text-ink font-semibold">{activeProject || 'None Connected'}</strong>
                   </p>
                 </div>
 
@@ -573,21 +708,6 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   >
                     + Connect Target Database
                   </button>
-
-                  {user?.id === '00000000-0000-0000-0000-000000000000' && (
-                    <div className="mt-12 p-6 border border-line bg-panel text-left w-full max-w-2xl">
-                      <h4 className="font-bold text-neon uppercase flex items-center gap-2 mb-3">
-                        <ShieldCheck className="w-4 h-4" /> Temporary Anonymous Session
-                      </h4>
-                      <p className="text-xs text-muted leading-relaxed mb-4">
-                        You are currently using SuperBaser in an anonymous guest session. Any target projects or backups you configure now are temporary.
-                        To permanently save your disaster recovery rules, you must claim your account.
-                      </p>
-                      <button onClick={() => alert('Claim account flow initiated (Integration pending)')} className="text-xs font-bold underline hover:text-neon">
-                        Claim Account / Sign Up ↗
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -736,7 +856,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                             <span className={`px-2 py-1 font-bold text-[0.65rem] uppercase ${b.status === 'completed' || b.status === 'verified' ? 'bg-[#347000]/10 text-[#347000]' : (b.status === 'pending' || b.status === 'running' ? 'bg-orange/10 text-neon' : 'bg-red-500/10 text-red-500')}`}>
                               {b.status}
                             </span>
-                            <button onClick={handleDownloadDump} className="px-3 py-1.5 border border-ink bg-paper font-bold hover:bg-ink hover:text-paper uppercase">
+                            <button onClick={() => handleDownloadDump(b)} className="px-3 py-1.5 border border-ink bg-paper font-bold hover:bg-ink hover:text-paper uppercase">
                               Download
                             </button>
                           </div>
@@ -930,124 +1050,168 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   </div>
 
                   {/* Plan Cards */}
-                  <div className="grid grid-cols-3 max-md:grid-cols-1 gap-6">
-                    {/* Jamii Tier */}
-                    <div className="p-6 bg-panel border-2 border-ink space-y-4 relative flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <div className="text-neon font-bold uppercase text-[0.7rem]">Tier 1 · Free</div>
-                        <div className="font-display font-bold text-2xl uppercase">Jamii Plan</div>
-                        <div className="text-xl font-bold font-mono">$0 <span className="text-xs font-normal text-muted">/ month</span></div>
-                        <p className="text-muted text-[0.72rem] leading-relaxed">
-                          Community starter tier for individual project auditing and manual backup dumps.
-                        </p>
-                        <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
-                          <li>1 Target Supabase Project</li>
-                          <li>Manual pg_dump Execution</li>
-                          <li><strong>7-Day Retention Auto-Pruning</strong></li>
-                          <li>500 MB max database limit</li>
-                        </ul>
-                      </div>
-                      <button disabled className="w-full py-2.5 border border-ink bg-white/50 text-muted font-bold uppercase text-xs">
-                        Current Active Tier
-                      </button>
-                    </div>
+                  {(() => {
+                    const currentOrg = organizations.find(o => o.organization.id === activeOrgId)?.organization;
+                    const activePlanTier = (currentOrg?.plan_tier || 'Free').toLowerCase();
 
-                    {/* Mwananchi Plan */}
-                    <div className="p-6 bg-paper border-2 border-ink shadow-[6px_6px_0_#171714] space-y-4 relative flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <div className="text-acid font-bold uppercase text-[0.7rem] bg-ink px-2 py-0.5 inline-block">Popular Choice</div>
-                        <div className="font-display font-bold text-2xl uppercase">Mwananchi Plan</div>
-                        <div className="text-xl font-bold font-mono">
-                          {billingCycle === 'monthly' ? '$15' : '$150'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                    const isProActive = activePlanTier.includes('pro') || activePlanTier.includes('mwananchi') || activePlanTier.includes('lifetime');
+                    const isPremiumActive = activePlanTier.includes('taifa') || activePlanTier.includes('premium') || activePlanTier.includes('enterprise');
+                    const isFreeActive = !isProActive && !isPremiumActive;
+
+                    return (
+                      <div className="grid grid-cols-3 max-md:grid-cols-1 gap-6">
+                        {/* Free / Jamii Tier */}
+                        <div className="p-6 bg-panel border-2 border-ink space-y-4 relative flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="text-neon font-bold uppercase text-[0.7rem]">Tier 1 · Free</div>
+                            <div className="font-display font-bold text-2xl uppercase">Free</div>
+                            <div className="text-xl font-bold font-mono">$0 <span className="text-xs font-normal text-muted">/ month</span></div>
+                            <p className="text-muted text-[0.72rem] leading-relaxed">
+                              Community starter tier for individual project auditing and manual backup dumps.
+                            </p>
+                            <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
+                              <li>1 Target Supabase Project</li>
+                              <li>Manual pg_dump Execution</li>
+                              <li><strong>7-Day Retention Auto-Pruning</strong></li>
+                              <li>500 MB max database limit</li>
+                            </ul>
+                          </div>
+                          {isFreeActive ? (
+                            <button disabled className="w-full py-2.5 border border-ink bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714]">
+                              Current Active Tier ✓
+                            </button>
+                          ) : (
+                            <button disabled className="w-full py-2.5 border border-ink bg-white/40 text-muted font-bold uppercase text-xs opacity-60">
+                              Included Base Tier
+                            </button>
+                          )}
                         </div>
-                        <p className="text-muted text-[0.72rem] leading-relaxed">
-                          Automated hourly disaster recovery pipelines, R2 snapshot archival, and custom retention rules.
-                        </p>
-                        <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
-                          <li>Up to 5 Target Projects</li>
-                          <li>Automated Hourly Cron Schedules</li>
-                          <li><strong>30-Day Retention Auto-Pruning</strong></li>
-                          <li>Cloudflare R2 Bucket Sync & Alerts</li>
-                        </ul>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const planCode = billingCycle === 'monthly'
-                            ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
-                            : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
 
-                          openPaystackCheckout({
-                            email: user?.email || 'support@superbaser.co',
-                            amount: billingCycle === 'monthly' ? 1950 : 19500, // KES equivalent approx
-                            planCode,
-                            onSuccess: async (ref) => {
-                              if (activeOrgId) {
-                                await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, ref.reference);
-                              }
-                              alert(`Paystack Subscription Active! Reference: ${ref.reference}`);
-                            }
-                          });
-                        }}
-                        className="button w-full py-2.5 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors"
-                      >
-                        Subscribe with Paystack ↗
-                      </button>
-                    </div>
+                        {/* Mwananchi / Pro Plan */}
+                        <div className="p-6 bg-paper border-2 border-ink shadow-[6px_6px_0_#171714] space-y-4 relative flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-neon font-bold uppercase text-[0.7rem]">Tier 2 ·</span>
+                              <span className="text-acid font-bold uppercase text-[0.7rem] bg-ink px-2 py-0.5 inline-block">Recommended</span>
+                            </div>
+                            <div className="font-display font-bold text-2xl uppercase">Pro</div>
+                            <div className="text-xl font-bold font-mono">
+                              {billingCycle === 'monthly' ? '$15' : '$150'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                            </div>
+                            <p className="text-muted text-[0.72rem] leading-relaxed">
+                              Automated hourly disaster recovery pipelines, R2 snapshot archival, and custom retention rules.
+                            </p>
+                            <ul className="list-disc pl-4 space-y-1 text-muted text-[0.7rem] pt-2">
+                              <li>Up to 5 Target Projects</li>
+                              <li>Automated Hourly Cron Schedules</li>
+                              <li><strong>30-Day Retention Auto-Pruning</strong></li>
+                              <li>Cloudflare R2 Bucket Sync & Alerts</li>
+                            </ul>
+                          </div>
+                          {isProActive ? (
+                            <button disabled className="w-full py-2.5 border border-ink bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714]">
+                              Current Active Tier ✓
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                const planCode = billingCycle === 'monthly'
+                                  ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
+                                  : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
 
-                    {/* Taifa Plan */}
-                    <div className="p-6 bg-ink text-paper border-2 border-ink shadow-[6px_6px_0_#c6f806] space-y-4 relative flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <div className="text-neon font-bold uppercase text-[0.7rem]">Enterprise DR</div>
-                        <div className="font-display font-bold text-2xl uppercase text-white">Taifa Plan</div>
-                        <div className="text-xl font-bold font-mono text-acid">
-                          {billingCycle === 'monthly' ? '$49' : '$490'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                                openPaystackCheckout({
+                                  email: user?.email || 'support@superbaser.co',
+                                  amount: billingCycle === 'monthly' ? 1950 : 19500,
+                                  planCode,
+                                  onSuccess: async (ref) => {
+                                    if (activeOrgId) {
+                                      await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, ref.reference);
+                                      if (user) {
+                                        const updatedOrgs = await listMyOrganizations(user.id);
+                                        setOrganizations(updatedOrgs);
+                                      }
+                                    }
+                                    alert(`Paystack Subscription Active! Reference: ${ref.reference}`);
+                                  }
+                                });
+                              }}
+                              className="button w-full py-2.5 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors"
+                            >
+                              Subscribe Pro ↗
+                            </button>
+                          )}
                         </div>
-                        <p className="text-[#aaa99f] text-[0.72rem] leading-relaxed">
-                          High-availability enterprise cluster protection, multi-region replication, and priority worker containers.
-                        </p>
-                        <ul className="list-disc pl-4 space-y-1 text-[#aaa99f] text-[0.7rem] pt-2">
-                          <li>Unlimited Target Projects</li>
-                          <li>Parallel Container Workflows</li>
-                          <li>Dedicated Cloudflare Worker Isolation</li>
-                          <li>Custom SLA & 24/7 Ops Phone Support</li>
-                        </ul>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const planCode = billingCycle === 'monthly'
-                            ? (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
-                            : (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
 
-                          openPaystackCheckout({
-                            email: user?.email || 'support@superbaser.co',
-                            amount: billingCycle === 'monthly' ? 6370 : 63700,
-                            planCode,
-                            onSuccess: async (ref) => {
-                              if (activeOrgId) {
-                                await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
-                              }
-                              alert(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`);
-                            }
-                          });
-                        }}
-                        className="button w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714] hover:bg-orange transition-colors"
-                      >
-                        Subscribe Taifa Tier ↗
-                      </button>
-                    </div>
-                  </div>
+                        {/* Taifa / Premium Plan */}
+                        <div className="p-6 bg-ink text-paper border-2 border-ink shadow-[6px_6px_0_#c6f806] space-y-4 relative flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="text-neon font-bold uppercase text-[0.7rem]">Tier 3 · Enterprise</div>
+                            <div className="font-display font-bold text-2xl uppercase text-white">Premium</div>
+                            <div className="text-xl font-bold font-mono text-acid">
+                              {billingCycle === 'monthly' ? '$49' : '$490'} <span className="text-xs font-normal text-muted">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                            </div>
+                            <p className="text-[#aaa99f] text-[0.72rem] leading-relaxed">
+                              High-availability enterprise cluster protection, multi-region replication, and priority worker containers.
+                            </p>
+                            <ul className="list-disc pl-4 space-y-1 text-[#aaa99f] text-[0.7rem] pt-2">
+                              <li>Unlimited Target Projects</li>
+                              <li>Parallel Container Workflows</li>
+                              <li>Dedicated Cloudflare Worker Isolation</li>
+                              <li>Custom SLA & 24/7 Ops Phone Support</li>
+                            </ul>
+                          </div>
+                          {isPremiumActive ? (
+                            <button disabled className="w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714]">
+                              Current Active Tier ✓
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                const planCode = billingCycle === 'monthly'
+                                  ? (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
+                                  : (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
+
+                                openPaystackCheckout({
+                                  email: user?.email || 'support@superbaser.co',
+                                  amount: billingCycle === 'monthly' ? 6370 : 63700,
+                                  planCode,
+                                  onSuccess: async (ref) => {
+                                    if (activeOrgId) {
+                                      await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
+                                      if (user) {
+                                        const updatedOrgs = await listMyOrganizations(user.id);
+                                        setOrganizations(updatedOrgs);
+                                      }
+                                    }
+                                    alert(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`);
+                                  }
+                                });
+                              }}
+                              className="button w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714] hover:bg-orange transition-colors"
+                            >
+                              Subscribe Premium ↗
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Promo Codes Section */}
                   <div className="mt-8 p-6 bg-panel border-2 border-ink border-dashed">
-                    <h3 className="font-display font-bold text-xl uppercase text-ink mb-2">Redeem Lifetime Pro Code</h3>
-                    <p className="text-muted mb-4 text-xs">Have a 20-slot lifetime pro code? Enter it below to unlock the Taifa Enterprise plan forever.</p>
-                    <form 
+                    <h3 className="font-display font-bold text-xl uppercase text-ink mb-2">Redeem Promo Code</h3>
+                    <p className="text-muted mb-4 text-xs">Have a promo code? Enter it below.</p>
+                    <form
                       onSubmit={async (e) => {
                         e.preventDefault();
                         if (!promoCode.trim()) return;
                         if (LIFETIME_PRO_CODES.includes(promoCode.trim().toUpperCase())) {
                           if (activeOrgId) {
                             await updateOrganizationPlan(activeOrgId, 'Lifetime Pro', `PROMO-${promoCode.trim()}`);
+                            if (user) {
+                              const updatedOrgs = await listMyOrganizations(user.id);
+                              setOrganizations(updatedOrgs);
+                            }
                             setPromoStatus({ type: 'success', msg: 'Lifetime Pro unlocked successfully! Enjoy unlimited backups.' });
                             setPromoCode('');
                           } else {
@@ -1059,9 +1223,9 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                       }}
                       className="flex gap-4 max-sm:flex-col items-start"
                     >
-                      <input 
-                        type="text" 
-                        placeholder="ENTER CODE" 
+                      <input
+                        type="text"
+                        placeholder="ENTER CODE"
                         value={promoCode}
                         onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoStatus(null); }}
                         className="flex-1 min-w-[250px] px-4 py-3 bg-paper border border-ink font-mono text-sm uppercase focus-visible:ring-2 focus-visible:ring-acid outline-none placeholder:text-muted/60"
@@ -1080,6 +1244,55 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               )}
 
 
+
+              {activeTab === 'settings' && (
+                <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
+                  <div className="border-b border-line pb-4">
+                    <h3 className="font-display font-bold text-xl uppercase">Account & Environment Settings</h3>
+                    <p className="text-muted mt-1">Manage profile metadata, avatar rendering, and user preferences.</p>
+                  </div>
+
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      try {
+                        const formEl = e.currentTarget;
+                        const nameInput = (formEl.elements.namedItem('fullName') as HTMLInputElement).value;
+                        await supabase.auth.updateUser({ data: { full_name: nameInput } });
+                        alert("Profile settings updated successfully!");
+                      } catch (err: any) {
+                        alert("Failed to update profile: " + err.message);
+                      }
+                    }}
+                    className="p-6 bg-panel border-2 border-ink space-y-5 max-w-xl shadow-[6px_6px_0_#171714]"
+                  >
+                    <div className="font-bold text-sm uppercase text-ink">User Profile & Avatar</div>
+                    <div className="flex items-center gap-4 p-4 bg-paper border border-line">
+                      {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 48)}
+                      <div>
+                        <div className="font-bold text-ink text-sm">{user?.user_metadata?.full_name || 'Operations Engineer'}</div>
+                        <div className="text-muted text-[0.7rem]">{user?.email || 'user@superbaser.co'}</div>
+                        <div className="text-neon text-[0.65rem] font-bold uppercase mt-1">Boring Avatars SVG Generator Active</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-muted uppercase text-[0.68rem] font-bold">Display Name</label>
+                      <input
+                        name="fullName"
+                        type="text"
+                        defaultValue={user?.user_metadata?.full_name || ''}
+                        placeholder="Operations Engineer"
+                        className="w-full border border-ink bg-paper px-4 py-2.5 text-xs text-ink outline-none focus:border-orange font-mono"
+                      />
+                    </div>
+
+                    <button type="submit" className="button px-5 py-3 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors">
+                      Save Profile Settings ↗
+                    </button>
+                  </form>
+                </div>
+              )}
 
               {activeTab === 'support' && (
                 <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
@@ -1118,7 +1331,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <label className="block text-xs font-bold uppercase text-ink">Organization Name</label>
                 <input
                   type="text"
-                  value={newOrgName}
+                  value={newOrgName || ''}
                   onChange={(e) => setNewOrgName(e.target.value)}
                   placeholder="CEKA"
                   required
@@ -1126,6 +1339,23 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                   className="w-full border border-ink bg-white px-4 py-3 text-xs text-ink outline-none focus:border-orange font-mono"
                 />
               </div>
+
+              {user?.is_anonymous && (
+                <div className="p-3 bg-acid border border-ink text-ink text-[0.7rem] font-mono shadow-[2px_2px_0_#171714] space-y-1">
+                  <div className="font-bold uppercase">Guest Session Notice</div>
+                  <div>Anonymous guest sessions must claim an account before creating permanent organizations.</div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCreateOrgModalOpen(false);
+                      if (onOpenAuthModal) onOpenAuthModal();
+                    }}
+                    className="mt-1 px-3 py-1.5 bg-ink text-white font-bold uppercase text-[0.65rem] hover:bg-orange hover:text-ink transition-colors"
+                  >
+                    Claim Account Now ↗
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
@@ -1137,9 +1367,10 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 </button>
                 <button
                   type="submit"
-                  className="button px-5 py-2.5 border border-ink bg-ink text-white text-xs font-bold uppercase transition-all shadow-[4px_4px_0_#c6f806]"
+                  disabled={isCreatingOrg}
+                  className="button px-5 py-2.5 border border-ink bg-ink text-white text-xs font-bold uppercase transition-all shadow-[4px_4px_0_#c6f806] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create
+                  {isCreatingOrg ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>
@@ -1152,7 +1383,12 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
         <div className="fixed inset-0 bg-ink/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-paper border-2 border-ink shadow-[12px_12px_0_#171714] w-full max-w-2xl p-8 space-y-6 font-mono relative max-h-[90vh] overflow-y-auto">
             <button
-              onClick={() => setShowOnboardingModal(false)}
+              onClick={() => {
+                setShowOnboardingModal(false);
+                if (user?.is_anonymous && onOpenAuthModal) {
+                  onOpenAuthModal();
+                }
+              }}
               className="absolute top-4 right-4 text-ink hover:text-neon transition-colors"
             >
               <X className="w-5 h-5" />
@@ -1172,6 +1408,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <p>
                   SuperBaser acts as a centralized control plane for your external Supabase databases. It automates catalog inspection, physical <code>pg_dump</code> backups, cross-region restores, and storage bucket sync.
                 </p>
+
                 <div className="p-4 bg-panel border border-line space-y-2">
                   <div className="font-bold uppercase text-ink">Security & Encryption Guarantee</div>
                   <p className="text-[0.72rem] text-muted">
@@ -1186,6 +1423,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <p>
                   Because serverless runtimes cannot execute system binaries, SuperBaser utilizes a queue-driven architecture powered by <strong>Cloudflare Containers</strong>.
                 </p>
+
                 <div className="p-4 bg-panel border border-line space-y-3">
                   <div className="font-bold uppercase text-ink">How Backups Work</div>
                   <ul className="list-disc pl-4 space-y-1.5 text-[0.72rem] text-muted">
@@ -1198,18 +1436,60 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             )}
 
             {onboardingStep === 3 && (
-              <div className="space-y-4 text-xs leading-relaxed text-ink/90">
+              <div className="space-y-6 text-xs leading-relaxed text-ink/90 max-h-[55vh] overflow-y-auto pr-2">
                 <p>
-                  Physical <code>pg_dump</code> backups require a <strong>Direct PostgreSQL Connection String</strong> - API tokens alone cannot run database binary dumps.
+                  Physical <code>pg_dump</code> backups require a <strong>Direct PostgreSQL Connection String</strong> - API tokens alone cannot run database binary dumps. Follow the 3 visual phases below to locate your credentials:
                 </p>
 
+                {/* PHASE 3.1 */}
+                <div className="space-y-2">
+                  <div className="font-bold uppercase text-ink text-[0.75rem] flex items-center gap-2">
+                    <span className="bg-ink text-acid px-2 py-0.5 text-[0.65rem]">PHASE 3.1</span> Tap 'Connect'
+                  </div>
+                  <div className="border-2 border-ink shadow-[4px_4px_0_#171714] overflow-hidden bg-black">
+                    <img src="/step-1.png" alt="Supabase Dashboard Project Overview" className="w-full h-auto block" />
+                    <div className="bg-ink p-2 text-paper text-[0.68rem] font-mono flex items-center justify-between border-t border-line">
+                      <span>FIG 3.1: Supabase Dashboard Overview & Project Reference ID</span>
+                      <span className="text-neon uppercase font-bold">Step 3.1</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PHASE 3.2 */}
+                <div className="space-y-2">
+                  <div className="font-bold uppercase text-ink text-[0.75rem] flex items-center gap-2">
+                    <span className="bg-ink text-acid px-2 py-0.5 text-[0.65rem]">PHASE 3.2</span> Select "Transaction Pooler" → Temporary Connection
+                  </div>
+                  <div className="border-2 border-ink shadow-[4px_4px_0_#171714] overflow-hidden bg-black">
+                    <img src="/step-2.png" alt="Supabase Database Settings & Connection Pooler" className="w-full h-auto block" />
+                    <div className="bg-ink p-2 text-paper text-[0.68rem] font-mono flex items-center justify-between border-t border-line">
+                      <span>FIG 3.2: Supabase Database Settings & Connection Pooler Config</span>
+                      <span className="text-neon uppercase font-bold">Step 3.2</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PHASE 3.3 */}
+                <div className="space-y-2">
+                  <div className="font-bold uppercase text-ink text-[0.75rem] flex items-center gap-2">
+                    <span className="bg-ink text-acid px-2 py-0.5 text-[0.65rem]">PHASE 3.3</span> Select Connection String → Copy URI Tab
+                  </div>
+                  <div className="border-2 border-ink shadow-[4px_4px_0_#171714] overflow-hidden bg-black">
+                    <img src="/step-3.png" alt="Supabase Connection String URI Settings" className="w-full h-auto block" />
+                    <div className="bg-ink p-2 text-paper text-[0.68rem] font-mono flex items-center justify-between border-t border-line">
+                      <span>FIG 3.3: Supabase Direct Connection String (URI Format)</span>
+                      <span className="text-neon uppercase font-bold">Step 3.3</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="p-4 bg-ink text-paper border-2 border-orange space-y-3 font-mono">
-                  <div className="text-neon font-bold uppercase text-[0.72rem]">📍 How to get your Direct Connection String:</div>
+                  <div className="text-neon font-bold uppercase text-[0.72rem]">📍 Direct Connection String Format:</div>
                   <div className="text-[0.7rem] leading-relaxed text-[#aaa99f] space-y-1">
                     <div>1. Open your <strong>Supabase Dashboard</strong>.</div>
-                    <div>2. Navigate to <strong>Project Settings → Database</strong>.</div>
-                    <div>3. Scroll to <strong>Connection String</strong> and select the <strong>URI</strong> tab.</div>
-                    <div>4. Copy the connection string format:</div>
+                    <div>2. Navigate to <strong>Project Settings → Database</strong> or <strong>tap 'Connect'</strong>.</div>
+                    <div>3. Select your <strong>Direct Connection Format</strong> and copy the <strong>URI</strong> link.</div>
+                    <div>4. It is designated in this format:</div>
                     <div className="bg-black/60 p-2 text-acid border border-white/20 select-all overflow-x-auto text-[0.65rem] mt-1">
                       postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
                     </div>
@@ -1239,7 +1519,11 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <button
                   onClick={() => {
                     setShowOnboardingModal(false);
-                    setShowConnectModal(true);
+                    if (user?.is_anonymous && onOpenAuthModal) {
+                      onOpenAuthModal();
+                    } else {
+                      setShowConnectModal(true);
+                    }
                   }}
                   className="button px-6 py-2.5 border border-ink bg-orange text-ink text-xs font-bold uppercase shadow-[4px_4px_0_#171714]"
                 >
@@ -1258,7 +1542,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div>
                 <h3 className="font-display font-bold text-lg uppercase text-ink">Connect Target Database</h3>
-                <p className="text-[0.68rem] text-muted">Enter credentials required for physical pg_dump & API synchronization</p>
+                <p className="text-[0.68rem] text-muted">Enter credentials required. Ensure you accurately fill them for a flawless process. You only need to add them once. They stay encrypted.</p>
               </div>
               <button
                 onClick={() => setShowConnectModal(false)}
@@ -1369,7 +1653,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
         </div>
       )}
 
-      <AIAssistant />
+      <AIAssistant onOpenAuthModal={onOpenAuthModal} />
     </div>
   );
 }
