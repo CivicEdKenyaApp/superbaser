@@ -142,7 +142,7 @@ export default function PricingSection({ onSelectPlan }: PricingSectionProps) {
               onClick={() => onSelectPlan('Pro')}
               className="button px-6 py-3.5 bg-acid text-ink border border-ink font-mono font-bold text-xs uppercase shadow-[4px_4px_0_#171714] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#171714] transition-all shrink-0 cursor-pointer"
             >
-              Start Free 14-Day Pro Trial ↗
+              Upgrade to Pro ↗
             </button>
           </div>
 
