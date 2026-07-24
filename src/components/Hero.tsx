@@ -42,8 +42,8 @@ export default function Hero({ onLaunchConsole }: HeroProps) {
               >
                 Connect Project
               </a>
-              <a className="text-link font-mono font-medium text-[0.76rem] tracking-[0.04em] uppercase underline underline-offset-8" href="#work">
-                View Architecture ↓
+              <a className="text-link font-mono font-medium text-[0.76rem] tracking-[0.04em] uppercase underline underline-offset-8" href="/docs.html">
+                View Architecture ↗
               </a>
             </div>
           </div>
