@@ -53,6 +53,13 @@
   :focus-visible {
     @apply outline-none ring-2 ring-acid ring-offset-2 ring-offset-paper;
   }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    cursor: url('/pen.svg') 0 16, text !important;
+    caret-color: #b7f210;
+  }
 }
 
 .noise {

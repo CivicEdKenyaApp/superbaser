@@ -75,7 +75,7 @@ export default function Contact({ onLaunchConsole, onOpenPaymentModal, session }
             Get Started.
           </h2>
           <p className="contact-note max-w-[470px] text-[1.08rem]">
-            Connect your Supabase project once. SuperBaser automatically handles backups, recovery, and migration from there.
+            Connect your Supabase project once. SuperBaser handles the rest.
           </p>
           <div className="contact-details mt-[64px] font-mono text-[0.72rem] leading-[1.8] uppercase">
             Operations Support
