@@ -39,3 +39,6 @@ sentinel/.dev.vars
 
 # Wrangler local state
 .wrangler/
+
+# Full app context
+Superadmin_dashboard_context.txt
