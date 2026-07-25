@@ -12,7 +12,7 @@ import Footer from './components/Footer';
 import DashboardConsole from './components/DashboardConsole';
 import AuthModal from './components/AuthModal';
 import PaymentModal from './components/PaymentModal';
-import { PendingIntentUI } from './components/PendingIntentUI';
+import PendingIntentUI from './components/PendingIntentUI';
 import { AnonymousCaptchaModal } from './components/AnonymousCaptchaModal';
 import AIAssistant from './components/AIAssistant';
 import ClickSpark from './components/ClickSpark';
