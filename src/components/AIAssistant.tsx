@@ -99,6 +99,81 @@ function applyFuzzyLinks(text: string, baseIndex: number, onNavigate?: (url?: st
     });
 }
 
+// ─── Rich Content Renderer ───────────────────────────────────────────────────
+// Used for assistant messages ONLY. Renders **bold**, ```code/json/sql```,
+// markdown links [text](url), #copy: tokens, and fuzzy page-nav links.
+// User messages still use the simple inline parser (no markdown bloat).
+
+function InlineCodeBlock({ lang, code }: { lang: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <div className="my-2 rounded-none border-2 border-ink shadow-[3px_3px_0_#171714] overflow-hidden">
+      <div className="flex items-center justify-between bg-ink px-3 py-1.5">
+        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon">{lang || 'code'}</span>
+        <button
+          onClick={handleCopy}
+          className="text-[10px] font-mono text-white/60 hover:text-neon transition-colors flex items-center gap-1"
+        >
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre className="bg-ink p-3 overflow-x-auto"><code className="text-neon font-mono text-[0.7rem] leading-relaxed whitespace-pre-wrap break-words">{code}</code></pre>
+    </div>
+  );
+}
+
+function renderAssistantContent(
+  content: string,
+  user: any,
+  onNavigate?: (url?: string) => void
+) {
+  // Split the content into code-block segments and plain text segments
+  const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+  const segments: Array<{ type: 'text' | 'code'; lang?: string; content: string }> = [];
+  let lastIndex = 0;
+  let m;
+
+  while ((m = codeBlockRegex.exec(content)) !== null) {
+    if (m.index > lastIndex) {
+      segments.push({ type: 'text', content: content.substring(lastIndex, m.index) });
+    }
+    segments.push({ type: 'code', lang: m[1] || 'text', content: m[2].trim() });
+    lastIndex = codeBlockRegex.lastIndex;
+  }
+  if (lastIndex < content.length) {
+    segments.push({ type: 'text', content: content.substring(lastIndex) });
+  }
+
+  return segments.map((seg, segIdx) => {
+    if (seg.type === 'code') {
+      return <InlineCodeBlock key={segIdx} lang={seg.lang!} code={seg.content} />;
+    }
+    // Plain text segment — apply markdown-like inline transforms then fuzzy/link parser
+    // Transform **bold** to <strong>
+    const boldParts = seg.content.split(/\*\*([^*]+)\*\*/g);
+    const inlineParsed: React.ReactNode[] = [];
+    boldParts.forEach((part, i) => {
+      if (i % 2 === 1) {
+        inlineParsed.push(<strong key={`b-${segIdx}-${i}`} className="font-bold text-ink">{part}</strong>);
+      } else if (part) {
+        // Apply link/copy/fuzzy parser on the non-bold plain text
+        const parsed = parseMessageContent(part, user, onNavigate, false);
+        inlineParsed.push(...(Array.isArray(parsed) ? parsed : [parsed]).map((node, ni) =>
+          typeof node === 'string' ? <span key={`t-${segIdx}-${i}-${ni}`}>{node}</span> : React.cloneElement(node as any, { key: `t-${segIdx}-${i}-${ni}` })
+        ));
+      }
+    });
+    return <span key={segIdx}>{inlineParsed}</span>;
+  });
+}
+
 function parseMessageContent(content: string, user: any, onNavigate?: (url?: string) => void, isUser?: boolean) {
     let replacedText = content;
     if (user && !user.is_anonymous) {
@@ -352,7 +427,7 @@ const DEFAULT_SUGGESTIONS = [
 
 
 
-export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () => void }) {
+export default function AIAssistant({ onOpenAuthModal, currentView }: { onOpenAuthModal?: () => void; currentView?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const { isLowBandwidth, isOnline } = useBandwidth();
   const { saveManifest } = useOfflineManifest();
@@ -682,10 +757,11 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
     }
 
     // Item 24: Route to Agent WebSocket when AGENT_ENABLED and connected
+    // Pipe currentView so the backend prompt is always page-context aware
     if (AGENT_ENABLED && agentWsRef.current && agentWsRef.current.readyState === WebSocket.OPEN) {
       agentWsRef.current.send(JSON.stringify({
         type: 'CHAT_MESSAGE',
-        payload: { text }
+        payload: { text, currentView: currentView }
       }));
       return; // Agent WS handles typing/response lifecycle
     }
@@ -938,12 +1014,12 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
                           : 'bg-paper border-2 border-ink text-ink shadow-[3px_3px_0_#171714] rounded-bl-sm'
                         }`}
                     >
-                      {msg.role === 'assistant' ? (
-                        <div className="prose prose-sm max-w-none text-ink prose-p:text-ink prose-p:leading-relaxed prose-strong:text-ink [&_pre]:bg-ink [&_pre]:p-3.5 [&_pre]:border-2 [&_pre]:border-ink [&_pre]:rounded-none [&_pre_code]:text-[#d8ff37] [&_pre_code]:bg-transparent [&_pre_code]:font-mono [&_pre_code]:text-xs [&_:not(pre)>code]:bg-panel [&_:not(pre)>code]:text-ink [&_:not(pre)>code]:px-1 font-mono">
-                           {parseMessageContent(msg.content, user, (url) => { if(url) executeAction({ type: 'navigate_to', target: url }); })}
+                    {msg.role === 'assistant' ? (
+                        <div className="prose-assistant text-xs font-mono leading-relaxed text-ink">
+                          {renderAssistantContent(msg.content, user, (url) => { if(url) executeAction({ type: 'navigate_to', target: url }); })}
                         </div>
                       ) : (
-                        parseMessageContent(msg.content, user)
+                        <span className="text-xs font-mono leading-relaxed">{parseMessageContent(msg.content, user)}</span>
                       )}
                     </motion.div>
                   </div>

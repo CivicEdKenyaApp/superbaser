@@ -12,14 +12,15 @@ import Footer from './components/Footer';
 import DashboardConsole from './components/DashboardConsole';
 import AuthModal from './components/AuthModal';
 import PaymentModal from './components/PaymentModal';
+import { PendingIntentUI } from './components/PendingIntentUI';
+import { AnonymousCaptchaModal } from './components/AnonymousCaptchaModal';
+import AIAssistant from './components/AIAssistant';
 import ClickSpark from './components/ClickSpark';
 import { SEO } from './components/SEO';
-import { AnonymousCaptchaModal } from './components/AnonymousCaptchaModal';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
 import { savePendingAction, getPendingAction, clearPendingAction, recordInteraction } from './lib/pending-intent';
-import PendingIntentUI from './components/PendingIntentUI';
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'console'>('landing');
   const [activeProjectRef, setActiveProjectRef] = useState<string>('wzyrmzfgdtzaqmkhtbuk');
@@ -222,6 +223,7 @@ export default function App() {
             }}
           />
         </ClickSpark>
+        <AIAssistant onOpenAuthModal={() => setShowAuthModal(true)} currentView={currentView} />
         {intentUIMode && activePendingIntent && (
           <PendingIntentUI 
             mode={intentUIMode}
@@ -333,6 +335,7 @@ export default function App() {
               </div>
             </div>
           )}
+          <AIAssistant onOpenAuthModal={() => setShowAuthModal(true)} currentView={currentView} />
         </div>
       </ClickSpark>
     </>

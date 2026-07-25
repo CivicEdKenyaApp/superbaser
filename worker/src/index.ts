@@ -79,6 +79,9 @@ export interface AgentState {
   // RAG context cache (last retrieved chunks)
   ragContextCache: string;
   ragCachedFor: string;
+
+  // Page context — frontend posts this on every message so prompts are page-aware
+  currentView: string;
 }
 
 // ─── Item 15: ACTION_TRIGGER_KEYWORDS (server-side mirror) ───────────────────
@@ -148,7 +151,8 @@ export class SuperbAgent extends Agent<Env, AgentState> {
     isAnonymous: true,
     supabaseJwt: '',
     ragContextCache: '',
-    ragCachedFor: ''
+    ragCachedFor: '',
+    currentView: 'unknown'
   };
 
   // ─── Item 11: WebSocket Authentication on Upgrade ──────────────────────────
@@ -227,6 +231,11 @@ export class SuperbAgent extends Agent<Env, AgentState> {
 
     const { type, payload } = parsed;
 
+    // Update page context whenever the frontend sends it
+    if (payload?.currentView && typeof payload.currentView === 'string') {
+      this.setState({ ...this.state, currentView: payload.currentView });
+    }
+
     // Item 17: AuthModal trigger from tool rejection — routed from frontend
     if (type === 'CHAT_MESSAGE') {
       await this.handleChatMessage(connection, payload.text);
@@ -266,13 +275,14 @@ export class SuperbAgent extends Agent<Env, AgentState> {
       // Item 22: RAG query — retrieve context from Vectorize
       const ragContext = await this.queryRAG(text);
 
-      // Build prompt with base prompt + RAG context
+      // Build prompt with base prompt + RAG context + page context
       const systemPrompt = buildBasePrompt({
         orgId: this.state.activeOrgId,
         plan: this.state.plan,
         role: this.state.userRole,
         userName: this.state.userName,
-        isAnonymous: this.state.isAnonymous
+        isAnonymous: this.state.isAnonymous,
+        currentView: this.state.currentView
       }) + (ragContext ? `\n\n## RETRIEVED KNOWLEDGE (from Vectorize)\n${ragContext}` : '');
 
       const llmMessages = [
@@ -295,9 +305,26 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         return;
       }
 
-      const { content, toolCalls, providerUsed } = result;
+      let { content, toolCalls, providerUsed } = result;
 
-      // Store assistant response in history
+      // ── Parse and strip ```suggestions block from LLM response ─────────────
+      // The LLM embeds a ```suggestions\n[...]\n``` block at the end of every response.
+      // We extract it, parse it as JSON chips, and strip it from the visible text
+      // so the user never sees raw JSON in the chat bubble.
+      let parsedSuggestions: any[] = [];
+      const suggestionsMatch = content?.match(/```suggestions\s*([\s\S]*?)```/);
+      if (suggestionsMatch) {
+        try {
+          parsedSuggestions = JSON.parse(suggestionsMatch[1].trim());
+        } catch { /* ignore malformed suggestions block */ }
+        content = content!.replace(suggestionsMatch[0], '').trim();
+      }
+      // Fallback to generated suggestions if LLM omitted the block
+      if (parsedSuggestions.length === 0) {
+        parsedSuggestions = this.generateSuggestions(text, this.state.plan, this.state.currentView);
+      }
+
+      // Store assistant response in history (after stripping suggestions block)
       const finalMessages = [
         ...updatedMessages,
         { role: 'assistant' as const, content: content || '', timestamp: new Date().toISOString() }
@@ -312,13 +339,13 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         }
       }
 
-      // Send assistant message to client
+      // Send assistant message to client with parsed suggestion chips
       this.sendToConnection(connection, {
         type: 'ASSISTANT_MESSAGE',
         payload: {
           content,
           providerUsed,
-          suggestions: this.generateSuggestions(text, this.state.plan)
+          suggestions: parsedSuggestions
         }
       });
 
@@ -725,13 +752,51 @@ export class SuperbAgent extends Agent<Env, AgentState> {
     }
   }
 
-  private generateSuggestions(query: string, plan: string) {
-    const baseSuggestions = [
+  private generateSuggestions(query: string, plan: string, currentView?: string) {
+    // Context-aware suggestion chips based on which page the user is currently on
+    const byView: Record<string, any[]> = {
+      backups: [
+        { id: 's1', label: 'Restore This Backup', prompt: 'I want to restore my latest backup', icon: 'refresh' },
+        { id: 's2', label: 'Download Snapshot', prompt: 'How do I download a SQL dump from R2?', icon: 'database' },
+        { id: 's3', label: 'Check Integrity', prompt: 'How does backup verification work?', icon: 'shield' }
+      ],
+      restores: [
+        { id: 's1', label: 'Start Restore', prompt: 'Restore my latest backup to my project', icon: 'refresh' },
+        { id: 's2', label: 'Restore History', prompt: 'Show me my recent restore jobs', icon: 'clock' },
+        { id: 's3', label: 'Zero-Downtime Guide', prompt: 'How does 1-click zero-downtime restore work?', icon: 'zap' }
+      ],
+      projects: [
+        { id: 's1', label: 'Run Backup Now', prompt: 'Trigger a manual pg_dump backup right now', icon: 'zap' },
+        { id: 's2', label: 'Check Status', prompt: 'What is the status of my last backup job?', icon: 'clock' },
+        { id: 's3', label: 'Add Project', prompt: 'How do I connect another Supabase project?', icon: 'database' }
+      ],
+      billing: [
+        { id: 's1', label: 'Compare Plans', prompt: 'What are the differences between Free, Pro, and Premium?', icon: 'database' },
+        { id: 's2', label: 'Upgrade to Pro', prompt: 'I want to upgrade to the Pro plan', icon: 'zap' },
+        { id: 's3', label: 'Premium Features', prompt: 'What does the Premium plan include?', icon: 'sparkles' }
+      ],
+      schedules: [
+        { id: 's1', label: 'Schedule Backup', prompt: 'How do I set up an automated backup schedule?', icon: 'clock' },
+        { id: 's2', label: 'Cron Docs', prompt: 'Explain how cron-based backup pipelines work', icon: 'database' },
+        { id: 's3', label: 'Run Now', prompt: 'Trigger an immediate manual pg_dump snapshot', icon: 'zap' }
+      ],
+      logs: [
+        { id: 's1', label: 'Latest Job', prompt: 'What is the status of my last running job?', icon: 'clock' },
+        { id: 's2', label: 'Error Details', prompt: 'Explain the most recent backup error in my logs', icon: 'shield' },
+        { id: 's3', label: 'Container Logs', prompt: 'How do I read Cloudflare Container execution logs?', icon: 'database' }
+      ],
+      landing: [
+        { id: 's1', label: 'Get Started', prompt: 'How do I connect my first Supabase project?', icon: 'zap' },
+        { id: 's2', label: 'View Pricing', prompt: 'Take me to the pricing section', icon: 'database' },
+        { id: 's3', label: 'Security Info', prompt: 'How are my database credentials kept safe?', icon: 'shield' }
+      ]
+    };
+
+    return byView[currentView ?? ''] ?? [
       { id: 's1', label: 'Run Snapshot', prompt: 'Run a manual pg_dump backup right now', icon: 'zap' },
       { id: 's2', label: 'Check Retention', prompt: 'What is the retention rule for my current plan?', icon: 'clock' },
       { id: 's3', label: 'View Billing', prompt: 'How do I upgrade my plan?', icon: 'database' }
     ];
-    return baseSuggestions;
   }
 }
 
