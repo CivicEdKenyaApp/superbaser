@@ -14,6 +14,7 @@ import AuthModal from './components/AuthModal';
 import PaymentModal from './components/PaymentModal';
 import ClickSpark from './components/ClickSpark';
 import { SEO } from './components/SEO';
+import { AnonymousCaptchaModal } from './components/AnonymousCaptchaModal';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
@@ -30,6 +31,8 @@ export default function App() {
   const [intentUIMode, setIntentUIMode] = useState<'intercept' | 'resume' | null>(null);
   const [activePendingIntent, setActivePendingIntent] = useState<any | null>(null);
   const [showResetToast, setShowResetToast] = useState(false);
+  const [showAnonymousCaptcha, setShowAnonymousCaptcha] = useState(false);
+  const [pendingLaunchArgs, setPendingLaunchArgs] = useState<{ref?: string, key?: string, data?: any} | null>(null);
   const lastViewRef = useRef(typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('sb_last_view') : null);
 
   const { session, setSession } = useAuthStore();
@@ -120,21 +123,33 @@ export default function App() {
     const activeSession = sessionData?.session;
 
     if (!activeSession) {
-      try {
-        await supabase.auth.signInAnonymously({
-          options: {
-            data: {
-              full_name: initialData?.name || 'Operations Guest',
-              org_name: initialData?.orgName || 'Primary Workspace',
-              supabase_plan: initialData?.supabasePlan || 'Pro',
-            }
-          }
-        });
-      } catch (err) {
-        console.error("Anonymous auth error", err);
-      }
+      setPendingLaunchArgs({ ref: projectRef, key: serviceRoleKey, data: initialData });
+      setShowAnonymousCaptcha(true);
+      return;
     }
 
+    setCurrentView('console');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const executeAnonymousSignIn = async (captchaToken: string) => {
+    const { error } = await supabase.auth.signInAnonymously({
+      options: {
+        captchaToken,
+        data: {
+          full_name: pendingLaunchArgs?.data?.name || 'Operations Guest',
+          org_name: pendingLaunchArgs?.data?.orgName || 'Primary Workspace',
+          supabase_plan: pendingLaunchArgs?.data?.supabasePlan || 'Pro',
+        }
+      }
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    setShowAnonymousCaptcha(false);
+    setPendingLaunchArgs(null);
     setCurrentView('console');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -260,6 +275,16 @@ export default function App() {
               initialOrgName={initialUserData?.orgName}
               onClose={() => setShowAuthModal(false)} 
               onSuccess={handleAuthSuccess} 
+            />
+          )}
+
+          {showAnonymousCaptcha && (
+            <AnonymousCaptchaModal
+              onClose={() => {
+                setShowAnonymousCaptcha(false);
+                setPendingLaunchArgs(null);
+              }}
+              onSuccess={executeAnonymousSignIn}
             />
           )}
 
