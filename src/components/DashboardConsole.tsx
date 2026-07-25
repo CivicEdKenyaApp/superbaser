@@ -85,7 +85,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings' | 'support'
   >('dashboard');
 
-  const { user, organizations, setOrganizations, activeOrgId, setActiveOrgId, signOut } = useAuthStore();
+  const { user, profile, organizations, setOrganizations, activeOrgId, setActiveOrgId, signOut } = useAuthStore();
 
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);
@@ -541,18 +541,18 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex items-center gap-2 p-1 border border-paper/30 bg-paper/10 text-paper hover:bg-paper hover:text-ink transition-colors font-mono text-xs"
             >
-              {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 28)}
-              <span className="max-sm:hidden truncate max-w-[110px] font-bold">{user?.user_metadata?.full_name || 'Account'}</span>
+              {renderBoringAvatar(profile?.display_name || user?.email?.split('@')[0] || 'User', 28)}
+              <span className="max-sm:hidden truncate max-w-[110px] font-bold">{profile?.display_name || 'Account'}</span>
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
             {isUserMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-3 z-50 space-y-2 font-mono text-xs">
                 <div className="flex items-center gap-3 pb-2 border-b border-line">
-                  {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 36)}
+                  {renderBoringAvatar(profile?.display_name || user?.email?.split('@')[0] || 'User', 36)}
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-ink truncate">{user?.user_metadata?.full_name || 'Operations Engineer'}</div>
-                    <div className="text-[0.65rem] text-muted truncate">{user?.email || 'user@superbaser.co'}</div>
+                    <div className="font-bold text-ink truncate">{profile?.display_name || user?.email?.split('@')[0] || ''}</div>
+                    <div className="text-[0.65rem] text-muted truncate">{user?.email || ''}</div>
                   </div>
                 </div>
                 <button
@@ -1336,9 +1336,9 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
                     <div className="flex items-center gap-4 p-4 bg-paper border border-line">
                       {renderBoringAvatar(user?.user_metadata?.full_name || user?.email || 'User', 48)}
-                      <div>
-                        <div className="font-bold text-ink text-sm">{user?.user_metadata?.full_name || 'Operations Engineer'}</div>
-                        <div className="text-muted text-[0.7rem]">{user?.email || 'user@superbaser.co'}</div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-ink text-sm">{profile?.display_name || user?.email?.split('@')[0] || ''}</div>
+                        <div className="text-muted text-[0.7rem]">{user?.email || ''}</div>
                         <div className="text-neon text-[0.65rem] font-bold uppercase mt-1">Boring Avatars SVG Generator Active</div>
                       </div>
                     </div>
@@ -1349,7 +1349,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                         name="fullName"
                         type="text"
                         defaultValue={user?.user_metadata?.full_name || ''}
-                        placeholder="Operations Engineer"
+                        placeholder={profile?.display_name || "Your Name"}
                         className="w-full border border-ink bg-paper px-4 py-2.5 text-xs text-ink outline-none focus:border-orange font-mono"
                       />
                     </div>

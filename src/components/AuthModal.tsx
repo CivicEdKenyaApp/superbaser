@@ -206,6 +206,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
                 <input
                   type="password"
                   required
+                  autoComplete={isLogin ? "current-password" : "new-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 bg-white border border-ink font-mono text-sm focus:border-orange focus:ring-1 focus:ring-orange outline-none transition-all"
