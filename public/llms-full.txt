@@ -1,0 +1,212 @@
+# SuperBaser
+
+> Automated backup, verification, and restore for Supabase-style target projects. Captures database, Storage files, and Auth state on a schedule, verifies every backup before trusting it, and rebuilds a target project from scratch in a few clicks.
+
+SuperBaser is a third-party disaster-recovery layer for projects hosted on a Supabase-style platform. A target project consists of more than a PostgreSQL database — it also includes Storage, Authentication, roles, permissions, and platform-managed schemas. SuperBaser backs up all of these components together so a restore produces a fully working project, not just a repopulated database.
+
+SuperBaser is a Supabase backup tool built for teams who cannot afford to lose a production project to a paused account, a bad migration, a dropped table, or an accidental delete. It functions as a PostgreSQL disaster recovery solution that goes beyond a database-only dump: it is also a Supabase Storage backup service and a Supabase restore tool in one connected pipeline, so recovering a project after data loss brings back the database, the files, and the user accounts together, not one piece at a time.
+
+**Tagline:** Back up. Restore. Move on.
+
+---
+
+## Topics
+
+- Supabase disaster recovery
+- PostgreSQL backup and restore
+- Database migration
+- Storage file backup
+- pg_dumpall cluster dump
+- Point-in-time recovery
+- Supabase project recovery
+
+---
+
+## Pricing
+
+Three tiers, each priced around how often a project actually needs protection:
+
+**Free — $0/month**
+- 1 connected project
+- Daily automated backups (24-hour interval)
+- 7-day backup retention history
+- Manual point-in-time restore trigger
+- Community support
+
+**Pro — $15/month**
+- Up to 5 connected projects
+- Hourly automated database and Storage snapshots
+- 30-day backup retention history
+- One-click, zero-downtime, verified restore
+- Secure encrypted Storage sync
+- Priority support
+
+**Premium — $49/month**
+- Unlimited connected projects and organizations
+- 15-minute backup frequency (near-continuous point-in-time recovery)
+- 90-day backup retention history
+- One-click verified restore with multi-region migration support
+- Team role-based access control and audit logging
+- 1-hour response SLA
+
+A background scheduler checks each organization's plan on a fixed interval and enforces both the backup frequency and the retention window server-side — a new backup is only queued once enough time has passed for that tier, and backups older than the tier's retention window are automatically deleted.
+
+---
+
+## Overview
+
+Supabase and similar backend-as-a-service platforms give a project a database, file storage, and user accounts, but do not always give an easy way back if any of that disappears — a project paused past its provider's own recovery window, a bad migration, a dropped table, an accidental delete. SuperBaser is the layer that sits on top and makes sure "it's gone" is not the end of the story.
+
+A user connects a project once. From then on, SuperBaser backs up the database and the Storage files on a schedule set by the plan tier, checks every backup to confirm it is actually restorable, and rebuilds the whole project into a fresh target project in a few clicks when needed.
+
+Database-only backups are insufficient for a full recovery. A backup tool that only captures database rows will restore data with no working logins and no uploaded files. SuperBaser treats a target project as three coordinated components — database, Storage files, and user accounts — that all have to come back together for the restored project to actually function.
+
+## How It Works
+
+The recovery flow runs in four steps, start to finish:
+
+**Step 1 — Connect the project.** The user signs in, then links a target project from inside the dashboard, never from a public page. Compatibility is checked before anything else runs.
+
+**Step 2 — Inspect the project.** SuperBaser inspects the project's database schemas, Storage buckets, and supported authentication resources to determine what should be included in future backups.
+
+**Step 3 — Backups run on schedule.** The database and files are captured automatically at the frequency set by the plan tier — daily on Free, hourly on Pro, or every 15 minutes on Premium — and every backup is checked before it is marked trustworthy.
+
+**Step 4 — Restore on demand.** SuperBaser is pointed at a new project and rebuilds it — database, files, and users, all reconciled into one working project, with no manual cleanup required afterward.
+
+## What Gets Backed Up
+
+**Database.** Every table, every row, every role and permission, captured as a complete, portable SQL snapshot via `pg_dumpall`.
+
+**Storage files.** Every file in every bucket, public or private, captured separately from the database, because Postgres never actually holds the file bytes.
+
+**Users.** Accounts, sessions, and login credentials, so people can sign back in after a restore without resetting a single password.
+
+Why files need a separate step: Postgres is a database — it stores rows, not file bytes. When a file is uploaded to Storage, the actual file lives in a separate object-storage system. Postgres only keeps a record describing it: which bucket, what path, what size, what type. A backup that only touches Postgres will faithfully record that a file should exist, without ever containing it. SuperBaser exports the files themselves as their own archive, alongside the database snapshot, so both halves are always accounted for.
+
+## Backup Format
+
+Every database backup SuperBaser produces is a full cluster dump, produced with `pg_dumpall` — not just the application's own tables, but every role the platform provisions (`anon`, `authenticated`, `service_role`, and the rest) and every schema maintained internally, alongside the user's own.
+
+Schema coverage in a full cluster dump:
+
+- `auth` — users, sessions, identities, login credentials
+- `storage` — bucket rules and per-file metadata, not the file bytes themselves
+- `realtime` — realtime subscription infrastructure
+- `public` — the application's own tables and data
+- everything else — extensions, the GraphQL layer, migration history, and other internal schemas
+
+The format is plain, readable SQL text, produced by `pg_dumpall`, not a proprietary binary blob. A plain-text backup can be inspected, verified, and restored with standard, well-understood database tooling, with nothing locked to a single vendor. If SuperBaser were to disappear, the backups would still be usable on their own with standard PostgreSQL tools.
+
+Role passwords are never included in the backup file itself. Role structure is preserved — who can do what — but credential secrets stay encrypted separately, never sitting in a plain-text dump.
+
+## Verification
+
+A backup that has not been tested is not a backup. The worst time to discover a backup is corrupt, incomplete, or silently failed is the day it is actually needed. Every backup SuperBaser produces goes through an integrity check before it is ever marked restorable:
+
+- The archive is checked for corruption without needing to fully unpack it.
+- The file header is validated to confirm it is a genuine, complete database dump, not a partial or malformed one.
+- Row and file counts are compared against what was actually in the project at backup time, so nothing silently drops.
+
+If a backup fails verification, it is flagged immediately in the dashboard, not discovered months later during an actual emergency.
+
+## Restoring a Project
+
+Restoring rebuilds a project in two coordinated passes, because the database snapshot and the Storage files are two separate archives that have to land back in sync.
+
+**Pass one — the database.** The SQL snapshot is loaded into the new project via `psql`. A brand-new target project already comes with its own default roles and internal schemas set up; SuperBaser expects that and works around it automatically rather than failing or duplicating anything. The actual data lands cleanly into the tables that matter.
+
+**Pass two — the files.** Once the database pass has recreated the record of what buckets and files should exist, SuperBaser uploads the actual file bytes from the Storage archive to match. Each file lands exactly on the record expecting it — nothing duplicated, nothing orphaned. The restore process uses the `service_role` key to write files back into private buckets that normal access rules would otherwise block.
+
+**Verification, again.** After both passes, SuperBaser compares what is now in the new project against what the original backup recorded — table by table, bucket by bucket — so the outcome of the restore is confirmed rather than assumed.
+
+## Security & Access
+
+Only what a given feature strictly needs is ever collected, and never on a public page. Everything happens inside an authenticated session, after sign-in.
+
+Credentials requested, and why:
+
+- **Direct connection string** — the credential that lets the backup engine connect to the Postgres database and run `pg_dumpall`. Used exclusively at backup time.
+- **Project URL** — identifies the project for status checks and dashboard display.
+- **Service Role Key** — needed for Storage file discovery and restore operations. The service role key bypasses Row Level Security so files can be read from and written to private buckets. Stored securely on the backend, never in plaintext, never in the frontend.
+
+Security properties:
+
+- **Encrypted before it's stored.** Credentials are encrypted the moment they leave the browser, before they're written anywhere.
+- **Decrypted only at the moment of use.** Connection details are only ever decrypted for the seconds a backup or restore is actually running, then discarded.
+- **Nothing on a public page.** Sign-up requires only a name, email, and organization. Credentials are only ever collected after authentication, inside the dashboard.
+- **Row Level Security enforced.** Every table is protected by RLS policies. Anonymous users can preview the dashboard but cannot create organizations, connect projects, or trigger backups.
+
+## Architecture
+
+SuperBaser runs on infrastructure that wakes up exactly when a backup job needs to happen, does the work, and shuts back down — faster and dramatically cheaper than the traditional always-on approach most backup tools use. Three core services work together:
+
+- **SuperBaser Backend** — the entry point. Receives events when a job is queued, routes them to the backup engine, and runs a scheduler that checks intervals on a fixed cadence.
+- **SuperBaser Backup Engine** — an isolated backup environment. Wakes up on demand, captures the database and files, streams the output to storage, then shuts back down.
+- **SuperBaser Storage** — secure object storage for backup archives. Savings from zero egress fees are passed directly into generous limits on lower tiers.
+
+Pipeline for a single backup run:
+
+1. A backup is triggered (manually, or by the scheduler).
+2. A job is queued in the SuperBaser Backend.
+3. The SuperBaser Backup Engine wakes up.
+4. The database and files are captured.
+5. The backup is verified and saved to SuperBaser Storage.
+6. The engine shuts back down — no idle cost, no idle wait.
+
+Because the engine only runs for the seconds a job actually takes, there is no charge for hours of idle compute. That is the basis for offering generous limits on lower tiers without cutting corners on reliability.
+
+Automated retention cleanup: the same scheduler that triggers backups also runs a retention pruner on a fixed cadence. Backups older than a tier's retention window are automatically deleted from SuperBaser Storage and marked as purged, so stale storage never accumulates.
+
+## Frequently Asked Questions
+
+**Will this slow down my live database?** No. `pg_dumpall` reads from the database the same way any client connection does — it does not lock tables or block normal application traffic.
+
+**What if my project is already paused?** If backups were already running through SuperBaser, restoring works the same whether the original project is paused, deleted, or still live. If a project paused before it was connected, SuperBaser can only work from whatever backup files the original provider still allows downloading.
+
+**Can I restore into the same project instead of a new one?** Restore is designed to rebuild into a fresh project, which avoids any risk of a partial restore colliding with data still live in the original. An in-place restore is handled case by case on request.
+
+**How is this different from a provider's built-in backups?** Built-in backups depend on plan tier and stop being restorable through the dashboard once a project has been paused too long. SuperBaser runs independently of the source project's own state, and covers Storage files, which database-only backups do not.
+
+**Do you ever see my actual data?** Backups are handled by automated processes, not viewed by anyone. Access credentials are encrypted at rest and only decrypted transiently, for the seconds a job is actually running.
+
+**What's the difference between snapshot backups and continuous WAL streaming?** SuperBaser uses `pg_dumpall` to take complete point-in-time snapshots. The Premium tier runs these every 15 minutes, giving near-continuous recovery points. Continuous Write-Ahead Log streaming, which captures every transaction in real time, is on the roadmap but not yet implemented.
+
+**Can I download my backups directly?** Yes. Every completed backup has a download option in the dashboard. The backup is plain SQL text, so it can be inspected, searched, or restored manually with `psql` if needed.
+
+**What happens to old backups?** The retention pruner runs on a fixed cadence as part of the scheduler. Backups older than the tier's retention window are automatically deleted from storage and marked as purged — there is never a charge for stale storage.
+
+## Glossary
+
+**Cluster dump** — A complete backup of everything in a database, not just the application's own tables, but every internal role and schema managed behind the scenes too. Produced by `pg_dumpall`.
+
+**Verification** — The check every backup goes through to confirm it is complete and restorable, run automatically before it is ever marked trustworthy.
+
+**Restore** — Rebuilding a working project — database, files, and users together — from a backup.
+
+**Service Role Key** — A credential that bypasses Row Level Security policies. Used for Storage file discovery and restore operations so files can be read from and written to private buckets. Stored securely on the backend.
+
+**Retention window** — How long backups are kept before automatic deletion. Determined by plan tier: 7 days on Free, 30 days on Pro, 90 days on Premium.
+
+**Least privilege** — A security principle meaning only the exact access a task needs is ever requested, and nothing more.
+
+**SuperBaser Storage** — Secure object storage where SuperBaser saves backup archives.
+
+**Point-in-time recovery** — The ability to restore a project to a specific captured snapshot rather than only the most recent state, achieved through frequent scheduled backups.
+
+**Disaster recovery** — The overall practice, and SuperBaser's core purpose: getting a project back to a working state after data loss, corruption, or accidental deletion.
+
+---
+
+## Site
+
+- **Home** — Landing page introducing SuperBaser as a Supabase backup tool and PostgreSQL disaster recovery solution.
+- **Modules** — Platform modules overview: automated backup, Storage sync, and verified restore as connected capabilities.
+- **Capabilities** — Capability breakdown covering database backup, Storage file backup, and restore verification.
+- **Engine Pipeline** — The backup and restore pipeline explained step by step on the landing page.
+- **Console** — Sign-up and console access entry point; where a user connects a project and starts automated protection.
+
+---
+
+## Full Documentation
+
+The complete reference — every section above, with sidebar navigation and scroll-spy — is available as a single page at https://www.superbaser.co/docs.html.

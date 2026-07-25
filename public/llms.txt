@@ -28,6 +28,15 @@ Three tiers: Free ($0/mo, 1 project, daily backups, 7-day retention), Pro ($15/m
 - [Engine Pipeline](https://www.superbaser.co/#process): The backup/restore pipeline explained on the landing page.
 - [Console](https://www.superbaser.co/#contact): Sign-up and console access entry point.
 
+## Topics
+- Supabase disaster recovery
+- PostgreSQL backup and restore
+- Database migration
+- Storage file backup
+- pg_dumpall cluster dump
+- Point-in-time recovery
+- Supabase project recovery
+
 ## Optional
 
 - [Full documentation page](https://www.superbaser.co/docs.html): Single-page reference containing every section listed above, with sidebar navigation and scroll-spy.
