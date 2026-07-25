@@ -1234,7 +1234,7 @@ RULES:
   };
 
   // ─── Keyboard handlers ───────────────────────────────────────────────────────
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (slashSearch !== null && activeSlashSuggestions.length > 0) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSlashIndex(prev => (prev + 1) % activeSlashSuggestions.length); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); setSlashIndex(prev => (prev - 1 + activeSlashSuggestions.length) % activeSlashSuggestions.length); return; }

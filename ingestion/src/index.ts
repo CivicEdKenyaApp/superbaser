@@ -373,12 +373,20 @@ async function runIngestion(env: IngestionEnv, ctx: ExecutionContext): Promise<v
   if (kvManifest) {
     manifest = kvManifest as SourceManifest;
   } else {
-    // Fallback: load bundled manifest (the ingestion/manifest.json we created)
-    const bundledManifestResp = await fetch('https://raw.githubusercontent.com/PLACEHOLDER_REPO/main/ingestion/manifest.json');
+    // Fallback: fetch bundled manifest from the real GitHub repo
+    const bundledManifestResp = await fetch(
+      'https://raw.githubusercontent.com/CivicEdKenyaApp/superbaser/main/ingestion/manifest.json',
+      { headers: env.GITHUB_TOKEN ? { Authorization: `Bearer ${env.GITHUB_TOKEN}` } : {} }
+    );
     if (bundledManifestResp.ok) {
       manifest = await bundledManifestResp.json() as SourceManifest;
+      // Cache it in KV for subsequent runs
+      await env.AGENT_KV.put('source-manifest', JSON.stringify(manifest), {
+        expirationTtl: 7 * 24 * 60 * 60 // 7 days
+      });
+      console.log('[Ingestion] Loaded and cached manifest from GitHub.');
     } else {
-      console.error('[Ingestion] No manifest found. Aborting.');
+      console.error('[Ingestion] Could not load manifest from GitHub or KV. Aborting.');
       return;
     }
   }

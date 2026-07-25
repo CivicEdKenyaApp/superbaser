@@ -696,24 +696,59 @@ export class SuperbAgent extends Agent<Env, AgentState> {
 
     // Execute the confirmed action
     if (proposal.action === 'restore') {
-      const { data, error } = await supabase
+      // Step 1: Insert the restores row
+      const { data: restoreRow, error: restoreErr } = await supabase
         .from('restores')
         .insert({
           organization_id: proposal.organizationId,
           backup_id: proposal.backupId,
-          destination_project_id: proposal.destinationProjectId,
-          status: 'pending'
+          destination_project_id: proposal.destinationProjectId!,
+          status: 'pending',
+          triggered_by: this.state.userId || null,
         })
         .select()
         .single();
 
-      if (error) return { error: error.message };
+      if (restoreErr) return { error: restoreErr.message };
+
+      // Step 2: Enqueue a job so the Container Worker picks it up
+      const { data: jobRow, error: jobErr } = await supabase
+        .from('jobs')
+        .insert({
+          organization_id: proposal.organizationId,
+          project_id: proposal.destinationProjectId!,
+          kind: 'restore',
+          status: 'queued',
+          backup_id: proposal.backupId,
+          restore_id: restoreRow.id,
+          payload: {
+            backup_id: proposal.backupId,
+            restore_id: restoreRow.id,
+            destination_project_id: proposal.destinationProjectId,
+          }
+        })
+        .select()
+        .single();
+
+      if (jobErr) {
+        console.error('[Agent] Failed to enqueue restore job:', jobErr.message);
+        // Still return the restore row — the job can be retried
+      }
+
+      // Track job ID for real-time status updates
+      if (jobRow?.id) {
+        this.setState({
+          ...this.state,
+          activeJobIds: [...this.state.activeJobIds, jobRow.id]
+        });
+      }
 
       return {
         success: true,
         action: 'restore',
-        restore: data,
-        actionChip: { type: 'JOB_PROGRESS', jobId: data.id }
+        restore: restoreRow,
+        job: jobRow,
+        actionChip: { type: 'JOB_PROGRESS', jobId: jobRow?.id ?? restoreRow.id }
       };
     }
 
@@ -813,11 +848,22 @@ export default {
 
     // CORS preflight for WebSocket connections from superbaser.co
     if (request.method === 'OPTIONS') {
+      const origin = request.headers.get('Origin') ?? '';
+      const allowedOrigins = [
+        'https://superbaser.co',
+        'https://www.superbaser.co',
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ];
+      // Also allow any *.superbaser.pages.dev preview deployment
+      const isAllowed = allowedOrigins.includes(origin) || /^https:\/\/[a-z0-9-]+\.superbaser\.pages\.dev$/.test(origin);
       return new Response(null, {
         headers: {
-          'Access-Control-Allow-Origin': 'https://superbaser.co',
+          'Access-Control-Allow-Origin': isAllowed ? origin : 'https://superbaser.co',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Authorization, Content-Type'
+          'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+          'Access-Control-Max-Age': '86400',
+          'Vary': 'Origin',
         }
       });
     }
