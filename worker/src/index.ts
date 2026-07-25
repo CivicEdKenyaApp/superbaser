@@ -468,11 +468,28 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         returnMetadata: 'all'
       });
 
-      if (!results?.matches?.length) return '';
+      const nowMs = Date.now();
+      const processedMatches = results.matches
+        .map((m: any) => {
+          let score = m.score;
+          if (m.metadata?.sourceType === 'reddit-json' || m.metadata?.confidence === 'community') {
+            const ingestedAt = m.metadata.ingestedAt ? parseInt(m.metadata.ingestedAt) : nowMs;
+            const ageDays = (nowMs - ingestedAt) / (1000 * 60 * 60 * 24);
+            let multiplier = 1.0;
+            if (ageDays > 90) multiplier = 0;
+            else if (ageDays > 60) multiplier = 0.3;
+            else if (ageDays > 30) multiplier = 0.6;
+            score = score * multiplier;
+          }
+          return { ...m, score };
+        })
+        .filter((m: any) => m.score > 0.6) // Lower threshold for decayed community items
+        .sort((a: any, b: any) => b.score - a.score);
 
-      return results.matches
-        .filter((m: any) => m.score > 0.7)
-        .map((m: any) => `[${m.metadata?.title ?? 'Doc'}]\n${m.metadata?.text ?? ''}`)
+      if (!processedMatches.length) return '';
+
+      return processedMatches
+        .map((m: any) => `[Source: ${m.metadata?.sourceType ?? 'official'}, Confidence: ${m.metadata?.confidence ?? 'authoritative'}]\n[${m.metadata?.title ?? 'Doc'}]\n${m.metadata?.text ?? ''}`)
         .join('\n\n---\n\n');
 
     } catch (err) {

@@ -21,7 +21,7 @@ interface SourceManifest {
 
 interface SourceConfig {
   id: string;
-  type: 'github' | 'llms-txt' | 'github-releases' | 'html-scrape' | 'browser-scrape';
+  type: 'github' | 'llms-txt' | 'github-releases' | 'html-scrape' | 'browser-scrape' | 'reddit-json';
   repo?: string;
   branch?: string;
   paths?: string[];
@@ -363,6 +363,82 @@ async function fetchGitHubReleasesSource(source: SourceConfig, env: IngestionEnv
   return chunks;
 }
 
+async function fetchRedditJsonSource(source: SourceConfig, env: IngestionEnv, config: IngestionConfig): Promise<TextChunk[]> {
+  const chunks: TextChunk[] = [];
+  
+  // Try to load custom weights from KV, fallback to defaults
+  let weights = { score: 1.5, comments: 3, age: -2 };
+  try {
+    const configStr = await env.AGENT_KV.get('reddit-signal-weights');
+    if (configStr) {
+      weights = JSON.parse(configStr).weights;
+    }
+  } catch (e) { /* use default weights */ }
+
+  for (const url of source.urls ?? []) {
+    try {
+      const resp = await fetch(url, { headers: { 'User-Agent': 'superbaser-ingestion/1.0' } });
+      if (!resp.ok) continue;
+
+      const data: any = await resp.json();
+      const posts = data.data?.children ?? [];
+      
+      for (const postData of posts) {
+        const post = postData.data;
+        if (!post) continue;
+        
+        const nowSec = Math.floor(Date.now() / 1000);
+        const ageDays = (nowSec - post.created_utc) / (60 * 60 * 24);
+        
+        // Calculate signal strength
+        const signalStrength = (post.score * weights.score) + (post.num_comments * weights.comments) + (ageDays * weights.age);
+        
+        // Dynamic filtering based on signal
+        if (signalStrength < 15) continue;
+        
+        // Deduplication Check (via KV instead of Vectorize for speed)
+        // Store hash of post ID to prevent re-ingesting the exact same post unless updated
+        const dedupKey = `reddit-ingested:${post.id}`;
+        const lastIngested = await env.AGENT_KV.get(dedupKey);
+        
+        // Only ingest if we haven't ingested it in the last 24 hours
+        if (lastIngested && (nowSec - parseInt(lastIngested)) < 86400) {
+            continue;
+        }
+
+        // Rich Markdown Normalization
+        const markdown = `## [Community Report] ${post.title}
+**Source:** Reddit (${post.subreddit_name_prefixed}) | **Date:** ${new Date(post.created_utc * 1000).toISOString().split('T')[0]} | **Signal:** ${Math.floor(signalStrength)}
+
+**Observed Behavior / Content:**
+${post.selftext ? post.selftext : '(No text body provided)'}
+
+**Related Links:**
+https://reddit.com${post.permalink}
+`;
+
+        const postChunks = chunkByHeadings(markdown, {
+          ...source.metadata,
+          url: `https://reddit.com${post.permalink}`,
+          postId: post.id,
+          score: post.score.toString(),
+          comments: post.num_comments.toString(),
+          confidence: 'community',
+          ingestedAt: Date.now().toString()
+        });
+
+        chunks.push(...postChunks);
+        await env.AGENT_KV.put(dedupKey, nowSec.toString(), { expirationTtl: 90 * 24 * 60 * 60 });
+      }
+
+    } catch (err) {
+      console.error(`[Ingestion] Reddit fetch failed: ${url}`, err);
+    }
+  }
+
+  return chunks;
+}
+
 // ─── Main Ingestion Handler ───────────────────────────────────────────────────
 async function runIngestion(env: IngestionEnv, ctx: ExecutionContext): Promise<void> {
   console.log('[Ingestion] Starting RAG ingestion pipeline...');
@@ -469,6 +545,9 @@ async function runIngestion(env: IngestionEnv, ctx: ExecutionContext): Promise<v
             console.error(`[Ingestion] Browser scrape failed: ${url}`, err);
           }
         }
+        break;
+      case 'reddit-json':
+        chunks = await fetchRedditJsonSource(source, env, config);
         break;
     }
 

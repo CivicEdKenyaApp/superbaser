@@ -112,6 +112,17 @@
       "enabled": false,
       "priority": 3,
       "metadata": { "source": "supabase-realtime", "sourceType": "browser-scrape" }
+    },
+    {
+      "id": "reddit-supabase-community",
+      "type": "reddit-json",
+      "urls": [
+        "https://www.reddit.com/r/Supabase/top/.json?t=week",
+        "https://www.reddit.com/r/Supabase/hot/.json"
+      ],
+      "enabled": true,
+      "priority": 4,
+      "metadata": { "source": "reddit-community", "sourceType": "reddit-json" }
     }
   ],
   "ingestionConfig": {
