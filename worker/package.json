@@ -1,0 +1,22 @@
+{
+  "name": "superbaser-agent-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "tail": "wrangler tail",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "agents": "*",
+    "@supabase/supabase-js": "^2.110.8"
+  },
+  "devDependencies": {
+    "wrangler": "latest",
+    "@cloudflare/workers-types": "^4.0.0",
+    "typescript": "^5.3.3"
+  }
+}

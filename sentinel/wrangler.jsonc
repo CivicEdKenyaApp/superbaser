@@ -1,0 +1,61 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "superbaser-sentinel",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SENTINEL_AGENT",
+        "class_name": "SentinelAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "SentinelAgent"
+      ]
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "vectorize": [
+    {
+      "binding": "VECTOR_INDEX",
+      "index_name": "superbaser-docs"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "AGENT_KV",
+      "id": "7c573c8bdfbe47449c95b04faf54e711"
+    }
+  ],
+  // Cron: daily at 03:00 UTC
+  "triggers": {
+    "crons": [
+      "0 3 * * *"
+    ]
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SUPABASE_URL": "https://vkepcsrjgeyquzmvwvmf.supabase.co"
+  }
+  // Secrets (wrangler secret put —-name superbaser-sentinel):
+  //   GROQ_API_KEY
+  //   CEREBRAS_API_KEY
+  //   DEEPSEEK_API_KEY
+  //   SUPABASE_SERVICE_ROLE_KEY
+  //   GITHUB_TOKEN
+  //   SLACK_WEBHOOK_URL
+}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, Mic, ShieldCheck, Copy, Check, Wifi, WifiOff, Lock, UserCheck } from 'lucide-react';
+import { Send, X, Mic, ShieldCheck, Copy, Check, Wifi, WifiOff, Lock, UserCheck, AlertTriangle } from 'lucide-react';
 import Lottie from 'lottie-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -10,12 +10,35 @@ import { useBandwidth, useOfflineManifest } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../lib/auth-store';
 import { SUPERBASER_KNOWLEDGE_BASE, getRandomAffirmation, sanitizeResponse } from '../lib/assistant-context';
 
+// ─── Item 24: VITE_SB_AGENT_ENABLED feature flag ─────────────────────────────
+// When false, falls back to direct Groq fetch (legacy — safe rollout)
+// When true (production), routes to the Cloudflare SuperbAgent Worker via WebSocket
+const AGENT_ENABLED = import.meta.env.VITE_SB_AGENT_ENABLED === 'true';
+const AGENT_WS_BASE = import.meta.env.VITE_SB_AGENT_WS_URL ?? 'wss://superbaser-agent.workers.dev';
+
+// ─── Item 15: Client-side ACTION_TRIGGER_KEYWORDS (UI-layer, non-authoritative) ─
+// The real enforcement is server-side in the Agent tool boundary.
+// This provides immediate UX feedback before the WebSocket round-trip.
+const ACTION_TRIGGER_KEYWORDS = [
+  'run', 'trigger', 'snapshot', 'pg_dump', 'backup', 'restore',
+  'create org', 'enqueue', 'execute', 'delete', 'drop', 'remove'
+];
+
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   suggestions?: { id: string; label: string; prompt: string; icon?: string }[];
+  // Item 14: Two-trigger confirmation card from propose_restore/propose_delete_backup
+  confirmationCard?: {
+    token: string;
+    label: string;
+    description: string;
+    expiresAt: string;
+    chipType: 'CONFIRM_RESTORE' | 'CONFIRM_DELETE_BACKUP';
+    destructive: boolean;
+  };
 }
 
 type IslandMode = "IDLE" | "CHAT_ACTIVE" | "MAP_VIEW" | "OFFLINE_TICKET" | "LIVE_WAVEFORM";
@@ -327,9 +350,7 @@ const DEFAULT_SUGGESTIONS = [
   { id: '6', label: '1-Click Zero Downtime Restore', prompt: 'How does the 1-click restore process rebuild my Supabase project?', icon: 'refresh' }
 ];
 
-const ACTION_TRIGGER_KEYWORDS = [
-  'run', 'trigger', 'snapshot', 'pg_dump', 'backup', 'restore', 'create org', 'enqueue', 'execute'
-];
+
 
 export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -427,12 +448,207 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
     }
   }, []);
 
+  // ─── Item 16/17: WebSocket ref for Agent connection ──────────────────────
+  const agentWsRef = useRef<WebSocket | null>(null);
+  const [agentConnected, setAgentConnected] = useState(false);
+  const [isDegradedMode, setIsDegradedMode] = useState(false);
+
+  // ─── Item 24: Connect to SuperbAgent Worker via WebSocket when feature flag is on ─
+  useEffect(() => {
+    if (!AGENT_ENABLED || !isOpen) return;
+    const { activeOrgId, session } = useAuthStore.getState();
+    const token = session?.access_token;
+    if (!token || !activeOrgId) return;
+
+    const wsUrl = `${AGENT_WS_BASE}/agents/superb-agent/${activeOrgId}?token=${token}&orgId=${activeOrgId}`;
+    const ws = new WebSocket(wsUrl);
+    agentWsRef.current = ws;
+
+    ws.onopen = () => {
+      setAgentConnected(true);
+      setIsDegradedMode(false);
+    };
+
+    ws.onclose = () => {
+      setAgentConnected(false);
+      agentWsRef.current = null;
+    };
+
+    ws.onerror = () => {
+      setAgentConnected(false);
+      // Fall through to legacy Groq on WS error
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        handleAgentMessage(msg);
+      } catch { /* ignore malformed frames */ }
+    };
+
+    return () => {
+      ws.close();
+      agentWsRef.current = null;
+      setAgentConnected(false);
+    };
+  }, [isOpen, AGENT_ENABLED]);
+
+  // ─── Item 16/17: Handle incoming agent WebSocket messages ────────────────
+  const handleAgentMessage = useCallback((msg: any) => {
+    const { type, payload } = msg;
+
+    switch (type) {
+      case 'TYPING_START':
+        setIsTyping(true);
+        break;
+
+      case 'TYPING_END':
+        setIsTyping(false);
+        setIsListening(false);
+        break;
+
+      case 'ASSISTANT_MESSAGE': {
+        const safeContent = sanitizeResponse(payload.content ?? '');
+        saveManifest({
+          title: safeContent.substring(0, 30),
+          items: [safeContent.substring(0, 100)],
+          cachedAt: new Date().toISOString()
+        });
+        setIslandState({ mode: 'OFFLINE_TICKET', payload: { items: [safeContent.substring(0, 50) + '...'] } });
+        const newAiMsg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: safeContent,
+          timestamp: new Date(),
+          suggestions: payload.suggestions ?? DEFAULT_SUGGESTIONS.slice(0, 3)
+        };
+        setMessages(prev => [...prev, newAiMsg]);
+        speak(safeContent);
+        break;
+      }
+
+      case 'TOOL_RESULT': {
+        // navigate_to tool
+        if (payload.tool === 'navigate_to' && payload.target) {
+          executeAction({ type: 'navigate_to', target: payload.target });
+        }
+        // ActionChips from enqueue_backup
+        if (payload.actionChip) {
+          setSuggestedActions([{
+            label: `Track Job ${payload.actionChip.jobId?.substring(0, 8)}`,
+            icon: 'zap',
+            action: { type: 'scroll_to', target: 'logs' }
+          }]);
+        }
+        // Item 14: Confirmation card from propose_restore / propose_delete_backup
+        if (payload.confirmationCard) {
+          const card = payload.confirmationCard;
+          const confirmMsg: Message = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: `I have prepared a confirmation for you. **${card.label}**: ${card.description}\n\nThis action is ${card.destructive ? 'destructive and cannot be undone' : 'reversible'}. Please click the confirmation chip below to proceed. This token expires in 5 minutes.`,
+            timestamp: new Date(),
+            confirmationCard: card
+          };
+          setMessages(prev => [...prev, confirmMsg]);
+        }
+        // list_backups
+        if (payload.tool === 'list_backups' && Array.isArray(payload.data)) {
+          const backupList = payload.data.length > 0
+            ? payload.data.map((b: any) => `• ${b.id?.substring(0, 8)} — ${b.status} — ${new Date(b.created_at).toLocaleString()}`).join('\n')
+            : 'No backups found for this organization.';
+          const listMsg: Message = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: `**Backup History:**\n${backupList}`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, listMsg]);
+        }
+        // Plan/auth gating from tool boundary
+        if (payload.authRequired) {
+          // Item 17: Agent-rejected action triggers AuthModal
+          if (onOpenAuthModal) onOpenAuthModal();
+          const authMsg: Message = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: 'You must sign in or create an account before triggering vital database actions. Please claim your free account to proceed.',
+            timestamp: new Date(),
+            suggestions: [{ id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?', icon: 'shield' }]
+          };
+          setMessages(prev => [...prev, authMsg]);
+        }
+        if (payload.planRequired) {
+          const planMsg: Message = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: `This action requires the **${payload.planRequired.toUpperCase()} plan**. Upgrade your subscription to unlock it.`,
+            timestamp: new Date(),
+            suggestions: [{ id: 'billing', label: 'View Plans', prompt: 'How do I upgrade my plan?', icon: 'database' }]
+          };
+          setMessages(prev => [...prev, planMsg]);
+        }
+        break;
+      }
+
+      // Item 17: Server-side AUTH_REQUIRED signal
+      case 'AUTH_REQUIRED': {
+        if (onOpenAuthModal) onOpenAuthModal();
+        const authMsg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: payload.message ?? 'Account required to perform this action.',
+          timestamp: new Date(),
+          suggestions: payload.suggestions ?? [{ id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?', icon: 'shield' }]
+        };
+        setMessages(prev => [...prev, authMsg]);
+        setIsTyping(false);
+        break;
+      }
+
+      // Item 12: Graceful degraded mode when all providers fail
+      case 'DEGRADED_MODE': {
+        setIsDegradedMode(true);
+        const degradedMsg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: payload.message ?? "I'm having trouble connecting right now. Your message has been saved and I'll respond when connectivity is restored.",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, degradedMsg]);
+        setIsTyping(false);
+        break;
+      }
+
+      case 'ERROR': {
+        const errMsg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: payload.message ?? 'A brief error occurred. Please try again.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errMsg]);
+        setIsTyping(false);
+        break;
+      }
+    }
+  }, [speak, executeAction, onOpenAuthModal, saveManifest]);
+
+  // ─── Item 14: Send Trigger-2 confirmation token when user clicks ActionChip ─
+  const handleConfirmationChip = useCallback((token: string) => {
+    if (!agentWsRef.current || agentWsRef.current.readyState !== WebSocket.OPEN) return;
+    agentWsRef.current.send(JSON.stringify({ type: 'CONFIRM_ACTION', payload: { token } }));
+    setIsTyping(true);
+  }, []);
+
+  // ─── Unified sendMessage: routes to Agent WS or legacy Groq based on feature flag ─
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const lowerText = text.toLowerCase();
     const isActionQuery = ACTION_TRIGGER_KEYWORDS.some(kw => lowerText.includes(kw));
 
+    // Item 15 (client layer, non-authoritative): immediate UX feedback for anon users
     if (user?.is_anonymous && isActionQuery) {
       if (onOpenAuthModal) onOpenAuthModal();
       const authRequiredMsg: Message = {
@@ -465,6 +681,18 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
       setIslandState({ mode: "LIVE_WAVEFORM", payload: null });
     }
 
+    // Item 24: Route to Agent WebSocket when AGENT_ENABLED and connected
+    if (AGENT_ENABLED && agentWsRef.current && agentWsRef.current.readyState === WebSocket.OPEN) {
+      agentWsRef.current.send(JSON.stringify({
+        type: 'CHAT_MESSAGE',
+        payload: { text }
+      }));
+      return; // Agent WS handles typing/response lifecycle
+    }
+
+    // ─── Item 18: Legacy Groq fallback — preserved during transition ─────────
+    // Stays active when AGENT_ENABLED=false or WS is not connected.
+    // Remove this block only after RAG layer is fully verified in production.
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -494,7 +722,7 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
       let rawContent = data.choices[0].message.content;
       
       let parsedAction = null;
-      let parsedSuggestedActions = [];
+      let parsedSuggestedActions: any[] = [];
       let parsedIslandTrigger = null;
 
       try {
@@ -653,6 +881,21 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {/* Item 12: Degraded mode indicator */}
+                {isDegradedMode && (
+                  <div className="flex items-center gap-1 text-[0.60rem] font-mono uppercase bg-orange/20 px-2 py-0.5 rounded-full border border-orange/40">
+                    <AlertTriangle className="w-3 h-3 text-orange" />
+                    <span className="text-orange">Degraded</span>
+                  </div>
+                )}
+                {/* Item 24: Agent connection status indicator */}
+                {AGENT_ENABLED && (
+                  <div className={`flex items-center gap-1 text-[0.60rem] font-mono uppercase px-2 py-0.5 rounded-full border ${
+                    agentConnected ? 'bg-neon/10 border-neon/40 text-neon' : 'bg-white/10 border-white/20 text-white/50'
+                  }`}>
+                    <span>{agentConnected ? 'Agent' : 'Agent ↻'}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1 text-[0.65rem] font-mono uppercase bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
                   {isOnline ? <Wifi className="w-3 h-3 text-[#d8ff37]" /> : <WifiOff className="w-3 h-3 text-orange" />}
                   <span>{isOnline ? (isLowBandwidth ? 'Low BW' : 'Online') : 'Offline'}</span>
@@ -710,6 +953,28 @@ export default function AIAssistant({ onOpenAuthModal }: { onOpenAuthModal?: () 
                   )}
                   {msg.role === 'assistant' && suggestedActions.length > 0 && index === messages.length - 1 && (
                     <ActionChips actions={suggestedActions} onAction={executeAction} />
+                  )}
+                  {/* Item 14: Two-Trigger Confirmation Card rendered as destructive ActionChip */}
+                  {msg.role === 'assistant' && msg.confirmationCard && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      className="flex flex-col gap-1.5 px-1 mt-1"
+                    >
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-ink/60 uppercase tracking-widest">
+                        <AlertTriangle className="w-3 h-3 text-orange" />
+                        <span>Destructive action — click below to confirm</span>
+                      </div>
+                      <button
+                        onClick={() => handleConfirmationChip(msg.confirmationCard!.token)}
+                        className="flex items-center gap-1.5 bg-orange/10 hover:bg-orange/30 active:scale-95 border-2 border-orange rounded-full px-3 py-1.5 text-[11px] text-ink font-bold transition-all whitespace-nowrap shadow-[1px_1px_0_#171714] self-start"
+                      >
+                        <AlertTriangle className="w-3 h-3 text-orange flex-shrink-0" />
+                        <span>{msg.confirmationCard.label}</span>
+                      </button>
+                      <p className="text-[10px] text-ink/50 font-mono px-1">{msg.confirmationCard.description}</p>
+                    </motion.div>
                   )}
                 </div>
               ))}

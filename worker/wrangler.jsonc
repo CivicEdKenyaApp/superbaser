@@ -1,0 +1,68 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "superbaser-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  // Item 7: Workers Observability
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  // Item 5: Durable Objects — Agent per org, scoped by activeOrgId
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SUPERB_AGENT",
+        "class_name": "SuperbAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "SuperbAgent"
+      ]
+    }
+  ],
+  // Item 5: Workers AI — edge-native fallback (Position 3 in cascade)
+  "ai": {
+    "binding": "AI"
+  },
+  // Item 19: Vectorize — RAG layer
+  "vectorize": [
+    {
+      "binding": "VECTOR_INDEX",
+      "index_name": "superbaser-docs"
+    }
+  ],
+  // Item 6 & 9: KV — source manifest sync state for ingestion pipeline
+  "kv_namespaces": [
+    {
+      "binding": "AGENT_KV",
+      "id": "7c573c8bdfbe47449c95b04faf54e711"
+    }
+  ],
+  // Item 6: AI Gateway & environment vars
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SUPABASE_URL": "https://vkepcsrjgeyquzmvwvmf.supabase.co",
+    "CF_AI_GATEWAY_ID": "superbaser-ai-gateway",
+    "CF_ACCOUNT_ID": "32bdfa759705b0aef9c3ef7aa449e965",
+    "AGENT_FEATURE_FLAG": "true"
+  }
+  // SECRETS (set via: wrangler secret put SECRET_NAME)
+  // Do NOT put secret values here. Use: wrangler secret put <NAME>
+  //
+  // Required secrets for this Worker:
+  //   GROQ_API_KEY            — Provider 2: Groq llama-3.3-70b-versatile
+  //   CEREBRAS_API_KEY        — Provider 1: Cerebras llama-3.1-8b (fastest)
+  //   DEEPSEEK_API_KEY        — Provider 4: DeepSeek deepseek-chat
+  //   OPENROUTER_API_KEY      — Provider 5: OpenRouter meta-llama/llama-3.3-70b
+  //   SUPABASE_SERVICE_ROLE_KEY — Elevated Supabase access for server-side mutations
+  //   GITHUB_TOKEN            — PAT for ingestion pipeline (5000 req/hr)
+  //   MISTRAL_API_KEY         — Optional additional cascade provider
+}

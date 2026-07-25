@@ -19,6 +19,13 @@ dist-ssr/
 .env.local
 .env.*.local
 
+# Worker secrets — NEVER commit
+# Set via: wrangler secret put SECRET_NAME
+.dev.vars
+worker/.dev.vars
+ingestion/.dev.vars
+sentinel/.dev.vars
+
 # IDE & OS
 .vscode/
 .idea/
@@ -28,5 +35,7 @@ dist-ssr/
 *.njsproj
 *.sln
 *.sw?
-.vercel
 .env*.local
+
+# Wrangler local state
+.wrangler/

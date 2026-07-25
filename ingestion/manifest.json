@@ -1,0 +1,116 @@
+{
+  "sources": [
+    {
+      "id": "superbaser-docs",
+      "type": "github",
+      "repo": "superbaser/docs",
+      "branch": "main",
+      "paths": ["docs/"],
+      "enabled": true,
+      "priority": 1,
+      "lastSyncSha": null,
+      "metadata": { "source": "superbaser-docs", "sourceType": "github" }
+    },
+    {
+      "id": "supabase-database-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://supabase.com/docs/llms.txt",
+      "baseUrl": "https://supabase.com/docs",
+      "enabled": true,
+      "priority": 2,
+      "filterKeywords": ["backup", "restore", "point-in-time", "database", "postgres", "rls", "security"],
+      "metadata": { "source": "supabase-database", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-workers-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/workers/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/workers",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-workers", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-r2-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/r2/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/r2",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-r2", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-durable-objects-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/durable-objects/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/durable-objects",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-durable-objects", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-vectorize-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/vectorize/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/vectorize",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-vectorize", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-agents-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/agents/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/agents",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-agents", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "cloudflare-ai-gateway-docs",
+      "type": "llms-txt",
+      "indexUrl": "https://developers.cloudflare.com/ai-gateway/llms.txt",
+      "baseUrl": "https://developers.cloudflare.com/ai-gateway",
+      "enabled": true,
+      "priority": 2,
+      "metadata": { "source": "cloudflare-ai-gateway", "sourceType": "llms-txt" }
+    },
+    {
+      "id": "supabase-changelog",
+      "type": "github-releases",
+      "repo": "supabase/supabase",
+      "enabled": true,
+      "priority": 3,
+      "metadata": { "source": "supabase-changelog", "sourceType": "changelog" }
+    },
+    {
+      "id": "cloudflare-changelog",
+      "type": "github-releases",
+      "repo": "cloudflare/workers-sdk",
+      "enabled": true,
+      "priority": 3,
+      "metadata": { "source": "cloudflare-changelog", "sourceType": "changelog" }
+    },
+    {
+      "id": "postgres-backup-docs",
+      "type": "html-scrape",
+      "urls": [
+        "https://www.postgresql.org/docs/current/backup-dump.html",
+        "https://www.postgresql.org/docs/current/continuous-archiving.html",
+        "https://www.postgresql.org/docs/current/app-pgrestore.html"
+      ],
+      "enabled": true,
+      "priority": 3,
+      "metadata": { "source": "postgresql-docs", "sourceType": "html-scrape" }
+    }
+  ],
+  "ingestionConfig": {
+    "chunkingStrategy": "h2_h3_headings",
+    "maxChunkTokens": 1000,
+    "minChunkTokens": 50,
+    "overlapSentences": 1,
+    "embeddingModel": "@cf/baai/bge-base-en-v1.5",
+    "vectorizeBatchSize": 100,
+    "cooldownBetweenSourcesMs": 500
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "superbaser-ingestion",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "vectorize": [
+    {
+      "binding": "VECTOR_INDEX",
+      "index_name": "superbaser-docs"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "AGENT_KV",
+      "id": "7c573c8bdfbe47449c95b04faf54e711"
+    }
+  ],
+  // Cron: daily at 03:30 UTC (offset from Sentinel to avoid conflicts)
+  "triggers": {
+    "crons": [
+      "30 3 * * *"
+    ]
+  },
+  "vars": {
+    "ENVIRONMENT": "production"
+  }
+  // Secrets (wrangler secret put --name superbaser-ingestion):
+  //   GITHUB_TOKEN
+  //   CF_AI_GATEWAY_ID
+  //   CF_ACCOUNT_ID
+}
