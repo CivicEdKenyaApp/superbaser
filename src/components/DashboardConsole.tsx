@@ -179,6 +179,16 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     return () => window.removeEventListener('RESUME_PENDING_ACTION', handleResume);
   }, []);
 
+  // Listen for SUPERB AI in-chat tab navigation
+  useEffect(() => {
+    const handleAiTab = (e: any) => {
+      const tab = e.detail?.tab;
+      if (tab) setActiveTab(tab as any);
+    };
+    window.addEventListener('SUPERB_AI_NAVIGATE_TAB', handleAiTab);
+    return () => window.removeEventListener('SUPERB_AI_NAVIGATE_TAB', handleAiTab);
+  }, []);
+
   // Load User's Organizations
   useEffect(() => {
     if (user) {

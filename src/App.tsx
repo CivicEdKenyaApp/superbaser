@@ -256,7 +256,24 @@ export default function App() {
             }}
           />
         </ClickSpark>
-        <AIAssistant onOpenAuthModal={() => setShowAuthModal(true)} currentView={currentView} />
+        <AIAssistant
+          onOpenAuthModal={() => setShowAuthModal(true)}
+          currentView={currentView}
+          onNavigate={(view, tab, anchor) => {
+            setCurrentView(view);
+            if (tab) {
+              setTimeout(() => window.dispatchEvent(new CustomEvent('SUPERB_AI_NAVIGATE_TAB', { detail: { tab } })), 80);
+            }
+            if (anchor) {
+              setTimeout(() => {
+                const el = document.getElementById(anchor);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                else window.location.hash = anchor;
+              }, 200);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
         {intentUIMode && activePendingIntent && (
           <PendingIntentUI 
             mode={intentUIMode}
@@ -368,7 +385,24 @@ export default function App() {
               </div>
             </div>
           )}
-          <AIAssistant onOpenAuthModal={() => setShowAuthModal(true)} currentView={currentView} />
+          <AIAssistant
+            onOpenAuthModal={() => setShowAuthModal(true)}
+            currentView={currentView}
+            onNavigate={(view, tab, anchor) => {
+              setCurrentView(view);
+              if (tab) {
+                setTimeout(() => window.dispatchEvent(new CustomEvent('SUPERB_AI_NAVIGATE_TAB', { detail: { tab } })), 80);
+              }
+              if (anchor) {
+                setTimeout(() => {
+                  const el = document.getElementById(anchor);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  else window.location.hash = anchor;
+                }, 200);
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         </div>
       </ClickSpark>
     </>
