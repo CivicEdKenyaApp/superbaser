@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, Mic, ShieldCheck, Copy, Check, Wifi, WifiOff, Lock, UserCheck, AlertTriangle } from 'lucide-react';
+import { Send, X, Mic, ShieldCheck, Copy, Check, Wifi, WifiOff, Lock, UserCheck, AlertTriangle, RefreshCw } from 'lucide-react';
 import Lottie from 'lottie-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+
 import fireMicData from '../../context/Fire Mic Animation - LIstening_AI.json';
 import aiChatData from '../../context/AI Chat.json';
 import { useBandwidth, useOfflineManifest } from '../hooks/useNetworkStatus';
@@ -19,6 +18,17 @@ const ACTION_TRIGGER_KEYWORDS = [
   'run', 'trigger', 'snapshot', 'pg_dump', 'backup', 'restore',
   'create org', 'enqueue', 'execute', 'delete', 'drop', 'remove'
 ];
+
+// ─── Wallpaper presets ────────────────────────────────────────────────────────
+const WALLPAPER_PRESETS = [
+  { id: 'default', label: 'Default',  value: null,                                              preview: '#111111' },
+  { id: 'cosmos',  label: 'Cosmos',   value: 'linear-gradient(160deg,#0f0c29,#302b63,#24243e)', preview: '#302b63' },
+  { id: 'acid',    label: 'Acid',     value: 'linear-gradient(160deg,#0a1200,#1a2f00,#0a1200)', preview: '#1a2f00' },
+  { id: 'ember',   label: 'Ember',    value: 'linear-gradient(160deg,#1a0800,#3d1500,#1a0800)', preview: '#3d1500' },
+  { id: 'nebula',  label: 'Nebula',   value: 'linear-gradient(160deg,#1a0020,#2d0035,#0d0015)', preview: '#2d0035' },
+  { id: 'ocean',   label: 'Ocean',    value: 'linear-gradient(160deg,#000d1a,#00243d,#000d1a)', preview: '#00243d' },
+];
+const WP_STORAGE_KEY = 'superbaser_chat_wallpaper';
 
 // ─── Full PAGE_DICTIONARY: every navigable destination ───────────────────────
 // Key = any natural-language phrase the user/LLM might say
@@ -215,6 +225,43 @@ function getDynamicSuggestions(
     seen.add(s.id);
     return true;
   }).slice(0, 8); // Cap at 8
+}
+
+// ─── Scored contextual suggestions from assistant reply content ───────────────
+// Mirrors AiAssistant.txt: score topics against the reply text, boost matching catalogue entries.
+function getScoredContextualSuggestions(
+  replyText: string,
+  currentView: string,
+  user: any
+): SuggestionEntry[] | null {
+  const lower = replyText.toLowerCase();
+  const hour = new Date().getHours();
+  const isEvening = hour >= 17 || hour < 6;
+
+  type Topic = { keywords: string[]; boosts: Record<string, number> };
+  const TOPICS: Record<string, Topic> = {
+    backup:   { keywords: ['backup','snapshot','pg_dump','dump','archive'],                   boosts: { run_backup:30, dl_backup:25, retention:20 } },
+    restore:  { keywords: ['restore','recovery','pitr','point-in-time','rollback'],           boosts: { restore_1click:30, pitr:25 } },
+    schedule: { keywords: ['schedule','cron','automat','interval','frequency'],               boosts: { cron_setup:30, cron_1hr:25 } },
+    billing:  { keywords: ['plan','tier','price','cost','billing','upgrade','pro','premium'], boosts: { pricing:30, upgrade_pro:25, upgrade_prem:20 } },
+    security: { keywords: ['encrypt','aes','key','password','secur','tls','vault'],           boosts: { security:30, r2_storage:20 } },
+    org:      { keywords: ['org','team','rbac','member','invite','role','permission'],        boosts: { create_org:25, team_rbac:20 } },
+    auth:     { keywords: ['sign in','sign up','account','login','register','claim','guest'], boosts: { claim:40, signin:35 } },
+  };
+
+  let bestTopic: string | null = null;
+  let bestScore = 0;
+  for (const [key, topic] of Object.entries(TOPICS)) {
+    const score = topic.keywords.reduce((acc, kw) => acc + (lower.includes(kw) ? 1 : 0), 0);
+    if (score > bestScore) { bestScore = score; bestTopic = key; }
+  }
+
+  if (!bestTopic || bestScore === 0) {
+    if (isEvening && currentView === 'console') return getDynamicSuggestions(currentView, user, '', 'upgrade billing plan');
+    return null;
+  }
+  const boosts = TOPICS[bestTopic].boosts;
+  return getDynamicSuggestions(currentView, user, '', Object.keys(boosts).join(' '));
 }
 
 interface Message {
@@ -645,6 +692,30 @@ function ActionChips({
   );
 }
 
+// ─── Mute SVG icons (pure SVG, matching reference file) ─────────────────────
+function MuteIcon() {
+  return (
+    <svg width="16" height="16" viewBox="-3.5 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" fillRule="evenodd">
+        <g transform="translate(-156.000000, -309.000000)" fill="currentColor">
+          <path d="M169,335 C167.061,335 165.236,334.362 163.716,333.318 L162.31,334.742 C163.944,335.953 165.892,336.765 168,336.955 L168,339 L167,339 C166.448,339 166,339.448 166,340 C166,340.553 166.448,341 167,341 L171,341 C171.552,341 172,340.553 172,340 C172,339.448 171.552,339 171,339 L170,339 L170,336.955 C174.938,336.51 179.117,332.799 180,328 L178,328 C177.089,332.007 173.282,335 169,335 L169,335 Z M176,326 L176,320.739 L164.735,331.515 C165.918,332.432 167.386,333 169,333 C172.866,333 176,329.866 176,326 L176,326 Z M160.047,328.145 L160,328 L158,328 C158.109,328.596 158.271,329.175 158.478,329.733 L160.047,328.145 L160.047,328.145 Z M179.577,312.013 L155.99,334.597 L157.418,336.005 L181.014,313.433 L179.577,312.013 L179.577,312.013 Z M169,309 C165.134,309 162,312.134 162,316 L161.997,326.309 L175.489,313.401 C174.456,310.825 171.946,309 169,309 L169,309 Z" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+function UnmuteIcon() {
+  return (
+    <svg width="16" height="16" viewBox="-5 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" fillRule="evenodd">
+        <g transform="translate(-107.000000, -309.000000)" fill="currentColor">
+          <path d="M118,333 C121.866,333 125,329.866 125,326 L125,316 C125,312.134 121.866,309 118,309 C114.134,309 111,312.134 111,316 L111,326 C111,329.866 114.134,333 118,333 L118,333 Z M129,328 L127,328 C126.089,332.007 122.282,335 118,335 C113.718,335 109.911,332.007 109,328 L107,328 C107.883,332.799 112.063,336.51 117,336.955 L117,339 L116,339 C115.448,339 115,339.448 116,341 L120,341 C120.552,341 121,340.553 121,340 C121,339.448 120.552,339 120,339 L119,339 L119,336.955 C123.937,336.51 128.117,332.799 129,328 L129,328 Z" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 // ─── AIAssistant component ────────────────────────────────────────────────────
 export default function AIAssistant({
   onOpenAuthModal,
@@ -669,12 +740,22 @@ export default function AIAssistant({
   const [isMuted, setIsMuted] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [hasVoiceSupport, setHasVoiceSupport] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const [isDegradedMode, setIsDegradedMode] = useState(false);
   const [agentConnected, setAgentConnected] = useState(false);
+  const [activeSystemMessage, setActiveSystemMessage] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState<{ type: string; target: string } | null>(null);
+  const [fabIsIdle, setFabIsIdle] = useState(false);
+  const [showPersonalize, setShowPersonalize] = useState(false);
+  const [chatWallpaper, setChatWallpaper] = useState<string | null>(null);
   const agentWsRef = useRef<WebSocket | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const hasSentRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const wpFileInputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState('');
 
   // Compute initial suggestions based on current view + auth state
@@ -710,20 +791,25 @@ export default function AIAssistant({
       : [];
   }, [slashSearch]);
 
-  // ─── Navigation handler (dispatched from in-message links & slash commands) ──
+  // ─── Navigation handler ──────────────────────────────────────────────────────
   const handleNavigation = useCallback((target: string) => {
     const resolved = resolveNavTarget(target);
-    if (onNavigate) {
-      onNavigate(resolved.view, resolved.tab, resolved.anchor);
-    } else {
-      // Fallback: scroll to anchor if no callback provided
-      if (resolved.anchor) {
+    const isScroll = target.startsWith('landing#');
+    setIsNavigating({ type: resolved.tab ? 'navigate_to' : 'scroll_to', target });
+    setActiveSystemMessage(isScroll ? `Scrolling to ${target.replace('landing#','')}` : `Opening ${resolved.tab || resolved.view}...`);
+    setTimeout(() => {
+      if (onNavigate) {
+        onNavigate(resolved.view, resolved.tab, resolved.anchor);
+      } else if (resolved.anchor) {
         const el = document.getElementById(resolved.anchor);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         else window.location.hash = resolved.anchor;
       }
-    }
-    setIsOpen(false); // Close chat panel after navigation
+      setIsNavigating(null);
+      setActiveSystemMessage(isScroll ? `Arrived at ${target.replace('landing#','')}` : `Opened ${resolved.tab || resolved.view}`);
+      setTimeout(() => setActiveSystemMessage(null), 1500);
+    }, 1200);
+    setIsOpen(false);
   }, [onNavigate]);
 
   // ─── Execute action (from agent tool results or JSON blobs) ─────────────────
@@ -737,9 +823,30 @@ export default function AIAssistant({
     }
   }, [handleNavigation]);
 
+  // ─── Voice support detection + wallpaper persistence + FAB idle ────────────────
   useEffect(() => {
-    if (typeof window !== 'undefined') synthRef.current = window.speechSynthesis || null;
+    if (typeof window === 'undefined') return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setHasVoiceSupport(!!SR);
+    synthRef.current = window.speechSynthesis || null;
+    // Load persisted wallpaper
+    const saved = localStorage.getItem(WP_STORAGE_KEY);
+    if (saved) setChatWallpaper(saved === 'null' ? null : saved);
   }, []);
+
+  // FAB idle fade: fade to 28% opacity after 4s of no user activity
+  useEffect(() => {
+    if (isOpen) { setFabIsIdle(false); return; }
+    const idleTimer = setTimeout(() => setFabIsIdle(true), 4000);
+    const resetIdle = () => setFabIsIdle(false);
+    window.addEventListener('mousemove', resetIdle, { passive: true });
+    window.addEventListener('touchstart', resetIdle, { passive: true });
+    return () => {
+      clearTimeout(idleTimer);
+      window.removeEventListener('mousemove', resetIdle);
+      window.removeEventListener('touchstart', resetIdle);
+    };
+  }, [isOpen]);
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { scrollToBottom(); }, [messages, isTyping, activeToast, isListening]);
@@ -760,14 +867,71 @@ export default function AIAssistant({
     }
   }, [isOpen]);
 
+  // TTS with en-KE locale + neural voice preference
   const speak = useCallback((text: string) => {
     if (isMuted || !synthRef.current) return;
     synthRef.current.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-KE';
     utterance.rate = 0.95;
     utterance.pitch = 1;
+    const voices = synthRef.current.getVoices();
+    const preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('neural'))
+      || voices.find(v => v.lang.startsWith('en-KE'))
+      || voices.find(v => v.lang.startsWith('en-ZA'))
+      || voices.find(v => v.lang.startsWith('en'));
+    if (preferred) utterance.voice = preferred;
     synthRef.current.speak(utterance);
   }, [isMuted]);
+
+  // ─── Voice recognition ───────────────────────────────────────────────────────
+  const startListening = useCallback(() => {
+    if (!hasVoiceSupport || isListening) return;
+    hasSentRef.current = false;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SR();
+    recognition.lang = 'en-KE';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onstart = () => { setIsListening(true); setIslandState({ mode: 'LIVE_WAVEFORM', payload: null }); };
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join('');
+      setVoiceTranscript(transcript);
+      if (event.results[event.results.length - 1].isFinal && !hasSentRef.current) {
+        hasSentRef.current = true;
+        setIsListening(false);
+        setVoiceTranscript('');
+        setIslandState({ mode: 'IDLE', payload: null });
+        sendMessage(transcript);
+      }
+    };
+    recognition.onerror = () => { setIsListening(false); setVoiceTranscript(''); setIslandState({ mode: 'IDLE', payload: null }); };
+    recognition.onend = () => { setIsListening(false); setVoiceTranscript(''); };
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [hasVoiceSupport, isListening]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setVoiceTranscript('');
+    setIslandState({ mode: 'IDLE', payload: null });
+  }, []);
+
+  // ─── New chat ───────────────────────────────────────────────────────────────
+  const handleNewChat = useCallback(() => {
+    synthRef.current?.cancel();
+    stopListening();
+    setMessages([{
+      id: `welcome-${Date.now()}`, role: 'assistant',
+      content: 'Habari! I am your SUPERB AI assistant. Ask me anything about database backups, R2 archival, or security pipelines!',
+      timestamp: new Date(), suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
+    }]);
+    setInputValue('');
+    setVoiceTranscript('');
+    setSuggestedActions([]);
+    setIslandState({ mode: 'IDLE', payload: null });
+  }, [stopListening, currentView, user]);
 
   // ─── Agent WebSocket ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -798,22 +962,15 @@ export default function AIAssistant({
       case 'ASSISTANT_MESSAGE': {
         const safeContent = sanitizeResponse(payload.content ?? '');
         saveManifest({ title: safeContent.substring(0, 30), items: [safeContent.substring(0, 100)], cachedAt: new Date().toISOString() });
-        setIslandState({ mode: 'OFFLINE_TICKET', payload: { items: [safeContent.substring(0, 50) + '...'] } });
-
-        // Use dynamic suggestions from payload, or generate contextual ones
-        const lastUserMsg = '';
+        // Prefer: payload suggestions → scored contextual → dynamic
+        const scored = getScoredContextualSuggestions(safeContent, currentView ?? 'landing', user);
         const dynSuggestions = payload.suggestions?.length
           ? payload.suggestions
-          : getDynamicSuggestions(currentView ?? 'landing', user, lastUserMsg, safeContent);
-
-        const newAiMsg: Message = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: safeContent,
-          timestamp: new Date(),
-          suggestions: dynSuggestions,
-        };
-        setMessages(prev => [...prev, newAiMsg]);
+          : (scored || getDynamicSuggestions(currentView ?? 'landing', user, '', safeContent));
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(), role: 'assistant', content: safeContent,
+          timestamp: new Date(), suggestions: dynSuggestions,
+        }]);
         speak(safeContent);
         break;
       }
@@ -1024,10 +1181,11 @@ RULES:
         setSuggestedActions([]);
       }
 
-      // Use LLM-generated suggestions if present, otherwise compute dynamically
+      // Prefer: LLM suggestions → scored contextual → dynamic
+      const scoredCtx = getScoredContextualSuggestions(safeContent, currentView ?? 'landing', user);
       const finalSuggestions = parsedSuggestions.length > 0
         ? parsedSuggestions
-        : getDynamicSuggestions(currentView ?? 'landing', user, text, safeContent);
+        : (scoredCtx || getDynamicSuggestions(currentView ?? 'landing', user, text, safeContent));
 
       const newAiMsg: Message = {
         id: Date.now().toString(),
@@ -1077,9 +1235,12 @@ RULES:
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setInputValue(val);
+    // Auto-resize
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
     const match = val.match(/(?:^|\s)\/([a-z0-9_-]*)$/i);
     if (match) { setSlashSearch(match[1].toLowerCase()); setSlashIndex(0); }
     else setSlashSearch(null);
@@ -1092,11 +1253,12 @@ RULES:
         {!isOpen && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 1, opacity: fabIsIdle ? 0.28 : 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.08, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(true)}
+            transition={{ type: 'spring', stiffness: 400, damping: 25, opacity: { duration: 1.2, ease: 'easeInOut' } }}
+            onClick={() => { setIsOpen(true); setFabIsIdle(false); }}
             style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 99999 }}
             className="w-16 h-16 bg-acid text-ink rounded-full shadow-[6px_6px_0_#171714] border-2 border-ink flex items-center justify-center cursor-pointer transition-colors hover:bg-orange p-1"
           >
@@ -1121,10 +1283,12 @@ RULES:
                 <div className="w-8 h-8"><Lottie animationData={aiChatData} loop={true} /></div>
                 <div>
                   <h3 className="font-display font-bold text-lg uppercase tracking-wider m-0 leading-none">SUPERB AI</h3>
-                  <p className="text-[0.62rem] text-[#aaa99f] uppercase tracking-widest mt-1">Disaster Recovery Assistant</p>
+                  <p className="text-[0.62rem] text-[#aaa99f] uppercase tracking-widest mt-1">
+                    {isListening ? 'Listening...' : isTyping ? 'Thinking...' : 'Disaster Recovery Assistant'}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {isDegradedMode && (
                   <div className="flex items-center gap-1 text-[0.60rem] font-mono uppercase bg-orange/20 px-2 py-0.5 rounded-full border border-orange/40">
                     <AlertTriangle className="w-3 h-3 text-orange" />
@@ -1140,10 +1304,27 @@ RULES:
                   {isOnline ? <Wifi className="w-3 h-3 text-[#d8ff37]" /> : <WifiOff className="w-3 h-3 text-orange" />}
                   <span>{isOnline ? (isLowBandwidth ? 'Low BW' : 'Online') : 'Offline'}</span>
                 </div>
-                <button onClick={() => setIsMuted(!isMuted)} className={`${!isMuted ? 'text-neon' : 'text-white/60'} hover:text-white transition-colors`} title={isMuted ? 'Unmute TTS' : 'Mute TTS'}>
-                  <Mic className="w-4 h-4" />
+                {/* Pure-SVG mute toggle */}
+                <button
+                  onClick={() => { setIsMuted(m => !m); if (!isMuted) synthRef.current?.cancel(); }}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isMuted ? 'text-white/30 bg-white/5 hover:bg-white/10' : 'text-neon bg-neon/10 hover:bg-neon/20'}`}
+                  title={isMuted ? 'Unmute voice' : 'Mute voice'}
+                >
+                  {isMuted ? <MuteIcon /> : <UnmuteIcon />}
                 </button>
-                <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white transition-colors">
+                {/* Personalize wallpaper */}
+                <button
+                  onClick={() => setShowPersonalize(p => !p)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showPersonalize ? 'text-neon bg-neon/10' : 'text-white/40 hover:text-white hover:bg-white/10'}`}
+                  title="Personalize chat"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                {/* New chat */}
+                <button onClick={handleNewChat} className="text-white/40 hover:text-white transition-colors" title="New chat">
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                <button onClick={() => { setIsOpen(false); synthRef.current?.cancel(); stopListening(); }} className="text-white/60 hover:text-white transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1158,6 +1339,79 @@ RULES:
               <div className="text-[0.65rem] uppercase font-bold text-neon bg-ink px-2 py-0.5">Local Session Only</div>
             </div>
 
+            {/* Personalize wallpaper drawer */}
+            <AnimatePresence>
+              {showPersonalize && (
+                <motion.div
+                  key="personalize-drawer"
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+                  className="overflow-hidden flex-shrink-0 border-b-2 border-ink bg-panel"
+                >
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-ink/50">Chat Wallpaper</p>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {WALLPAPER_PRESETS.map(preset => (
+                        <button key={preset.id} onClick={() => {
+                          setChatWallpaper(preset.value);
+                          localStorage.setItem(WP_STORAGE_KEY, preset.value ?? 'null');
+                        }} title={preset.label}
+                          className={`w-8 h-8 rounded-full border-2 transition-all flex-shrink-0 ${
+                            chatWallpaper === preset.value ? 'border-neon scale-110 shadow-[0_0_8px_rgba(216,255,55,0.4)]' : 'border-ink/30 hover:border-ink'
+                          }`}
+                          style={{ background: preset.value ?? preset.preview }}
+                        />
+                      ))}
+                      <button onClick={() => wpFileInputRef.current?.click()} title="Custom image"
+                        className="w-8 h-8 rounded-full border-2 border-dashed border-ink/20 hover:border-neon/60 transition-all flex items-center justify-center text-ink/30 hover:text-neon text-xl font-mono leading-none">
+                        +
+                      </button>
+                    </div>
+                    <input ref={wpFileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                          const dataUrl = ev.target?.result as string;
+                          const val = `url(${dataUrl})`;
+                          setChatWallpaper(val);
+                          try { localStorage.setItem(WP_STORAGE_KEY, val); } catch { }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    {chatWallpaper !== null && (
+                      <button onClick={() => { setChatWallpaper(null); localStorage.setItem(WP_STORAGE_KEY, 'null'); }}
+                        className="text-[9px] font-bold uppercase tracking-widest text-ink/30 hover:text-ink/70 transition-colors">
+                        Reset to default
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Offline / Low-BW banners */}
+            <AnimatePresence>
+              {!isOnline && (
+                <motion.div key="offline-banner"
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden flex-shrink-0 bg-red-950/60 border-b border-red-500/20">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 text-center py-2">You are offline. Showing cached info only.</p>
+                </motion.div>
+              )}
+              {isOnline && isLowBandwidth && (
+                <motion.div key="lowbw-banner"
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden flex-shrink-0 bg-amber-950/50 border-b border-amber-500/20">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-400/80 text-center py-2">Slow connection — minimal replies active</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <LiquidGlassIsland
               island={islandState}
               onDismiss={() => setIslandState({ mode: 'IDLE', payload: null })}
@@ -1166,7 +1420,12 @@ RULES:
             />
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative"
+              style={{
+                backgroundImage: chatWallpaper?.startsWith('url(') ? chatWallpaper : chatWallpaper ?? undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}>
               {messages.map((msg, index) => (
                 <div key={msg.id} className="space-y-2">
                   <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -1232,6 +1491,29 @@ RULES:
                 </div>
               )}
 
+              {/* Voice listening indicator with live transcript */}
+              <AnimatePresence>
+                {isListening && (
+                  <motion.div key="voice-listening"
+                    initial={{ opacity: 0, height: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 16, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0, y: 10, scale: 0.98 }}
+                    transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                    className="flex flex-col items-center justify-center overflow-hidden w-full">
+                    <div className="flex flex-col items-center w-full">
+                      <div className="w-20 h-20 mb-2">
+                        <Lottie animationData={fireMicData} loop={true} autoplay={true} style={{ width: '100%', height: '100%' }} />
+                      </div>
+                      {voiceTranscript && (
+                        <div className="max-w-[85%] px-4 py-2.5 rounded-2xl text-xs bg-acid/20 text-ink shadow-[0_4px_12px_rgba(0,0,0,0.15)] border-2 border-ink text-center font-mono font-bold mt-2">
+                          &ldquo;{voiceTranscript}&rdquo;
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {isTyping && (
                 <div className="flex justify-start">
                   <motion.div
@@ -1245,6 +1527,20 @@ RULES:
                   </motion.div>
                 </div>
               )}
+
+              {/* Active system message — gold pill */}
+              <AnimatePresence>
+                {activeSystemMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }} transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                    className="flex justify-center my-2 flex-shrink-0">
+                    <span className="inline-block px-3 py-1 bg-acid/20 border-2 border-ink rounded-full text-[11px] text-ink font-bold tracking-tight shadow-[2px_2px_0_#171714]">
+                      {activeSystemMessage}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div ref={messagesEndRef} />
             </div>
@@ -1281,36 +1577,62 @@ RULES:
               </div>
             )}
 
+            {/* Navigation transition overlay */}
+            <AnimatePresence>
+              {isNavigating && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-center p-6 space-y-4">
+                  <div className="w-10 h-10 rounded-full border-t-2 border-neon border-r-2 border-transparent animate-spin" />
+                  <div>
+                    <p className="text-neon font-black uppercase tracking-widest text-[9px]">Transitioning</p>
+                    <p className="text-white text-sm font-mono mt-1">
+                      {isNavigating.type === 'navigate_to'
+                        ? `Navigating to ${isNavigating.target.replace('console#','').replace('landing#','') || 'Home'}...`
+                        : `Scrolling to #${isNavigating.target}...`}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Input */}
             <div className="p-4 bg-paper border-t border-line shrink-0">
               <form
                 onSubmit={e => { e.preventDefault(); sendMessage(inputValue); }}
-                className="relative flex items-center"
+                className="flex items-end gap-2"
               >
-                <button
-                  type="button"
-                  onClick={() => setIsListening(!isListening)}
-                  className={`absolute left-2 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${isListening ? 'text-neon' : 'text-muted hover:text-ink'}`}
-                >
-                  {isListening ? (
-                    <Lottie animationData={fireMicData} loop={true} style={{ width: 40, height: 40 }} />
-                  ) : (
-                    <Mic className="w-5 h-5" />
-                  )}
-                </button>
-                <input
-                  type="text"
+                {hasVoiceSupport && (
+                  <button
+                    type="button"
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isTyping}
+                    aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${
+                      isListening
+                        ? 'bg-neon/20 text-ink border-neon animate-pulse'
+                        : 'bg-white/8 text-muted border-ink hover:text-ink hover:bg-panel'
+                    }`}
+                  >
+                    {isListening
+                      ? <Lottie animationData={fireMicData} loop={true} style={{ width: 28, height: 28 }} />
+                      : <Mic className="w-5 h-5" />}
+                  </button>
+                )}
+                <textarea
                   ref={inputRef}
-                  value={inputValue || ''}
+                  value={inputValue}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask SUPERB AI... (type / to navigate)"
-                  className="w-full h-12 pl-12 pr-12 bg-white border-2 border-ink rounded-full outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all font-mono text-sm"
+                  placeholder="Ask SUPERB AI... (/ to navigate, Shift+Enter for new line)"
+                  rows={1}
+                  disabled={isListening || isTyping}
+                  className="flex-1 bg-white border-2 border-ink rounded-2xl px-4 py-2.5 text-sm font-mono outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all resize-none hide-scrollbar disabled:opacity-50"
+                  style={{ minHeight: '42px', maxHeight: '96px' }}
                 />
                 <button
                   type="submit"
-                  disabled={!inputValue.trim()}
-                  className="absolute right-2 w-8 h-8 bg-ink text-white rounded-full flex items-center justify-center disabled:opacity-50 disabled:bg-muted hover:bg-orange transition-colors"
+                  disabled={!inputValue.trim() || isTyping || isListening}
+                  className="flex-shrink-0 w-10 h-10 bg-ink text-white rounded-full flex items-center justify-center disabled:opacity-30 disabled:bg-muted hover:bg-orange transition-colors border-2 border-ink shadow-[2px_2px_0_#171714]"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>
