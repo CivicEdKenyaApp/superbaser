@@ -22,6 +22,7 @@ export interface Env {
   DEEPSEEK_API_KEY: string;
   OPENROUTER_API_KEY: string;
   MISTRAL_API_KEY: string;
+  RESEND_API_KEY: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   SUPABASE_URL: string;
   GITHUB_TOKEN: string;
@@ -828,11 +829,86 @@ export default {
       });
     }
 
+    // SuperAdmin Email Reply Endpoint
+    if (url.pathname === '/api/superadmin/email/reply' && request.method === 'POST') {
+      try {
+        const authHeader = request.headers.get('Authorization') ?? '';
+        const token = authHeader.replace('Bearer ', '');
+        if (!token) return new Response('Unauthorized', { status: 401 });
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) return new Response('Unauthorized', { status: 401 });
+
+        const { data: isSuperAdmin } = await supabase.rpc('is_superadmin');
+        if (!isSuperAdmin) return new Response('Forbidden', { status: 403 });
+
+        const body = await request.json() as any;
+        const { emailId, toEmail, subject, bodyText, messageId } = body;
+
+        if (!env.RESEND_API_KEY) {
+          throw new Error("Missing RESEND_API_KEY in Worker secrets");
+        }
+
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'SuperBaser Support <support@superbaser.co>',
+            to: [toEmail],
+            subject: subject,
+            text: bodyText
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Resend API Error: ${errText}`);
+        }
+
+        return new Response(JSON.stringify({ success: true, sentVia: 'resend' }), { 
+          headers: { 'Content-Type': 'application/json' } 
+        });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ success: false, sentVia: 'none', error: e.message }), { 
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     // Route WebSocket agent requests via Agents SDK routing
     // URL pattern: /agents/superb-agent/{orgId}?token={jwt}
     const agentResponse = await routeAgentRequest(request, env);
     if (agentResponse) return agentResponse;
 
     return new Response('Not found', { status: 404 });
+  },
+
+  // ─── Incoming Email Handler ───────────────────────────────────────────────────
+  async email(message: any, env: Env, ctx: ExecutionContext) {
+    try {
+      const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+      
+      const bodyText = await message.text();
+      
+      await supabase.from('support_emails').insert({
+        from_email: message.from,
+        to_email: message.to,
+        subject: message.headers.get('subject'),
+        body_text: bodyText,
+        message_id: message.headers.get('message-id'),
+        status: 'unread'
+      });
+
+      // Forward to your inbox so you still get a notification
+      await message.forward('saemscodes@gmail.com');
+    } catch (err) {
+      console.error("Email processing failed:", err);
+      // Still attempt to forward even if DB insert fails
+      await message.forward('saemscodes@gmail.com');
+    }
   }
 };

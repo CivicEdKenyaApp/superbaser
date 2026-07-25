@@ -1,0 +1,187 @@
+SuperAdmin Dashboard — Architecture Decipher (Explain Only)
+
+Here's how the SuperAdmin dashboard comes together as one cohesive surface that owns platform ops, customer support email, and provider switching — without touching your existing tenant-facing app.
+
+---
+
+1. The Guarding Layer (Auth + RLS)
+
+Route: `/superadmin` (new top-level route, sibling to `/_authenticated`, not nested under it — different mental model, different guard).
+
+Guard flow:
+1. `beforeLoad` → check Supabase session
+2. Call `is_superadmin()` RPC (server-side function you already discussed)
+3. If false → redirect to `/dashboard` (silent — never expose that a superadmin route exists to non-admins)
+4. If true → render `SuperAdminShell`
+
+Database prerequisite (single migration, not yet run):
+- `profiles.is_superadmin boolean default false`
+- `public.is_superadmin()` SECURITY DEFINER function
+- Add `OR public.is_superadmin()` clause to RLS policies on `organizations`, `jobs`, `backups`, `billing_events`, `worker_heartbeats`, `plan_limits`, `support_emails`, `email_replies`
+
+This lets SuperAdmins bypass org-scoping without ever touching service-role keys from the browser.
+
+---
+
+2. The Dashboard Surface (7 Sub-Routes)
+
+| Route | Purpose | Data Source |
+|---|---|---|
+| `/superadmin` | Platform overview: org count, active jobs, storage used, MRR estimate, worker fleet health | Aggregated queries across all orgs |
+| `/superadmin/orgs` | List every organization, plan, member count, connected projects, last activity | `organizations` + counts |
+| `/superadmin/plans` | CRUD on `plan_limits` table — change tier limits without a deploy | `plan_limits` |
+| `/superadmin/workers` | Real-time worker fleet: heartbeats, current job, uptime, region | `worker_heartbeats` (Realtime) |
+| `/superadmin/jobs` | Global job queue with filter/override: force-fail stuck jobs, requeue, view logs | `jobs` (Realtime) |
+| `/superadmin/billing` | All Paystack events across every org, MRR chart, failed payments | `billing_events` |
+| `/superadmin/audit` | Every SuperAdmin action logged with actor, target, timestamp | `audit_logs` filtered by `is_superadmin_action=true` |
+| `/superadmin/support` | Email inbox + composer + provider settings (the big one — details below) | `support_emails`, `email_replies` |
+
+---
+
+3. The Support Email Sub-Dashboard (The Complex One)
+
+This is where Cloudflare Email Sending + Resend converge into one UI.
+
+Three Panels
+
+Panel A — Inbox (left rail)
+- List of `support_emails` rows, newest first
+- Unread badge, sender avatar (Gravatar from email hash), subject, snippet
+- Filters: All / Unread / Assigned to me / Archived
+- Real-time updates via Supabase Realtime channel on `support_emails`
+- Click row → loads Thread in Panel B
+
+Panel B — Thread View (center)
+- Original email rendered (HTML sanitized, or text fallback)
+- All prior `email_replies` for that `thread_id` in chronological order
+- Each reply badged with which provider sent it: `via Cloudflare` or `via Resend`
+- Delivery status per reply: sent / bounced / failed
+- Header actions: Assign to teammate, Archive, Mark unread
+
+Panel C — Reply Composer (bottom of Panel B, or slide-out)
+- Rich text editor (Tiptap or similar — you already have deps for this pattern)
+- Pre-filled: `To` = original sender, `Subject` = `Re: <original>`, `In-Reply-To` header for threading
+- Send button → posts `{ emailId, body, bodyHtml }` to Worker endpoint
+- Worker executes the dual-provider cascade, returns `{ success, sentVia, replyId }`
+- On success: append reply to thread, toast "Sent via Cloudflare" (or Resend)
+- On failure of both: red banner "Both providers failed — [view error]"
+
+Provider Switchboard (settings tab within `/superadmin/support`)
+
+Single card with:
+- Primary provider dropdown: Cloudflare Email Sending / Resend
+- Fallback provider dropdown: Resend / Cloudflare / None
+- Test send button: sends a test to a hardcoded internal address, shows which provider succeeded
+- API key status badges: ✓ Cloudflare token configured / ✓ Resend key configured
+- DNS health: shows current SPF record, DKIM selectors, DMARC — flags if SPF has >1 record or missing includes
+
+The dropdown writes to a Cloudflare KV key (`email_provider_config`). The Worker reads this KV on every send — flip the toggle, next email routes differently, zero redeploy.
+
+---
+
+4. The Data Flow (End-to-End)
+
+Inbound
+```
+External sender → support@superbaser.co
+    ↓
+Cloudflare Email Routing (MX)
+    ↓
+Worker email() handler (new — replaces the "forward to Gmail" rule)
+    ↓
+1. Parse headers (From, Subject, Message-ID, In-Reply-To)
+2. Compute thread_id (use In-Reply-To → find existing thread, else Message-ID)
+3. Insert into support_emails table
+4. message.forward('saemscodes@gmail.com') — keep Gmail as backup notification
+    ↓
+Supabase Realtime pushes to /superadmin/support inbox → new email appears live
+```
+
+Outbound (Reply from Dashboard)
+```
+SuperAdmin clicks Send in composer
+    ↓
+POST /api/superadmin/email/reply { emailId, body }
+    ↓
+Worker (or your existing worker):
+    1. Verify caller is superadmin (JWT + is_superadmin())
+    2. Read email_provider_config from KV → { primary: 'cloudflare', fallback: 'resend' }
+    3. Fetch original email from Supabase for To/Subject/threading headers
+    4. Try primary:
+       - Cloudflare: env.EMAIL.send({ from, to, subject, text, html, headers: { 'In-Reply-To': ... } })
+       - Resend: fetch('https://api.resend.com/emails', { headers: { Authorization: Bearer ${RESEND_API_KEY} }, body: {...} })
+    5. If throws → try fallback with identical payload
+    6. Insert email_replies row with sent_via='cloudflare' | 'resend', status, error_message
+    7. Update support_emails.status = 'replied'
+    8. Return { success, sentVia, replyId }
+    ↓
+Frontend appends reply to thread, shows toast
+```
+
+Gmail "Send Mail As" Path (Parallel — Independent of Dashboard)
+- Uses Cloudflare's SMTP (`smtp.mx.cloudflare.net:465`) directly from Gmail
+- Bypasses your Worker entirely
+- Bypasses your `email_replies` audit table
+- Tradeoff: fast reply from Gmail app, but no log in SuperAdmin dashboard
+- Recommendation: use this for quick personal replies during setup; migrate all support to the dashboard once it's built (so every reply is logged, threaded, and searchable)
+
+---
+
+5. Provider Switching — What "Easy" Actually Means
+
+Three levels of switching, in order of friction:
+
+| Level | What Changes | Who Does It | Downtime |
+|---|---|---|---|
+| 1. Primary/fallback toggle | KV key `email_provider_config` | SuperAdmin, in-app dropdown | None — next email uses new order |
+| 2. Add/remove a provider | New env secret (`POSTMARK_API_KEY`), new adapter file in Worker (`providers/postmark.ts`), redeploy | You, via `wrangler secret put` + `wrangler deploy` | ~30s deploy |
+| 3. Replace a provider entirely | Same as #2 plus DNS record swap (SPF include, DKIM) | You, via Cloudflare DNS | Up to 24h DNS propagation |
+
+The Worker code should have a `Provider` interface:
+```ts
+interface EmailProvider {
+  name: string;
+  send(payload: EmailPayload): Promise<{ id: string }>;
+}
+```
+
+Each provider (`CloudflareProvider`, `ResendProvider`, future `PostmarkProvider`) implements it. The cascade logic is provider-agnostic — it just iterates through a list ordered by the KV config. Adding Postmark later = one new file, one secret, one dropdown option.
+
+---
+
+6. What This Means for Your Existing App
+
+Zero changes to tenant-facing code. The SuperAdmin dashboard is entirely additive:
+- New routes under `/superadmin/*`
+- New tables (`support_emails`, `email_replies`) with RLS scoped to `is_superadmin()`
+- New Worker endpoints (`/api/superadmin/email/*`)
+- Existing `AppShell`, sidebar, org-switcher, all customer-facing pages untouched
+
+Preserves everything already built: your dashboard, projects, backups, restores pages keep working exactly as they are. The SuperAdmin surface lives beside them, not on top of them.
+
+---
+
+7. The Build Order (Cheapest-to-Verify First)
+
+1. DB migration — `is_superadmin` column, function, updated RLS policies, `support_emails` + `email_replies` tables (single migration, ~2 min to run)
+2. SuperAdmin route guard — new `/superadmin/route.tsx` with `is_superadmin()` check
+3. Static shell + overview page — proves the guard works, no data yet
+4. Read-only pages first — orgs, workers, jobs, billing, audit (all just tables with filters — fast to build, immediately useful)
+5. Plan limits CRUD — first write surface, small blast radius
+6. Email inbox (read-only) — requires Worker email handler + Supabase insert first
+7. Email reply composer + dual-provider cascade — the biggest piece, build last
+8. Provider switchboard UI — layer on top once cascade works
+
+---
+
+8. What NOT to Build
+
+- Don't build a separate SuperAdmin app. Same Vite bundle, same Supabase client, same auth — just guarded routes. Splitting into two apps doubles deploy complexity for no security gain (RLS is the actual boundary).
+- Don't put SuperAdmin in the customer sidebar. Even hidden behind a feature flag. Separate top-level nav; ideally a completely different URL path with no cross-links from tenant UI.
+- Don't cache the `is_superadmin()` check in localStorage. Check on every route load — it's cheap and prevents privilege-escalation via tampering.
+- Don't send replies directly from the browser. Every send goes through the Worker so API keys stay server-side and every reply is logged.
+- Don't skip the audit log for SuperAdmin actions. Force-triggering a backup, changing plan limits, sending a reply — all get an `audit_logs` row with actor + action + target.
+
+---
+
+Ready when you are — say the word and I'll start with the DB migration, then the guard, then work through the list.

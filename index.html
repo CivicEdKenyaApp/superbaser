@@ -26,6 +26,47 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
     rel="stylesheet">
+  
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SuperBaser",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "AggregateOffer",
+        "lowPrice": "0",
+        "highPrice": "49",
+        "priceCurrency": "USD"
+      },
+      "description": "Supabase Disaster Recovery & Operations Platform. Automated pg_dump backups, PITR, and Region-to-Region Restores."
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does SuperBaser backup Supabase?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SuperBaser uses PostgreSQL pg_dump snapshots and Cloudflare R2 for AES-256 encrypted storage to back up your database, files, and users automatically."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does SuperBaser cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SuperBaser has a Free Tier ($0/mo), a Pro Tier ($15/mo), and a Premium Tier ($49/mo)."
+          }
+        }
+      ]
+    }
+  </script>
 </head>
 
 <body>

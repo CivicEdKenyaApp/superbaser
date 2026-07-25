@@ -139,6 +139,14 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [discoveryData, setDiscoveryData] = useState<DiscoveryReportPayload | null>(null);
   const [isDiscovering, setIsDiscovering] = useState(true);
 
+  // Toast Notification State
+  const [toastMsg, setToastMsg] = useState<{message: string, type: 'error'|'success'} | null>(null);
+
+  const showToast = (message: string, type: 'error' | 'success' = 'error') => {
+    setToastMsg({ message, type });
+    setTimeout(() => setToastMsg(null), 5000);
+  };
+
   // Live Supabase Data State
   const [projectsData, setProjectsData] = useState<any[]>([]);
   const [backupsData, setBackupsData] = useState<any[]>([]);
@@ -250,7 +258,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       setIsOrgDropdownOpen(false);
       setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Organization "${newOrgName.trim()}" created securely via Supabase.`, ...prev]);
     } catch (err: any) {
-      alert("Failed to create organization: " + err.message);
+      showToast("Failed to create organization: " + err.message, 'error');
     } finally {
       setIsCreatingOrg(false);
     }
@@ -1180,7 +1188,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                                         setOrganizations(updatedOrgs);
                                       }
                                     }
-                                    alert(`Paystack Subscription Active! Reference: ${ref.reference}`);
+                                    showToast(`Paystack Subscription Active! Reference: ${ref.reference}`, 'success');
                                   }
                                 });
                               }}
@@ -1224,7 +1232,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                                   email: user?.email || 'support@superbaser.co',
                                   amount: billingCycle === 'monthly' ? 6370 : 63700,
                                   planCode,
-                                  onSuccess: async (ref) => {
+                                  onSuccess: async (ref: any) => {
                                     if (activeOrgId) {
                                       await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
                                       if (user) {
@@ -1232,7 +1240,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                                         setOrganizations(updatedOrgs);
                                       }
                                     }
-                                    alert(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`);
+                                    showToast(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`, 'success');
                                   }
                                 });
                               }}
@@ -1636,7 +1644,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 }
 
                 if (!user || !activeOrgId) {
-                  alert("You must create an organization first.");
+                  showToast("You must create an organization first.", 'error');
                   return;
                 }
 
@@ -1669,7 +1677,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                     ...prev
                   ]);
                 } catch (err: any) {
-                  alert("Failed to save target project: " + err.message);
+                  showToast("Failed to save target project: " + err.message, 'error');
                 }
               }}
               className="space-y-4 text-xs"
@@ -1738,6 +1746,25 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global Toast */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-4 max-w-sm flex items-start gap-4">
+            <div className="flex-1 space-y-1">
+              <h4 className="font-bold text-ink uppercase text-xs font-mono">
+                {toastMsg.type === 'error' ? 'Action Required' : 'Success'}
+              </h4>
+              <p className="text-muted text-[0.65rem] font-mono leading-relaxed">
+                {toastMsg.message}
+              </p>
+            </div>
+            <button onClick={() => setToastMsg(null)} className="text-muted hover:text-ink transition-colors">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}

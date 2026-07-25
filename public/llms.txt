@@ -1,0 +1,33 @@
+# SuperBaser
+
+> Automated backup, verification, and restore for Supabase-style target projects. Captures database, Storage files, and Auth state on a schedule, verifies every backup before trusting it, and rebuilds a target project from scratch in a few clicks.
+
+SuperBaser is a third-party disaster-recovery layer for projects hosted on a Supabase-style platform. A target project consists of more than a PostgreSQL database — it also includes Storage, Authentication, roles, permissions, and platform-managed schemas. SuperBaser backs up all of these components together so a restore produces a fully working project, not just a repopulated database.
+
+Three tiers: Free ($0/mo, 1 project, daily backups, 7-day retention), Pro ($15/mo, up to 5 projects, hourly backups, 30-day retention), Premium ($49/mo, unlimited projects, 15-minute backup frequency, 90-day retention, 1-hour response SLA).
+
+## Docs
+
+- [Overview](https://www.superbaser.co/docs.html#overview): What SuperBaser does and why database-only backups are insufficient for a full recovery.
+- [How It Works](https://www.superbaser.co/docs.html#how-it-works): The four-step flow — connect a project, inspect it, run backups on schedule, restore on demand.
+- [What Gets Backed Up](https://www.superbaser.co/docs.html#whats-backed-up): Why database, Storage files, and user accounts are captured as three coordinated components rather than a single database export.
+- [Backup Format](https://www.superbaser.co/docs.html#backup-format): The backup is a full `pg_dumpall` cluster dump — every schema and role, not just application tables — stored as plain-text SQL with role passwords excluded.
+- [Verification](https://www.superbaser.co/docs.html#verification): The integrity checks every backup passes (archive corruption check, header validation, row/file count comparison) before it is marked restorable.
+- [Restoring a Project](https://www.superbaser.co/docs.html#restore): The two-pass restore process — database via `psql`, then Storage files via the `service_role` key — followed by a second verification pass.
+- [Security & Access](https://www.superbaser.co/docs.html#security): What credentials SuperBaser requires (direct connection string, project URL, service role key), why, and how they are encrypted, decrypted only transiently, and never collected on a public page.
+- [Architecture](https://www.superbaser.co/docs.html#architecture): The three services — SuperBaser Backend, SuperBaser Backup Engine, SuperBaser Storage — and why the on-demand execution model keeps costs low. Includes the automated retention-cleanup scheduler.
+- [Pricing](https://www.superbaser.co/docs.html#pricing): Full feature comparison across Free, Pro, and Premium tiers, and how the scheduler enforces each tier's backup interval and retention window.
+- [FAQ](https://www.superbaser.co/docs.html#faq): Answers on database load during backup, paused-project recovery, in-place restore, comparison to built-in provider backups, data access, snapshot vs. continuous WAL streaming, direct backup downloads, and retention cleanup.
+- [Glossary](https://www.superbaser.co/docs.html#glossary): Plain-language definitions — cluster dump, verification, restore, service role key, retention window, least privilege, SuperBaser Storage.
+
+## Site
+
+- [Home](https://www.superbaser.co/): Landing page.
+- [Modules](https://www.superbaser.co/#work): Platform modules overview.
+- [Capabilities](https://www.superbaser.co/#services): Capability breakdown.
+- [Engine Pipeline](https://www.superbaser.co/#process): The backup/restore pipeline explained on the landing page.
+- [Console](https://www.superbaser.co/#contact): Sign-up and console access entry point.
+
+## Optional
+
+- [Full documentation page](https://www.superbaser.co/docs.html): Single-page reference containing every section listed above, with sidebar navigation and scroll-spy.

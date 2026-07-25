@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /auth/
+Disallow: /_redirects
+
+Sitemap: https://www.superbaser.co/sitemap.xml

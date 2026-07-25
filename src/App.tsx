@@ -17,12 +17,14 @@ import { AnonymousCaptchaModal } from './components/AnonymousCaptchaModal';
 import AIAssistant from './components/AIAssistant';
 import ClickSpark from './components/ClickSpark';
 import { SEO } from './components/SEO';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
 import { savePendingAction, getPendingAction, clearPendingAction, recordInteraction } from './lib/pending-intent';
 export default function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'console'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'console' | 'superadmin'>('landing');
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [activeProjectRef, setActiveProjectRef] = useState<string>('wzyrmzfgdtzaqmkhtbuk');
   const [activeServiceRoleKey, setActiveServiceRoleKey] = useState<string>('');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -56,10 +58,20 @@ export default function App() {
     };
     document.addEventListener('click', handleGlobalClick, true);
 
+    const checkSuperAdmin = async (userId: string) => {
+      try {
+        const { data } = await supabase.rpc('is_superadmin');
+        setIsSuperAdmin(!!data);
+      } catch {
+        setIsSuperAdmin(false);
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user && !session.user.is_anonymous) {
         setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
+        checkSuperAdmin(session.user.id);
       } else if (session?.user?.is_anonymous) {
         if (lastViewRef.current === 'console') {
           setTimeout(() => setShowResetToast(true), 1500);
@@ -74,13 +86,26 @@ export default function App() {
       setSession(session);
       if (session?.user && !session.user.is_anonymous) {
         setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
+        checkSuperAdmin(session.user.id);
       }
       checkAndResumePendingAction(session);
     });
 
+    // Keyboard shortcut: Ctrl+Shift+A → open SuperAdmin (only if is_superadmin)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        setIsSuperAdmin(prev => {
+          if (prev) setCurrentView('superadmin');
+          return prev;
+        });
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
       subscription.unsubscribe();
       document.removeEventListener('click', handleGlobalClick, true);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [setSession]);
 
@@ -206,6 +231,14 @@ export default function App() {
     setCurrentView('landing');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentView === 'superadmin') {
+    return (
+      <SuperAdminDashboard
+        onExit={() => setCurrentView(isSuperAdmin ? 'console' : 'landing')}
+      />
+    );
+  }
 
   if (currentView === 'console') {
     return (

@@ -53,7 +53,13 @@
     "CF_AI_GATEWAY_ID": "superbaser-ai-gateway",
     "CF_ACCOUNT_ID": "32bdfa759705b0aef9c3ef7aa449e965",
     "AGENT_FEATURE_FLAG": "true"
-  }
+  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["support@superbaser.co", "noreply@superbaser.co"]
+    }
+  ]
   // SECRETS (set via: wrangler secret put SECRET_NAME)
   // Do NOT put secret values here. Use: wrangler secret put <NAME>
   //
