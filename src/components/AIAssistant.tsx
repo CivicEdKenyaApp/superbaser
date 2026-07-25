@@ -8,6 +8,7 @@ import aiChatData from '../../context/AI Chat.json';
 import { useBandwidth, useOfflineManifest } from '../hooks/useNetworkStatus';
 import { useAuthStore } from '../lib/auth-store';
 import { SUPERBASER_KNOWLEDGE_BASE, getRandomAffirmation, sanitizeResponse } from '../lib/assistant-context';
+import { supabase } from '../lib/supabase';
 
 // ─── Feature flags ────────────────────────────────────────────────────────────
 const AGENT_ENABLED = import.meta.env.VITE_SB_AGENT_ENABLED === 'true';
@@ -542,8 +543,14 @@ function SvgIcon({ name, size = 11, className = '' }: { name?: string; size?: nu
   );
 }
 
-// ─── Dynamic suggestion chips ────────────────────────────────────────────────
-function DynamicSuggestions({ suggestions, onSelect }: { suggestions: any[], onSelect: (prompt: string) => void }) {
+// ─── Dynamic suggestion chips (rotating, hover-paused, scored) ────────
+function DynamicSuggestions({
+  suggestions, onSelect, onClickTelemetry
+}: {
+  suggestions: any[];
+  onSelect: (prompt: string) => void;
+  onClickTelemetry?: (item: any) => void;
+}) {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -583,7 +590,7 @@ function DynamicSuggestions({ suggestions, onSelect }: { suggestions: any[], onS
       animate={{ opacity: 1, filter: 'blur(0px)' }}
       exit={{ opacity: 0, filter: 'blur(4px)' }}
       transition={{ duration: 0.4, ease: 'easeInOut' }}
-      onClick={() => onSelect(item.prompt)}
+      onClick={() => { onClickTelemetry?.(item); onSelect(item.prompt); }}
       className="bg-white hover:bg-acid active:scale-95 border-2 border-ink shadow-[2px_2px_0_#171714] px-2.5 py-1 text-[0.68rem] text-ink font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
     >
       <SvgIcon name={item.icon} size={11} className="text-ink flex-shrink-0" />
@@ -797,6 +804,17 @@ export default function AIAssistant({
     const isScroll = target.startsWith('landing#');
     setIsNavigating({ type: resolved.tab ? 'navigate_to' : 'scroll_to', target });
     setActiveSystemMessage(isScroll ? `Scrolling to ${target.replace('landing#','')}` : `Opening ${resolved.tab || resolved.view}...`);
+    // Fire-and-forget navigation telemetry (permanent users only)
+    const { user: navUser, activeOrgId } = useAuthStore.getState();
+    if (navUser && !navUser.is_anonymous) {
+      supabase.from('ai_navigation_events').insert({
+        user_id: navUser.id,
+        organization_id: activeOrgId ?? undefined,
+        from_view: currentView ?? null,
+        to_target: target,
+        trigger_type: 'inline_link',
+      }).then(() => {}).catch(() => {});
+    }
     setTimeout(() => {
       if (onNavigate) {
         onNavigate(resolved.view, resolved.tab, resolved.anchor);
@@ -810,7 +828,7 @@ export default function AIAssistant({
       setTimeout(() => setActiveSystemMessage(null), 1500);
     }, 1200);
     setIsOpen(false);
-  }, [onNavigate]);
+  }, [onNavigate, currentView]);
 
   // ─── Execute action (from agent tool results or JSON blobs) ─────────────────
   const executeAction = useCallback((action: { type: string; target: string }) => {
@@ -1450,7 +1468,21 @@ RULES:
                   </div>
 
                   {msg.role === 'assistant' && msg.suggestions && index === messages.length - 1 && (
-                    <DynamicSuggestions suggestions={msg.suggestions} onSelect={sendMessage} />
+                    <DynamicSuggestions
+                      suggestions={msg.suggestions}
+                      onSelect={sendMessage}
+                      onClickTelemetry={(item) => {
+                        const { user: su, activeOrgId: sOrgId } = useAuthStore.getState();
+                        if (!su || su.is_anonymous) return;
+                        supabase.from('ai_suggestion_feedback').insert({
+                          user_id: su.id,
+                          suggestion_id: item.id,
+                          label: item.label,
+                          prompt: item.prompt,
+                          current_view: currentView ?? null,
+                        }).then(() => {}).catch(() => {});
+                      }}
+                    />
                   )}
                   {msg.role === 'assistant' && suggestedActions.length > 0 && index === messages.length - 1 && (
                     <ActionChips actions={suggestedActions} onAction={executeAction} />
