@@ -114,15 +114,16 @@
       "metadata": { "source": "supabase-realtime", "sourceType": "browser-scrape" }
     },
     {
-      "id": "reddit-supabase-community",
+      "id": "reddit-supabase-top-week",
       "type": "reddit-json",
       "urls": [
         "https://www.reddit.com/r/Supabase/top/.json?t=week",
-        "https://www.reddit.com/r/Supabase/hot/.json"
+        "https://www.reddit.com/r/Supabase/hot/.json",
+        "https://www.reddit.com/r/Supabase/new/.json"
       ],
       "enabled": true,
       "priority": 4,
-      "metadata": { "source": "reddit-community", "sourceType": "reddit-json" }
+      "metadata": { "source": "reddit-supabase", "sourceType": "reddit-json", "kind": "community", "confidence": "community", "ttlDays": "60" }
     }
   ],
   "ingestionConfig": {

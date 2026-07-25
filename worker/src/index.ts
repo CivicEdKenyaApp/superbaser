@@ -453,10 +453,9 @@ export class SuperbAgent extends Agent<Env, AgentState> {
     return null;
   }
 
-  // ─── Item 22: RAG Query via Vectorize ─────────────────────────────────────
+  // ─── Item 22: RAG Query via Vectorize with Trust Hierarchy & Freshness Decay ───
   private async queryRAG(query: string): Promise<string> {
     try {
-      // Generate embedding for query using Workers AI
       const embeddingResp = await (this.env.AI as any).run('@cf/baai/bge-base-en-v1.5', {
         text: [query]
       });
@@ -464,36 +463,56 @@ export class SuperbAgent extends Agent<Env, AgentState> {
       if (!queryVector) return '';
 
       const results = await this.env.VECTOR_INDEX.query(queryVector, {
-        topK: 5,
+        topK: 8,
         returnMetadata: 'all'
       });
 
-      const nowMs = Date.now();
-      const processedMatches = results.matches
-        .map((m: any) => {
-          let score = m.score;
-          if (m.metadata?.sourceType === 'reddit-json' || m.metadata?.confidence === 'community') {
-            const ingestedAt = m.metadata.ingestedAt ? parseInt(m.metadata.ingestedAt) : nowMs;
-            const ageDays = (nowMs - ingestedAt) / (1000 * 60 * 60 * 24);
-            let multiplier = 1.0;
-            if (ageDays > 90) multiplier = 0;
-            else if (ageDays > 60) multiplier = 0.3;
-            else if (ageDays > 30) multiplier = 0.6;
-            score = score * multiplier;
-          }
-          return { ...m, score };
-        })
-        .filter((m: any) => m.score > 0.6) // Lower threshold for decayed community items
-        .sort((a: any, b: any) => b.score - a.score);
+      if (!results?.matches?.length) return '';
 
-      if (!processedMatches.length) return '';
+      const nowTs = Math.floor(Date.now() / 1000);
+      const HIERARCHY_PRIORITY: Record<string, number> = {
+        'github': 1.0,
+        'llms-txt': 0.95,
+        'changelog': 0.90,
+        'html-scrape': 0.85,
+        'browser-scrape': 0.85,
+        'community-reddit': 0.70,
+        'community-reddit-code': 0.75
+      };
 
-      return processedMatches
-        .map((m: any) => `[Source: ${m.metadata?.sourceType ?? 'official'}, Confidence: ${m.metadata?.confidence ?? 'authoritative'}]\n[${m.metadata?.title ?? 'Doc'}]\n${m.metadata?.text ?? ''}`)
-        .join('\n\n---\n\n');
+      const scoredMatches = results.matches.map((m: any) => {
+        const meta = m.metadata ?? {};
+        let score = m.score;
+        const sourceType = meta.sourceType ?? 'unknown';
+        const priorityMult = HIERARCHY_PRIORITY[sourceType] ?? 0.80;
+
+        // Time decay for community content (decay over ttlDays)
+        if (meta.kind === 'community' && meta.ingestedAt && meta.ttlDays) {
+          const ageDays = (nowTs - parseInt(meta.ingestedAt, 10)) / 86400;
+          const ttlDays = parseInt(meta.ttlDays, 10) || 60;
+          if (ageDays > ttlDays) return null; // Purge expired vectors
+          const decayMult = Math.max(0.3, 1.0 - (ageDays / ttlDays) * 0.5);
+          score *= decayMult;
+        }
+
+        score *= priorityMult;
+        return { match: m, adjustedScore: score };
+      }).filter(Boolean);
+
+      const topMatches = (scoredMatches as { match: any; adjustedScore: number }[])
+        .sort((a, b) => b.adjustedScore - a.adjustedScore)
+        .slice(0, 5);
+
+      return topMatches.map(({ match: m }) => {
+        const meta = m.metadata ?? {};
+        const isCommunity = meta.kind === 'community' || meta.kind === 'community-code';
+        const label = isCommunity
+          ? `[COMMUNITY REPORT (UNVERIFIED - ${meta.source ?? 'r/Supabase'}): ${meta.title ?? 'Discussion'}]`
+          : `[AUTHORITATIVE DOC: ${meta.title ?? 'Documentation'}]`;
+        return `${label}\n${meta.text ?? m.id}`;
+      }).join('\n\n---\n\n');
 
     } catch (err) {
-      // RAG failure is non-fatal — agent continues without retrieved context
       console.error('[RAG] Vectorize query failed:', err);
       return '';
     }

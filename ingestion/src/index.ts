@@ -181,17 +181,35 @@ async function embedAndUpsert(
         continue;
       }
 
-      // Prepare Vectorize upsert payload
-      const vectors = batch.map((chunk, idx) => ({
-        id: chunk.id,
-        values: embeddings[idx],
-        metadata: chunk.metadata
-      }));
+      // Prepare Vectorize upsert payload with deduplication for community content
+      const vectors = [];
+      for (let idx = 0; idx < batch.length; idx++) {
+        const chunk = batch[idx];
+        const val = embeddings[idx];
 
-      await env.VECTOR_INDEX.upsert(vectors);
-      upserted += batch.length;
+        // Deduplication check for community sources (threshold cosine similarity > 0.92)
+        if (chunk.metadata.kind === 'community') {
+          try {
+            const dedupResult = await env.VECTOR_INDEX.query(val, { topK: 1, returnMetadata: 'all' });
+            if (dedupResult?.matches?.[0]?.score && dedupResult.matches[0].score > 0.92) {
+              console.log(`[Ingestion] Skipping duplicate community vector (${chunk.metadata.title})`);
+              continue;
+            }
+          } catch { /* proceed on vector query error */ }
+        }
 
-      console.log(`[Ingestion] Upserted batch ${Math.floor(i / batchSize) + 1}: ${batch.length} vectors`);
+        vectors.push({
+          id: chunk.id,
+          values: val,
+          metadata: chunk.metadata
+        });
+      }
+
+      if (vectors.length > 0) {
+        await env.VECTOR_INDEX.upsert(vectors);
+        upserted += vectors.length;
+        console.log(`[Ingestion] Upserted batch ${Math.floor(i / batchSize) + 1}: ${vectors.length} vectors (${batch.length - vectors.length} duplicates skipped)`);
+      }
 
     } catch (err) {
       console.error(`[Ingestion] Batch ${Math.floor(i / batchSize) + 1} failed:`, err);
@@ -363,76 +381,131 @@ async function fetchGitHubReleasesSource(source: SourceConfig, env: IngestionEnv
   return chunks;
 }
 
-async function fetchRedditJsonSource(source: SourceConfig, env: IngestionEnv, config: IngestionConfig): Promise<TextChunk[]> {
+// ─── Reddit JSON Fetcher & LLM Thread Synthesizer ─────────────────────────────
+function calculateRedditSignalScore(item: { score: number; num_comments?: number; body?: string; created_utc: number }): number {
+  const SIGNAL_WEIGHTS = { score: 1.5, comments: 3.0, agePenaltyPerDay: 2.0, codeBonus: 20, linkBonus: 10 };
+  const ageDays = (Date.now() / 1000 - item.created_utc) / 86400;
+  let signal = (item.score * SIGNAL_WEIGHTS.score) - (ageDays * SIGNAL_WEIGHTS.agePenaltyPerDay);
+  if (item.num_comments) signal += item.num_comments * SIGNAL_WEIGHTS.comments;
+  if (item.body && (item.body.includes('```') || item.body.includes('    '))) signal += SIGNAL_WEIGHTS.codeBonus;
+  if (item.body && (item.body.includes('http://') || item.body.includes('https://'))) signal += SIGNAL_WEIGHTS.linkBonus;
+  return signal;
+}
+
+async function fetchRedditSource(source: SourceConfig, env: IngestionEnv): Promise<TextChunk[]> {
   const chunks: TextChunk[] = [];
-  
-  // Try to load custom weights from KV, fallback to defaults
-  let weights = { score: 1.5, comments: 3, age: -2 };
-  try {
-    const configStr = await env.AGENT_KV.get('reddit-signal-weights');
-    if (configStr) {
-      weights = JSON.parse(configStr).weights;
-    }
-  } catch (e) { /* use default weights */ }
 
   for (const url of source.urls ?? []) {
     try {
-      const resp = await fetch(url, { headers: { 'User-Agent': 'superbaser-ingestion/1.0' } });
-      if (!resp.ok) continue;
-
-      const data: any = await resp.json();
-      const posts = data.data?.children ?? [];
-      
-      for (const postData of posts) {
-        const post = postData.data;
-        if (!post) continue;
-        
-        const nowSec = Math.floor(Date.now() / 1000);
-        const ageDays = (nowSec - post.created_utc) / (60 * 60 * 24);
-        
-        // Calculate signal strength
-        const signalStrength = (post.score * weights.score) + (post.num_comments * weights.comments) + (ageDays * weights.age);
-        
-        // Dynamic filtering based on signal
-        if (signalStrength < 15) continue;
-        
-        // Deduplication Check (via KV instead of Vectorize for speed)
-        // Store hash of post ID to prevent re-ingesting the exact same post unless updated
-        const dedupKey = `reddit-ingested:${post.id}`;
-        const lastIngested = await env.AGENT_KV.get(dedupKey);
-        
-        // Only ingest if we haven't ingested it in the last 24 hours
-        if (lastIngested && (nowSec - parseInt(lastIngested)) < 86400) {
-            continue;
-        }
-
-        // Rich Markdown Normalization
-        const markdown = `## [Community Report] ${post.title}
-**Source:** Reddit (${post.subreddit_name_prefixed}) | **Date:** ${new Date(post.created_utc * 1000).toISOString().split('T')[0]} | **Signal:** ${Math.floor(signalStrength)}
-
-**Observed Behavior / Content:**
-${post.selftext ? post.selftext : '(No text body provided)'}
-
-**Related Links:**
-https://reddit.com${post.permalink}
-`;
-
-        const postChunks = chunkByHeadings(markdown, {
-          ...source.metadata,
-          url: `https://reddit.com${post.permalink}`,
-          postId: post.id,
-          score: post.score.toString(),
-          comments: post.num_comments.toString(),
-          confidence: 'community',
-          ingestedAt: Date.now().toString()
-        });
-
-        chunks.push(...postChunks);
-        await env.AGENT_KV.put(dedupKey, nowSec.toString(), { expirationTtl: 90 * 24 * 60 * 60 });
+      const resp = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperBaser-Ingest/1.0' }
+      });
+      if (!resp.ok) {
+        console.error(`[Ingestion] Reddit fetch failed (${url}): ${resp.status}`);
+        continue;
       }
 
+      const json: any = await resp.json();
+      const posts: any[] = json?.data?.children?.map((c: any) => c.data) ?? [];
+
+      for (const post of posts.slice(0, 15)) {
+        const postSignal = calculateRedditSignalScore(post);
+        if (postSignal < 5 && (post.num_comments ?? 0) < 5) continue;
+
+        let commentsText = '';
+        try {
+          const threadResp = await fetch(`https://www.reddit.com${post.permalink}.json`, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperBaser-Ingest/1.0' }
+          });
+          if (threadResp.ok) {
+            const threadData: any = await threadResp.json();
+            const rawComments: any[] = threadData?.[1]?.data?.children?.map((c: any) => c.data) ?? [];
+
+            const rankedComments = rawComments
+              .filter(c => c.body && c.body !== '[deleted]' && c.body !== '[removed]')
+              .map(c => ({ ...c, signal: calculateRedditSignalScore(c) }))
+              .sort((a, b) => b.signal - a.signal)
+              .slice(0, 10);
+
+            commentsText = rankedComments.map(c =>
+              `### Community Reply by u/${c.author} (Score: ${c.score})\n${c.body}`
+            ).join('\n\n---\n\n');
+          }
+        } catch { /* proceed with post body */ }
+
+        let synthesizedDoc = '';
+        try {
+          const prompt = `Synthesize the following Reddit technical thread into clean, structured Markdown for a developer knowledge base.
+Extract:
+1. Core Problem / Issue
+2. Community Consensus & Root Cause
+3. Confirmed Workarounds / Fixes
+4. Isolated Code Snippets (if present)
+
+Thread Title: ${post.title}
+Author: u/${post.author} (Score: ${post.score})
+URL: https://reddit.com${post.permalink}
+
+Post Content:
+${post.selftext || '(No body text)'}
+
+Top Comments:
+${commentsText || '(No comments extracted)'}
+
+Output Markdown format only with headings: ## Problem Summary, ## Community Consensus, ## Confirmed Workarounds, ## Code Snippets.`;
+
+          const aiResp: any = await (env.AI as any).run('@cf/meta/llama-3.1-8b-instruct', {
+            messages: [{ role: 'user', content: prompt }]
+          });
+          synthesizedDoc = aiResp?.response ?? '';
+        } catch (aiErr) {
+          console.warn(`[Ingestion] LLM thread synthesis fallback for thread ${post.id}:`, aiErr);
+        }
+
+        if (!synthesizedDoc || synthesizedDoc.length < 50) {
+          synthesizedDoc = `# [Community Discussion] ${post.title}\n\n` +
+            `**Source:** Reddit r/Supabase | **Score:** ${post.score} | **Author:** u/${post.author}\n` +
+            `**URL:** https://reddit.com${post.permalink}\n\n` +
+            `## Problem Summary\n${post.selftext || post.title}\n\n` +
+            `## Community Responses\n${commentsText || 'No responses.'}`;
+        }
+
+        const nowTs = Math.floor(Date.now() / 1000).toString();
+        const docChunks = chunkByHeadings(synthesizedDoc, {
+          ...source.metadata,
+          sourceType: 'community-reddit',
+          kind: 'community',
+          confidence: 'community',
+          title: post.title,
+          threadId: post.id,
+          url: `https://reddit.com${post.permalink}`,
+          score: String(post.score),
+          ingestedAt: nowTs,
+          ttlDays: source.metadata.ttlDays ?? '60'
+        }, 1000);
+
+        chunks.push(...docChunks);
+
+        const codeBlocks = synthesizedDoc.match(/```[a-z]*\n[\s\S]*?\n```/gi) ?? [];
+        for (let idx = 0; idx < codeBlocks.length; idx++) {
+          chunks.push({
+            id: `reddit-code-${post.id}-${idx}-${Date.now()}`,
+            text: `[Community Code Workaround - u/${post.author}]\nThread: ${post.title}\n\n${codeBlocks[idx]}`,
+            metadata: {
+              ...source.metadata,
+              sourceType: 'community-reddit-code',
+              kind: 'community-code',
+              confidence: 'community',
+              title: `Code Snippet: ${post.title}`,
+              threadId: post.id,
+              ingestedAt: nowTs,
+              ttlDays: source.metadata.ttlDays ?? '60'
+            }
+          });
+        }
+      }
     } catch (err) {
-      console.error(`[Ingestion] Reddit fetch failed: ${url}`, err);
+      console.error(`[Ingestion] Reddit source error for ${url}:`, err);
     }
   }
 
@@ -547,7 +620,7 @@ async function runIngestion(env: IngestionEnv, ctx: ExecutionContext): Promise<v
         }
         break;
       case 'reddit-json':
-        chunks = await fetchRedditJsonSource(source, env, config);
+        chunks = await fetchRedditSource(source, env);
         break;
     }
 
