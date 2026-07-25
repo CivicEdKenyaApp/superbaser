@@ -11,6 +11,7 @@ interface IngestionEnv {
   GITHUB_TOKEN: string;
   CF_AI_GATEWAY_ID: string;
   CF_ACCOUNT_ID: string;
+  CF_API_TOKEN: string;
 }
 
 interface SourceManifest {
@@ -20,7 +21,7 @@ interface SourceManifest {
 
 interface SourceConfig {
   id: string;
-  type: 'github' | 'llms-txt' | 'github-releases' | 'html-scrape';
+  type: 'github' | 'llms-txt' | 'github-releases' | 'html-scrape' | 'browser-scrape';
   repo?: string;
   branch?: string;
   paths?: string[];
@@ -434,6 +435,38 @@ async function runIngestion(env: IngestionEnv, ctx: ExecutionContext): Promise<v
             chunks.push(...urlChunks);
           } catch (err) {
             console.error(`[Ingestion] HTML scrape failed: ${url}`, err);
+          }
+        }
+        break;
+      case 'browser-scrape':
+        // Browser scrape — fetch each URL using Cloudflare Browser Rendering (Markdown REST API)
+        for (const url of source.urls ?? []) {
+          try {
+            const resp = await fetch(
+              `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/browser-rendering/markdown`,
+              {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ url }),
+              }
+            );
+            if (!resp.ok) {
+              console.error(`[Ingestion] Browser scrape failed for ${url}: ${resp.status} - ${await resp.text()}`);
+              continue;
+            }
+            const markdown = await resp.text();
+            if (markdown.trim().length < 50) continue;
+
+            const urlChunks = chunkByHeadings(markdown, {
+              ...source.metadata,
+              url
+            }, config.maxChunkTokens);
+            chunks.push(...urlChunks);
+          } catch (err) {
+            console.error(`[Ingestion] Browser scrape failed: ${url}`, err);
           }
         }
         break;

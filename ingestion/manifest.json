@@ -102,6 +102,16 @@
       "enabled": true,
       "priority": 3,
       "metadata": { "source": "postgresql-docs", "sourceType": "html-scrape" }
+    },
+    {
+      "id": "supabase-dynamic-docs",
+      "type": "browser-scrape",
+      "urls": [
+        "https://supabase.com/docs/guides/realtime"
+      ],
+      "enabled": false,
+      "priority": 3,
+      "metadata": { "source": "supabase-realtime", "sourceType": "browser-scrape" }
     }
   ],
   "ingestionConfig": {
