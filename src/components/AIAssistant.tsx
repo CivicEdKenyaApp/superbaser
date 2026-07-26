@@ -34,20 +34,20 @@ function WifiStatusIcon({ isOnline, isLowBandwidth }: { isOnline: boolean; isLow
   if (!isOnline) {
     return (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-orange">
-        <path d="M17.8506 11.5442C17.0475 10.6829 16.0641 10.0096 14.9707 9.57227M20.7759 8.81625C19.5712 7.52437 18.0961 6.51439 16.4561 5.8584C14.816 5.20241 13.0514 4.91635 11.2881 5.02111M8.34277 14.5905C8.95571 13.9332 9.73448 13.4532 10.5971 13.2012C11.4598 12.9491 12.3745 12.9335 13.2449 13.1574M6.14941 11.5438C7.09778 10.5268 8.29486 9.77461 9.62259 9.36133M3.22363 8.81604C4.1215 7.85319 5.17169 7.04466 6.33211 6.42285M4.41406 4L18.5562 18.1421M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M17.8506 11.5442C17.0475 10.6829 16.0641 10.0096 14.9707 9.57227M20.7759 8.81625C19.5712 7.52437 18.0961 6.51439 16.4561 5.8584C14.816 5.20241 13.0514 4.91635 11.2881 5.02111M8.34277 14.5905C8.95571 13.9332 9.73448 13.4532 10.5971 13.2012C11.4598 12.9491 12.3745 12.9335 13.2449 13.1574M6.14941 11.5438C7.09778 10.5268 8.29486 9.77461 9.62259 9.36133M3.22363 8.81604C4.1215 7.85319 5.17169 7.04466 6.33211 6.42285M4.41406 4L18.5562 18.1421M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   if (isLowBandwidth) {
     return (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400">
-        <path d="M8.34277 14.5898C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1445 11.2995 13.0024 11.9826 13C12.6656 12.9976 13.3418 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5645M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8.34277 14.5898C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1445 11.2995 13.0024 11.9826 13C12.6656 12.9976 13.3418 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5645M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neon">
-      <path d="M8.34277 14.5899C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1446 11.2995 13.0025 11.9826 13.0001C12.6656 12.9977 13.3419 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1066 8.79745 9.66902C9.79893 9.23148 10.8793 9.00389 11.9721 9.00007C13.065 8.99626 14.1466 9.21651 15.1511 9.64704C16.1556 10.0776 17.0617 10.7094 17.8127 11.5035M3.22363 8.81635C4.34165 7.61742 5.69347 6.66028 7.19569 6.00398C8.69791 5.34768 10.3179 5.0058 11.9572 5.00007C13.5966 4.99435 15.2208 5.32472 16.7276 5.97052C18.2344 6.61632 19.5931 7.56458 20.7195 8.75568M12 19.0001C11.4477 19.0001 11 18.5524 11 18.0001C11 17.4478 11.4477 17.0001 12 17.0001C12.5523 17.0001 13 17.4478 13 18.0001C13 18.5524 12.5523 19.0001 12 19.0001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8.34277 14.5899C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1446 11.2995 13.0025 11.9826 13.0001C12.6656 12.9977 13.3419 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1066 8.79745 9.66902C9.79893 9.23148 10.8793 9.00389 11.9721 9.00007C13.065 8.99626 14.1466 9.21651 15.1511 9.64704C16.1556 10.0776 17.0617 10.7094 17.8127 11.5035M3.22363 8.81635C4.34165 7.61742 5.69347 6.66028 7.19569 6.00398C8.69791 5.34768 10.3179 5.0058 11.9572 5.00007C13.5966 4.99435 15.2208 5.32472 16.7276 5.97052C18.2344 6.61632 19.5931 7.56458 20.7195 8.75568M12 19.0001C11.4477 19.0001 11 18.5524 11 18.0001C11 17.4478 11.4477 17.0001 12 17.0001C12.5523 17.0001 13 17.4478 13 18.0001C13 18.5524 12.5523 19.0001 12 19.0001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -57,62 +57,62 @@ function WifiStatusIcon({ isOnline, isLowBandwidth }: { isOnline: boolean; isLow
 // Value = navigation target (SPA view id for console tabs, or App view for landing/console)
 const PAGE_DICTIONARY: Record<string, string> = {
   // Landing page anchors
-  'home':         'landing',
-  'home page':    'landing',
-  'landing':      'landing',
-  'pricing':      'landing#pricing',
-  'plans':        'landing#pricing',
-  'billing plans':'landing#pricing',
-  'contact':      'landing#contact',
+  'home': 'landing',
+  'home page': 'landing',
+  'landing': 'landing',
+  'pricing': 'landing#pricing',
+  'plans': 'landing#pricing',
+  'billing plans': 'landing#pricing',
+  'contact': 'landing#contact',
   'get in touch': 'landing#contact',
-  'services':     'landing#services',
+  'services': 'landing#services',
   'capabilities': 'landing#services',
-  'process':      'landing#process',
-  'pipeline':     'landing#process',
-  'docs':         'landing#docs',
-  'documentation':'landing#docs',
+  'process': 'landing#process',
+  'pipeline': 'landing#process',
+  'docs': 'landing#docs',
+  'documentation': 'landing#docs',
 
   // Console (dashboard) tabs — both the word and the hash-prefixed form
-  'dashboard':    'console#dashboard',
-  '#dashboard':   'console#dashboard',
-  'console':      'console#dashboard',
-  'projects':     'console#projects',
-  '#projects':    'console#projects',
+  'dashboard': 'console#dashboard',
+  '#dashboard': 'console#dashboard',
+  'console': 'console#dashboard',
+  'projects': 'console#projects',
+  '#projects': 'console#projects',
   'connected projects': 'console#projects',
-  'backups':      'console#backups',
-  '#backups':     'console#backups',
-  'backup history':'console#backups',
-  'restores':     'console#restores',
-  '#restores':    'console#restores',
-  'restore':      'console#restores',
+  'backups': 'console#backups',
+  '#backups': 'console#backups',
+  'backup history': 'console#backups',
+  'restores': 'console#restores',
+  '#restores': 'console#restores',
+  'restore': 'console#restores',
   'point in time recovery': 'console#restores',
-  'schedules':    'console#schedules',
-  '#schedules':   'console#schedules',
-  'cron':         'console#schedules',
+  'schedules': 'console#schedules',
+  '#schedules': 'console#schedules',
+  'cron': 'console#schedules',
   'automated backups': 'console#schedules',
   'verification': 'console#verification',
-  '#verification':'console#verification',
-  'integrity':    'console#verification',
-  'storage':      'console#storage',
-  '#storage':     'console#storage',
-  'r2':           'console#storage',
-  'logs':         'console#logs',
-  '#logs':        'console#logs',
-  'telemetry':    'console#logs',
-  'organizations':'console#organizations',
-  '#organizations':'console#organizations',
+  '#verification': 'console#verification',
+  'integrity': 'console#verification',
+  'storage': 'console#storage',
+  '#storage': 'console#storage',
+  'r2': 'console#storage',
+  'logs': 'console#logs',
+  '#logs': 'console#logs',
+  'telemetry': 'console#logs',
+  'organizations': 'console#organizations',
+  '#organizations': 'console#organizations',
   'organisation': 'console#organizations',
-  'team':         'console#organizations',
-  'billing':      'console#billing',
-  '#billing':     'console#billing',
+  'team': 'console#organizations',
+  'billing': 'console#billing',
+  '#billing': 'console#billing',
   'subscription': 'console#billing',
-  'upgrade':      'console#billing',
-  'settings':     'console#settings',
-  '#settings':    'console#settings',
-  'profile':      'console#settings',
-  'support':      'console#support',
-  '#support':     'console#support',
-  'help':         'console#support',
+  'upgrade': 'console#billing',
+  'settings': 'console#settings',
+  '#settings': 'console#settings',
+  'profile': 'console#settings',
+  'support': 'console#support',
+  '#support': 'console#support',
+  'help': 'console#support',
 };
 
 // Build regex that matches ALL keys (both single-word and multi-word)
@@ -137,41 +137,41 @@ interface SuggestionEntry {
 
 const SUGGESTION_CATALOGUE: SuggestionEntry[] = [
   // Auth gate suggestions (highest priority for anonymous users on landing)
-  { id: 'claim',      label: 'Claim Free Account',      prompt: 'How do I sign up for SuperBaser for free?', icon: 'shield', contexts: ['landing','any'], authRequired: false, priority: 100 },
-  { id: 'signin',     label: 'Sign In',                  prompt: 'I already have an account, how do I sign in?', icon: 'shield', contexts: ['landing'], authRequired: false, priority: 95 },
+  { id: 'claim', label: 'Claim Free Account', prompt: 'How do I sign up for SuperBaser for free?', icon: 'shield', contexts: ['landing', 'any'], authRequired: false, priority: 100 },
+  { id: 'signin', label: 'Sign In', prompt: 'I already have an account, how do I sign in?', icon: 'shield', contexts: ['landing'], authRequired: false, priority: 95 },
 
   // Landing-specific
-  { id: 'pricing',    label: 'Compare Plans',            prompt: 'What are the differences between Free, Pro, and Premium tiers?', icon: 'database', contexts: ['landing'], authRequired: false, priority: 80 },
-  { id: 'how_works',  label: 'How It Works',             prompt: 'How does SuperBaser back up and restore my Supabase database?', icon: 'zap', contexts: ['landing'], authRequired: false, priority: 75 },
-  { id: 'security',   label: 'Security & Privacy',       prompt: 'How are my database passwords and connection keys secured?', icon: 'shield', contexts: ['landing','any'], authRequired: false, priority: 70 },
-  { id: 'r2_storage', label: 'Cloudflare R2 Storage',   prompt: 'How are backups encrypted and stored on Cloudflare R2?', icon: 'sparkles', contexts: ['landing'], authRequired: false, priority: 65 },
+  { id: 'pricing', label: 'Compare Plans', prompt: 'What are the differences between Free, Pro, and Premium tiers?', icon: 'database', contexts: ['landing'], authRequired: false, priority: 80 },
+  { id: 'how_works', label: 'How It Works', prompt: 'How does SuperBaser back up and restore my Supabase database?', icon: 'zap', contexts: ['landing'], authRequired: false, priority: 75 },
+  { id: 'security', label: 'Security & Privacy', prompt: 'How are my database passwords and connection keys secured?', icon: 'shield', contexts: ['landing', 'any'], authRequired: false, priority: 70 },
+  { id: 'r2_storage', label: 'Cloudflare R2 Storage', prompt: 'How are backups encrypted and stored on Cloudflare R2?', icon: 'sparkles', contexts: ['landing'], authRequired: false, priority: 65 },
 
   // Console — dashboard
-  { id: 'run_backup', label: 'Run Instant Backup',       prompt: 'How do I trigger an immediate SuperBaser Full Backup right now?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 90 },
-  { id: 'view_dash',  label: 'Dashboard Overview',       prompt: 'Show me the dashboard summary', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 85 },
+  { id: 'run_backup', label: 'Run Instant Backup', prompt: 'How do I trigger an immediate SuperBaser Full Backup right now?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 90 },
+  { id: 'view_dash', label: 'Dashboard Overview', prompt: 'Show me the dashboard summary', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 85 },
 
   // Console — backups
-  { id: 'dl_backup',  label: 'Download Backup',          prompt: 'How do I download one of my existing SuperBaser Backups?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 80 },
-  { id: 'retention',  label: 'Check Retention Policy',   prompt: 'What is the backup retention policy for my current plan?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'free', priority: 78 },
+  { id: 'dl_backup', label: 'Download Backup', prompt: 'How do I download one of my existing SuperBaser Backups?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 80 },
+  { id: 'retention', label: 'Check Retention Policy', prompt: 'What is the backup retention policy for my current plan?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'free', priority: 78 },
 
   // Console — restores
-  { id: 'restore_1click', label: '1-Click Restore',      prompt: 'How does the 1-click zero-downtime restore work?', icon: 'refresh', contexts: ['console'], authRequired: true, tier: 'pro', priority: 85 },
-  { id: 'pitr',       label: 'Point-in-Time Recovery',  prompt: 'How do I restore to a specific point in time?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'premium', priority: 80 },
+  { id: 'restore_1click', label: '1-Click Restore', prompt: 'How does the 1-click zero-downtime restore work?', icon: 'refresh', contexts: ['console'], authRequired: true, tier: 'pro', priority: 85 },
+  { id: 'pitr', label: 'Point-in-Time Recovery', prompt: 'How do I restore to a specific point in time?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'premium', priority: 80 },
 
   // Console — schedules
-  { id: 'cron_setup', label: 'Setup Cron Schedule',      prompt: 'How do I configure automated backup schedules?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'free', priority: 75 },
-  { id: 'cron_1hr',   label: '1-Hour Snapshots',         prompt: 'How do 1-hour automated snapshots work on the Pro tier?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'pro', priority: 72 },
+  { id: 'cron_setup', label: 'Setup Cron Schedule', prompt: 'How do I configure automated backup schedules?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'free', priority: 75 },
+  { id: 'cron_1hr', label: '1-Hour Snapshots', prompt: 'How do 1-hour automated snapshots work on the Pro tier?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'pro', priority: 72 },
 
   // Console — billing
-  { id: 'upgrade_pro', label: 'Upgrade to Pro',          prompt: 'How do I upgrade to the Pro plan for $15/mo?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 88 },
-  { id: 'upgrade_prem',label: 'Upgrade to Premium',      prompt: 'What do I get on the Premium plan at $49/mo?', icon: 'sparkles', contexts: ['console'], authRequired: true, tier: 'pro', priority: 82 },
+  { id: 'upgrade_pro', label: 'Upgrade to Pro', prompt: 'How do I upgrade to the Pro plan for $15/mo?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 88 },
+  { id: 'upgrade_prem', label: 'Upgrade to Premium', prompt: 'What do I get on the Premium plan at $49/mo?', icon: 'sparkles', contexts: ['console'], authRequired: true, tier: 'pro', priority: 82 },
 
   // Console — organizations
-  { id: 'create_org', label: 'Create Organisation',      prompt: 'How do I create a new organisation in SuperBaser?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 70 },
-  { id: 'team_rbac',  label: 'Team Roles & Permissions', prompt: 'How does team RBAC work for organisations?', icon: 'shield', contexts: ['console'], authRequired: true, tier: 'premium', priority: 68 },
+  { id: 'create_org', label: 'Create Organisation', prompt: 'How do I create a new organisation in SuperBaser?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 70 },
+  { id: 'team_rbac', label: 'Team Roles & Permissions', prompt: 'How does team RBAC work for organisations?', icon: 'shield', contexts: ['console'], authRequired: true, tier: 'premium', priority: 68 },
 
   // Console — support
-  { id: 'support_dr', label: 'Emergency DR Runbook',     prompt: 'Show me the emergency disaster recovery runbook', icon: 'shield', contexts: ['console'], authRequired: true, tier: 'free', priority: 65 },
+  { id: 'support_dr', label: 'Emergency DR Runbook', prompt: 'Show me the emergency disaster recovery runbook', icon: 'shield', contexts: ['console'], authRequired: true, tier: 'free', priority: 65 },
 ];
 
 // ─── Dynamic suggestion prioritiser ─────────────────────────────────────────
@@ -238,7 +238,7 @@ function getDynamicSuggestions(
     .filter(s => ['claim', 'signin'].includes(s.id))
     .map(s => ({ ...s, score: 999 }));
 
-  const combined2 = [...anonChips, ...scored.filter(s => !['claim','signin'].includes(s.id))];
+  const combined2 = [...anonChips, ...scored.filter(s => !['claim', 'signin'].includes(s.id))];
   // Remove duplicates by id
   const seen = new Set<string>();
   return combined2.filter(s => {
@@ -261,13 +261,13 @@ function getScoredContextualSuggestions(
 
   type Topic = { keywords: string[]; boosts: Record<string, number> };
   const TOPICS: Record<string, Topic> = {
-    backup:   { keywords: ['backup','snapshot','pg_dump','dump','archive'],                   boosts: { run_backup:30, dl_backup:25, retention:20 } },
-    restore:  { keywords: ['restore','recovery','pitr','point-in-time','rollback'],           boosts: { restore_1click:30, pitr:25 } },
-    schedule: { keywords: ['schedule','cron','automat','interval','frequency'],               boosts: { cron_setup:30, cron_1hr:25 } },
-    billing:  { keywords: ['plan','tier','price','cost','billing','upgrade','pro','premium'], boosts: { pricing:30, upgrade_pro:25, upgrade_prem:20 } },
-    security: { keywords: ['encrypt','aes','key','password','secur','tls','vault'],           boosts: { security:30, r2_storage:20 } },
-    org:      { keywords: ['org','team','rbac','member','invite','role','permission'],        boosts: { create_org:25, team_rbac:20 } },
-    auth:     { keywords: ['sign in','sign up','account','login','register','claim','guest'], boosts: { claim:40, signin:35 } },
+    backup: { keywords: ['backup', 'snapshot', 'pg_dump', 'dump', 'archive'], boosts: { run_backup: 30, dl_backup: 25, retention: 20 } },
+    restore: { keywords: ['restore', 'recovery', 'pitr', 'point-in-time', 'rollback'], boosts: { restore_1click: 30, pitr: 25 } },
+    schedule: { keywords: ['schedule', 'cron', 'automat', 'interval', 'frequency'], boosts: { cron_setup: 30, cron_1hr: 25 } },
+    billing: { keywords: ['plan', 'tier', 'price', 'cost', 'billing', 'upgrade', 'pro', 'premium'], boosts: { pricing: 30, upgrade_pro: 25, upgrade_prem: 20 } },
+    security: { keywords: ['encrypt', 'aes', 'key', 'password', 'secur', 'tls', 'vault'], boosts: { security: 30, r2_storage: 20 } },
+    org: { keywords: ['org', 'team', 'rbac', 'member', 'invite', 'role', 'permission'], boosts: { create_org: 25, team_rbac: 20 } },
+    auth: { keywords: ['sign in', 'sign up', 'account', 'login', 'register', 'claim', 'guest'], boosts: { claim: 40, signin: 35 } },
   };
 
   let bestTopic: string | null = null;
@@ -558,7 +558,7 @@ function SvgIcon({ name, size = 11, className = '' }: { name?: string; size?: nu
       {name === 'shield' && <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />}
       {name === 'sparkles' && <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z" />}
       {name === 'refresh' && <><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" /></>}
-      {(!name || !['zap','clock','database','shield','sparkles','refresh'].includes(name)) && <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />}
+      {(!name || !['zap', 'clock', 'database', 'shield', 'sparkles', 'refresh'].includes(name)) && <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />}
     </svg>
   );
 }
@@ -838,7 +838,7 @@ export default function AIAssistant({
 
     const isScroll = target.startsWith('landing#');
     setIsNavigating({ type: resolved.tab ? 'navigate_to' : 'scroll_to', target });
-    setActiveSystemMessage(isScroll ? `Scrolling to ${target.replace('landing#','')}` : `Opening ${resolved.tab || resolved.view}...`);
+    setActiveSystemMessage(isScroll ? `Scrolling to ${target.replace('landing#', '')}` : `Opening ${resolved.tab || resolved.view}...`);
     // Fire-and-forget navigation telemetry (permanent users only)
     const { user: navUser, activeOrgId } = useAuthStore.getState();
     if (navUser && !navUser.is_anonymous) {
@@ -848,7 +848,7 @@ export default function AIAssistant({
         from_view: currentView ?? null,
         to_target: target,
         trigger_type: 'inline_link',
-      })).catch(() => {});
+      })).catch(() => { });
     }
     setTimeout(() => {
       if (onNavigate) {
@@ -859,7 +859,7 @@ export default function AIAssistant({
         else window.location.hash = resolved.anchor;
       }
       setIsNavigating(null);
-      setActiveSystemMessage(isScroll ? `Arrived at ${target.replace('landing#','')}` : `Opened ${resolved.tab || resolved.view}`);
+      setActiveSystemMessage(isScroll ? `Arrived at ${target.replace('landing#', '')}` : `Opened ${resolved.tab || resolved.view}`);
       setTimeout(() => setActiveSystemMessage(null), 1500);
     }, 1200);
     setIsOpen(false);
@@ -1136,13 +1136,13 @@ export default function AIAssistant({
           return prev;
         }
         return [...prev,
-          { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
-          {
-            id: Date.now().toString(), role: 'assistant',
-            content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
-            timestamp: new Date(),
-            suggestions: getDynamicSuggestions('landing', null),
-          }
+        { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
+        {
+          id: Date.now().toString(), role: 'assistant',
+          content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
+          timestamp: new Date(),
+          suggestions: getDynamicSuggestions('landing', null),
+        }
         ];
       });
       setInputValue('');
@@ -1158,13 +1158,13 @@ export default function AIAssistant({
           return prev;
         }
         return [...prev,
-          { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
-          {
-            id: Date.now().toString(), role: 'assistant',
-            content: 'To run SuperBaser Backups or 1-click SuperBaser Restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
-            timestamp: new Date(),
-            suggestions: getDynamicSuggestions('landing', null),
-          }
+        { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
+        {
+          id: Date.now().toString(), role: 'assistant',
+          content: 'To run SuperBaser Backups or 1-click SuperBaser Restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
+          timestamp: new Date(),
+          suggestions: getDynamicSuggestions('landing', null),
+        }
         ];
       });
       setInputValue('');
@@ -1187,8 +1187,8 @@ export default function AIAssistant({
 
     // ─── Cloudflare Agent Worker HTTP fallback ──────────────────────────────────────
     try {
-      const workerUrl = import.meta.env.VITE_WORKER_URL 
-        ? `${import.meta.env.VITE_WORKER_URL}/api/chat` 
+      const workerUrl = import.meta.env.VITE_WORKER_URL
+        ? `${import.meta.env.VITE_WORKER_URL}/api/chat`
         : 'https://superbaser-agent.saemscodes.workers.dev/api/chat';
 
       const response = await fetch(workerUrl, {
@@ -1230,7 +1230,7 @@ export default function AIAssistant({
           if (parsed.suggestions) parsedSuggestions = parsed.suggestions;
           rawContent = rawContent.replace(jsonMatch[0], '').trim();
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const safeContent = sanitizeResponse(rawContent);
 
@@ -1439,7 +1439,7 @@ export default function AIAssistant({
                       className={`max-w-[88%] p-3.5 text-xs font-mono leading-relaxed ${msg.role === 'user'
                         ? 'bg-ink text-white border border-ink shadow-[3px_3px_0_#d8ff37] rounded-br-sm'
                         : 'bg-paper border-2 border-ink text-ink shadow-[3px_3px_0_#171714] rounded-bl-sm'
-                      }`}
+                        }`}
                     >
                       {msg.role === 'assistant' ? (
                         <div className="prose-assistant text-xs font-mono leading-relaxed text-ink">
@@ -1466,7 +1466,7 @@ export default function AIAssistant({
                           label: item.label,
                           prompt: item.prompt,
                           current_view: currentView ?? null,
-                        })).catch(() => {});
+                        })).catch(() => { });
                       }}
                     />
                   )}
@@ -1605,7 +1605,7 @@ export default function AIAssistant({
                     <p className="text-neon font-black uppercase tracking-widest text-[9px]">Transitioning</p>
                     <p className="text-white text-sm font-mono mt-1">
                       {isNavigating.type === 'navigate_to'
-                        ? `Navigating to ${isNavigating.target.replace('console#','').replace('landing#','') || 'Home'}...`
+                        ? `Navigating to ${isNavigating.target.replace('console#', '').replace('landing#', '') || 'Home'}...`
                         : `Scrolling to #${isNavigating.target}...`}
                     </p>
                   </div>
@@ -1625,11 +1625,10 @@ export default function AIAssistant({
                     onClick={isListening ? stopListening : startListening}
                     disabled={isTyping}
                     aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${
-                      isListening
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${isListening
                         ? 'bg-neon/20 text-ink border-neon animate-pulse'
                         : 'bg-white/8 text-muted border-ink hover:text-ink hover:bg-panel'
-                    }`}
+                      }`}
                   >
                     {isListening
                       ? <Lottie animationData={fireMicData} loop={true} style={{ width: 28, height: 28 }} />
@@ -1641,11 +1640,11 @@ export default function AIAssistant({
                   value={inputValue}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask SUPERB AI... (/ to navigate, Shift+Enter for new line)"
+                  placeholder="Ask SUPERB AI...
                   rows={1}
                   disabled={isListening || isTyping}
                   className="flex-1 bg-white border-2 border-ink rounded-2xl px-4 py-2.5 text-sm font-mono outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all resize-none hide-scrollbar disabled:opacity-50"
-                  style={{ minHeight: '42px', maxHeight: '96px' }}
+                style={{ minHeight: '42px', maxHeight: '96px' }}
                 />
                 <button
                   type="submit"
