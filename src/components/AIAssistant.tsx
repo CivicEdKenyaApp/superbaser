@@ -1171,6 +1171,10 @@ export default function AIAssistant({
         }
       } catch (e) {}
 
+      if (!rawContent && (parsedAction || parsedSuggestedActions.length > 0 || parsedIslandTrigger)) {
+        rawContent = "Processing your request...";
+      }
+
       const safeContent = sanitizeResponse(rawContent);
 
       saveManifest({ title: text.substring(0, 30), items: [safeContent.substring(0, 100)], cachedAt: new Date().toISOString() });

@@ -340,15 +340,21 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         }
       }
 
+      if (!content && toolCalls && toolCalls.length > 0) {
+        content = "Processing your request...";
+      }
+
       // Send assistant message to client with parsed suggestion chips
-      this.sendToConnection(connection, {
-        type: 'ASSISTANT_MESSAGE',
-        payload: {
-          content,
-          providerUsed,
-          suggestions: parsedSuggestions
-        }
-      });
+      if (content) {
+        this.sendToConnection(connection, {
+          type: 'ASSISTANT_MESSAGE',
+          payload: {
+            content,
+            providerUsed,
+            suggestions: parsedSuggestions
+          }
+        });
+      }
 
     } catch (err: any) {
       this.sendToConnection(connection, {
