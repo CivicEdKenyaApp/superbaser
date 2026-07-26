@@ -65,13 +65,13 @@ export function getRandomAffirmation(): string {
 
 export function sanitizeResponse(text: string): string {
   if (!text || text.trim().length === 0) {
-    return "SUPERB AI is ready to assist you. SuperBaser provides automated Postgres snapshots (pg_dumpall) directly to your Cloudflare R2 Vault with 1-click zero-downtime restores. How can I help you manage your database today?";
+    return "I am sorry, I ran into a brief issue connecting to my inference engine. Could you please ask again?";
   }
 
   // Detect 5 consecutive identical words in a row (e.g. "dump dump dump dump dump")
   const repeatRegex = /\b(\w{3,})\b(?:\s+\1){4,}/i;
   if (repeatRegex.test(text)) {
-    return "SUPERB AI is ready to assist you with your Supabase database backups and Cloudflare R2 disaster recovery pipelines. Please ask your question again!";
+    return "I am sorry, I encountered a brief issue processing that query. Please ask your question again!";
   }
 
   return text;

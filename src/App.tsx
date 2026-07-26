@@ -25,7 +25,7 @@ import { savePendingAction, getPendingAction, clearPendingAction, recordInteract
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'console' | 'superadmin'>('landing');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [activeProjectRef, setActiveProjectRef] = useState<string>('wzyrmzfgdtzaqmkhtbuk');
+  const [activeProjectRef, setActiveProjectRef] = useState<string>('');
   const [activeServiceRoleKey, setActiveServiceRoleKey] = useState<string>('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);

@@ -75,7 +75,6 @@ const PAGE_DICTIONARY: Record<string, string> = {
   'storage':      'console#storage',
   '#storage':     'console#storage',
   'r2':           'console#storage',
-  'cloudflare r2':'console#storage',
   'logs':         'console#logs',
   '#logs':        'console#logs',
   'telemetry':    'console#logs',
@@ -1177,8 +1176,6 @@ export default function AIAssistant({
 
       if (parsedIslandTrigger) {
         setIslandState({ mode: parsedIslandTrigger.mode, payload: parsedIslandTrigger.payload });
-      } else {
-        setIslandState({ mode: 'OFFLINE_TICKET', payload: { items: [safeContent.substring(0, 50) + '...'] } });
       }
 
       if (parsedSuggestedActions.length > 0) {
@@ -1208,11 +1205,10 @@ export default function AIAssistant({
         setTimeout(() => executeAction(parsedAction), 1500);
       }
     } catch (error: any) {
-      console.error('Worker execution error:', error);
-      const fallbackContent = sanitizeResponse('');
+      console.error(error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
-        content: fallbackContent,
+        content: 'I ran into a brief issue reaching my inference engine. Please try asking again in a moment.',
         timestamp: new Date(),
         suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
       }]);
@@ -1303,7 +1299,10 @@ export default function AIAssistant({
                   </div>
                 )}
                 {AGENT_ENABLED && (
-                  <div className={`flex items-center gap-1 text-[0.60rem] font-mono uppercase px-2 py-0.5 rounded-full border ${agentConnected ? 'bg-neon/10 border-neon/40 text-neon' : 'bg-white/10 border-white/20 text-white/50'}`}>
+                  <div
+                    title={agentConnected ? 'Agent WebSocket connected — real-time job tracking active' : 'Connecting to SUPERB AI agent… Using HTTP fallback'}
+                    className={`flex items-center gap-1 text-[0.60rem] font-mono uppercase px-2 py-0.5 rounded-full border cursor-default select-none ${agentConnected ? 'bg-neon/10 border-neon/40 text-neon' : 'bg-white/10 border-white/20 text-white/50'}`}
+                  >
                     <span>{agentConnected ? 'Agent' : 'Agent ↻'}</span>
                   </div>
                 )}
