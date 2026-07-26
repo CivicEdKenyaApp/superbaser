@@ -658,7 +658,7 @@ export default {
   async fetch(request: Request, env: IngestionEnv): Promise<Response> {
     // Manual trigger via HTTP for testing
     if (request.method === 'POST' && new URL(request.url).pathname === '/trigger') {
-      const ctx = { waitUntil: (p: Promise<any>) => p } as ExecutionContext;
+      const ctx = { waitUntil: (p: Promise<any>) => p } as unknown as ExecutionContext;
       await runIngestion(env, ctx);
       return new Response(JSON.stringify({ status: 'ingestion_complete' }), {
         headers: { 'Content-Type': 'application/json' }

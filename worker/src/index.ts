@@ -979,7 +979,7 @@ export default {
 
         if (isAnonymous && isActionQuery(text)) {
           return new Response(JSON.stringify({
-            content: 'You must sign in or create an account before triggering vital database actions like running manual backups or restores. Please claim your free account to proceed.',
+            content: "To run manual snapshots or 1-click database restores, you just need a free SuperBaser account. Don't worry — setting it up takes less than 10 seconds!",
             suggestions: [{ id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?' }]
           }), { headers: corsHeaders });
         }

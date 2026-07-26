@@ -1093,6 +1093,23 @@ export default function AIAssistant({
       return;
     }
 
+    // Client-layer auth intent handler (Sign Up / Claim Account)
+    const isAuthRequest = /sign.?up|claim.*account|create.*account|register|how.*sign.up/.test(lowerText);
+    if (isAuthRequest) {
+      if (onOpenAuthModal) onOpenAuthModal();
+      setMessages(prev => [...prev,
+        { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
+        {
+          id: Date.now().toString(), role: 'assistant',
+          content: 'Creating your free SuperBaser account gives you **1 connected Supabase project**, **daily automated pg_dump snapshots**, **7-day backup retention** in our encrypted R2 vault, and instant point-in-time restore triggers. Don\'t worry — setting it up takes less than 10 seconds!',
+          timestamp: new Date(),
+          suggestions: getDynamicSuggestions('landing', null),
+        }
+      ]);
+      setInputValue('');
+      return;
+    }
+
     // Client-layer auth gate for action keywords
     if (user?.is_anonymous && isActionQuery) {
       if (onOpenAuthModal) onOpenAuthModal();
@@ -1100,7 +1117,7 @@ export default function AIAssistant({
         { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
         {
           id: Date.now().toString(), role: 'assistant',
-          content: 'You must sign in or create an account before triggering vital database actions like running manual backups or restores. Please claim your free account to proceed.',
+          content: 'To run manual snapshots or 1-click database restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
           timestamp: new Date(),
           suggestions: getDynamicSuggestions('landing', null),
         }
