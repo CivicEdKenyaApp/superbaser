@@ -48,7 +48,7 @@ const SUBPAGE_SEO_MAP: Record<string, { title: string; description: string }> = 
     description: 'Multi-tenant organization management, team RBAC permissions, and active target switching.',
   },
   '/dashboard/billing': {
-    title: 'SuperBaser Console | Paystack Billing & Subscription Tiers',
+    title: 'SuperBaser Console | SuperBaser Pay & Subscription Tiers',
     description: 'Subscription management for Free ($0/mo), Pro ($15/mo), and Premium ($49/mo) disaster recovery capacity.',
   },
   '/dashboard/settings': {

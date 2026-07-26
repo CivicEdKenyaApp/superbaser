@@ -29,6 +29,29 @@ import { executeSupabaseDiscovery, DiscoveryReportPayload } from '../../server/d
 import { useAuthStore } from '../lib/auth-store';
 import { supabase } from '../lib/supabase';
 import { OrgBilling } from './OrgBilling';
+
+export const SUPABASE_ALL_REGIONS = [
+  { code: 'us-east-1', name: 'US-EAST-1 (NORTH VIRGINIA)' },
+  { code: 'us-east-2', name: 'US-EAST-2 (OHIO)' },
+  { code: 'us-west-1', name: 'US-WEST-1 (NORTH CALIFORNIA)' },
+  { code: 'us-west-2', name: 'US-WEST-2 (OREGON)' },
+  { code: 'ca-central-1', name: 'CA-CENTRAL-1 (CANADA CENTRAL)' },
+  { code: 'eu-west-1', name: 'EU-WEST-1 (IRELAND)' },
+  { code: 'eu-west-2', name: 'EU-WEST-2 (LONDON)' },
+  { code: 'eu-west-3', name: 'EU-WEST-3 (PARIS)' },
+  { code: 'eu-central-1', name: 'EU-CENTRAL-1 (FRANKFURT)' },
+  { code: 'eu-central-2', name: 'EU-CENTRAL-2 (ZURICH)' },
+  { code: 'eu-north-1', name: 'EU-NORTH-1 (STOCKHOLM)' },
+  { code: 'ap-south-1', name: 'AP-SOUTH-1 (MUMBAI)' },
+  { code: 'ap-southeast-1', name: 'AP-SOUTHEAST-1 (SINGAPORE)' },
+  { code: 'ap-northeast-1', name: 'AP-NORTHEAST-1 (TOKYO)' },
+  { code: 'ap-northeast-2', name: 'AP-NORTHEAST-2 (SEOUL)' },
+  { code: 'ap-southeast-2', name: 'AP-SOUTHEAST-2 (SYDNEY)' },
+  { code: 'sa-east-1', name: 'SA-EAST-1 (SÃO PAULO)' },
+  { code: 'americas', name: 'AMERICAS (SMART REGION - EAST US)' },
+  { code: 'europe', name: 'EUROPE (SMART REGION - CENTRAL EU)' },
+  { code: 'apac', name: 'APAC (SMART REGION - SOUTHEAST ASIA)' },
+];
 import {
   listMyOrganizations,
   listProjects,
@@ -210,14 +233,21 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
     return () => window.removeEventListener('RESUME_PENDING_ACTION', handleResume);
   }, []);
 
-  // Listen for SUPERB AI in-chat tab navigation
+  // Listen for SUPERB AI in-chat tab navigation & Create Org Modal trigger
   useEffect(() => {
     const handleAiTab = (e: any) => {
       const tab = e.detail?.tab;
-      if (tab) setActiveTab(tab as any);
+      if (tab) changeTab(tab as any);
+    };
+    const handleOpenOrgModal = () => {
+      setIsCreateOrgModalOpen(true);
     };
     window.addEventListener('SUPERB_AI_NAVIGATE_TAB', handleAiTab);
-    return () => window.removeEventListener('SUPERB_AI_NAVIGATE_TAB', handleAiTab);
+    window.addEventListener('SUPERB_OPEN_CREATE_ORG_MODAL', handleOpenOrgModal);
+    return () => {
+      window.removeEventListener('SUPERB_AI_NAVIGATE_TAB', handleAiTab);
+      window.removeEventListener('SUPERB_OPEN_CREATE_ORG_MODAL', handleOpenOrgModal);
+    };
   }, []);
 
   // Load User's Organizations
@@ -647,17 +677,30 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 </button>
 
                 {isTargetFilterOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-56 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-3 z-50 font-mono text-xs space-y-2">
-                    <div className="font-bold uppercase text-ink text-[0.65rem] border-b border-line pb-1">Target Environment Filters</div>
-                    <button onClick={() => { setTargetFilterRegion('ALL'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'ALL' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
-                      All Target Regions
+                  <div className="absolute left-0 top-full mt-2 w-64 bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-3 z-50 font-mono text-xs space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="font-bold uppercase text-ink text-[0.65rem] border-b border-line pb-1">Live Connected Target Regions</div>
+                    <button onClick={() => { setTargetFilterRegion('ALL'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase font-mono ${targetFilterRegion === 'ALL' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
+                      All Target Regions ({projectsData.length})
                     </button>
-                    <button onClick={() => { setTargetFilterRegion('US-EAST'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'US-EAST' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
-                      US-EAST-1 (Ohio)
-                    </button>
-                    <button onClick={() => { setTargetFilterRegion('EU-WEST'); setIsTargetFilterOpen(false); }} className={`w-full text-left px-2 py-1 uppercase ${targetFilterRegion === 'EU-WEST' ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}>
-                      EU-WEST-1 (Ireland)
-                    </button>
+                    {projectsData.length === 0 ? (
+                      <div className="p-2 bg-panel border border-line text-muted text-[0.68rem] uppercase leading-relaxed">
+                        No connected regions yet. Connect a target project to filter environments.
+                      </div>
+                    ) : (
+                      Array.from(new Set(projectsData.map(p => p.region || 'eu-west-1'))).map((reg) => {
+                        const matched = SUPABASE_ALL_REGIONS.find(r => r.code === reg);
+                        const label = matched ? matched.name : reg.toUpperCase();
+                        return (
+                          <button
+                            key={reg}
+                            onClick={() => { setTargetFilterRegion(reg); setIsTargetFilterOpen(false); }}
+                            className={`w-full text-left px-2 py-1 uppercase text-[0.68rem] truncate ${targetFilterRegion === reg ? 'bg-ink text-paper font-bold' : 'hover:bg-panel'}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 )}
               </div>
@@ -1131,7 +1174,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
                   <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
                     <div>
-                      <h3 className="font-display font-bold text-xl uppercase text-ink">Paystack Billing & Subscription Plans</h3>
+                      <h3 className="font-display font-bold text-xl uppercase text-ink">SuperBaser Pay & Subscription Plans</h3>
                       <p className="text-muted mt-1">Manage automated disaster recovery capacity and retention schedules.</p>
                     </div>
 

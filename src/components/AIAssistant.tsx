@@ -1179,6 +1179,22 @@ export default function AIAssistant({
 
     if (isListening) setIslandState({ mode: 'LIVE_WAVEFORM', payload: null });
 
+    if (lowerText.match(/create.*org|new.*org|organization.*create|add.*org/)) {
+      window.dispatchEvent(new CustomEvent('SUPERB_AI_NAVIGATE_TAB', { detail: { tab: 'organizations' } }));
+      window.dispatchEvent(new CustomEvent('SUPERB_OPEN_CREATE_ORG_MODAL'));
+      setIsTyping(false);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'Navigating to Organizations and opening the Create Organization setup modal for you now. Enter your organization name to configure your workspace.',
+        timestamp: new Date(),
+        suggestions: [
+          { id: 'create_org_modal', label: 'Open Create Modal', prompt: 'Open the Organization modal again', icon: 'database', contexts: ['console'], authRequired: true, priority: 100 }
+        ]
+      }]);
+      return;
+    }
+
     // Route to Agent WebSocket when enabled and connected
     if (AGENT_ENABLED && agentWsRef.current && agentWsRef.current.readyState === WebSocket.OPEN) {
       agentWsRef.current.send(JSON.stringify({ type: 'CHAT_MESSAGE', payload: { text, currentView } }));

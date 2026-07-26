@@ -14,7 +14,7 @@ export function PromoCodeInput({ organizationId, onRedeemed }: PromoCodeInputPro
   const handleRedeem = async () => {
     if (!code.trim()) {
       setStatus('error');
-      setMessage('Enter a promo code');
+      setMessage('Enter a valid promo code');
       return;
     }
 
@@ -45,11 +45,11 @@ export function PromoCodeInput({ organizationId, onRedeemed }: PromoCodeInputPro
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Have a promo code?
+    <div className="p-5 bg-panel border-2 border-ink shadow-[6px_6px_0_#171714] font-mono">
+      <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-ink">
+        Have a SuperBaser Promo Code?
       </label>
-      <div className="flex gap-2">
+      <div className="flex gap-3 max-sm:flex-col">
         <input
           type="text"
           value={code}
@@ -64,40 +64,34 @@ export function PromoCodeInput({ organizationId, onRedeemed }: PromoCodeInputPro
             if (e.key === 'Enter') handleRedeem();
           }}
           placeholder="SUPERBASER-PRO_LIFETIME-XXXXXX"
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm uppercase placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          className="flex-1 border-2 border-ink bg-white px-4 py-3 text-xs uppercase font-mono font-bold text-ink placeholder:text-muted/60 focus:border-orange focus:outline-none"
           disabled={status === 'validating'}
         />
         <button
           onClick={handleRedeem}
           disabled={status === 'validating' || !code.trim()}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="px-6 py-3 border-2 border-ink bg-acid text-ink font-mono font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0_#171714] hover:bg-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {status === 'validating' ? (
-            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <svg className="h-4 w-4 animate-spin mx-auto text-ink" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
           ) : (
-            'Apply'
+            'Apply ↗'
           )}
         </button>
       </div>
 
       {status === 'success' && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-green-50 p-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          {message}
+        <div className="mt-4 p-3 bg-acid border border-ink text-ink font-mono font-bold text-xs uppercase shadow-[2px_2px_0_#171714] flex items-center gap-2">
+          <span>✓</span> {message}
         </div>
       )}
 
       {status === 'error' && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-red-50 p-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-          <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          {message}
+        <div className="mt-4 p-3 bg-red-100 border border-red-500 text-red-700 font-mono font-bold text-xs uppercase flex items-center gap-2">
+          <span>✕</span> {message}
         </div>
       )}
     </div>
