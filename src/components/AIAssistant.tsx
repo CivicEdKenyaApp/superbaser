@@ -1640,11 +1640,11 @@ export default function AIAssistant({
                   value={inputValue}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask SUPERB AI...
+                  placeholder="Ask SUPERB AI..."
                   rows={1}
                   disabled={isListening || isTyping}
                   className="flex-1 bg-white border-2 border-ink rounded-2xl px-4 py-2.5 text-sm font-mono outline-none focus:shadow-[4px_4px_0_#171714] focus:-translate-y-0.5 transition-all resize-none hide-scrollbar disabled:opacity-50"
-                style={{ minHeight: '42px', maxHeight: '96px' }}
+                  style={{ minHeight: '42px', maxHeight: '96px' }}
                 />
                 <button
                   type="submit"
