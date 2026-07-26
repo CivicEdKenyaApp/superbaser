@@ -28,6 +28,7 @@ import {
 import { executeSupabaseDiscovery, DiscoveryReportPayload } from '../../server/discoveryEngine';
 import { useAuthStore } from '../lib/auth-store';
 import { supabase } from '../lib/supabase';
+import { OrgBilling } from './OrgBilling';
 import {
   listMyOrganizations,
   listProjects,
@@ -1091,6 +1092,13 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               {activeTab === 'billing' && (
                 <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
 
+                  <div className="mb-8">
+                    <OrgBilling 
+                      organizationId={activeOrgId} 
+                      onPlanChanged={() => window.location.reload()} 
+                    />
+                  </div>
+
                   <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
                     <div>
                       <h3 className="font-display font-bold text-xl uppercase text-ink">Paystack Billing & Subscription Plans</h3>
@@ -1366,6 +1374,61 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
                     <button type="submit" className="button px-5 py-3 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors cursor-pointer">
                       Save Profile Settings ↗
+                    </button>
+                  </form>
+
+                  {/* Step 6: Change Email Form */}
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const statusEl = document.getElementById('email-feedback-status');
+                      try {
+                        const formEl = e.currentTarget;
+                        const newEmail = (formEl.elements.namedItem('newEmail') as HTMLInputElement).value;
+                        const { error } = await supabase.auth.updateUser({ email: newEmail });
+                        if (error) throw error;
+                        if (statusEl) {
+                          statusEl.textContent = "✓ Confirmation links sent! Check both your current and new email inboxes to finalize the change.";
+                          statusEl.className = "p-3 bg-acid border border-ink text-ink font-mono font-bold text-xs uppercase tracking-wide";
+                        }
+                      } catch (err: any) {
+                        if (statusEl) {
+                          statusEl.textContent = "✕ Failed to update email: " + (err.message || 'Error occurred');
+                          statusEl.className = "p-3 bg-red-100 border border-ink text-red-700 font-mono font-bold text-xs uppercase tracking-wide";
+                        }
+                      }
+                    }}
+                    className="p-6 bg-panel border-2 border-ink space-y-5 max-w-xl shadow-[6px_6px_0_#171714]"
+                  >
+                    <div className="font-bold text-sm uppercase text-ink">Change Email Address</div>
+                    <div id="email-feedback-status" className="hidden" role="status" aria-live="polite"></div>
+                    <p className="text-muted text-[0.7rem] leading-relaxed">
+                      Changing your account email address requires verifying confirmation links sent to both your current address and your new address.
+                    </p>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-muted uppercase text-[0.68rem] font-bold">Current Email</label>
+                      <input
+                        type="email"
+                        disabled
+                        value={user?.email || ''}
+                        className="w-full border border-ink bg-paper/50 px-4 py-2.5 text-xs text-muted outline-none font-mono cursor-not-allowed"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-muted uppercase text-[0.68rem] font-bold">New Email Address</label>
+                      <input
+                        name="newEmail"
+                        type="email"
+                        required
+                        placeholder="new-email@example.com"
+                        className="w-full border border-ink bg-paper px-4 py-2.5 text-xs text-ink outline-none focus:border-orange font-mono"
+                      />
+                    </div>
+
+                    <button type="submit" className="button px-5 py-3 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors cursor-pointer">
+                      Request Email Update ↗
                     </button>
                   </form>
                 </div>

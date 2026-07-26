@@ -85,9 +85,11 @@ export default function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      if (session?.user && !session.user.is_anonymous) {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowAuthModal(true);
+      } else if (session?.user && !session.user.is_anonymous) {
         setShowAuthModal(false);
         setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
         checkSuperAdmin(session.user.id);

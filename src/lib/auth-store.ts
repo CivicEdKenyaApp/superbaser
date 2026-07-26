@@ -54,3 +54,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ session: null, user: null, profile: null, activeOrgId: null, organizations: [] });
   },
 }));
+
+// Step 5: Global Session Expiry & Refresh Token Listener
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+    useAuthStore.getState().setSession(null);
+  } else if (session) {
+    useAuthStore.getState().setSession(session);
+  }
+});

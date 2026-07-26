@@ -13,8 +13,9 @@ import {
   getSuperAdminOverview, listAllOrganizations, listPlanLimits,
   listWorkerHeartbeats, listAllJobs, listAllBillingEvents,
   listSuperAdminAuditLogs, listSupportEmails, getSupportEmailById,
-  getEmailRepliesForEmail,
+  getEmailRepliesForEmail
 } from '../lib/superadmin-queries';
+import { PromoAdminPanel } from './PromoAdminPanel';
 import {
   updatePlanLimit, forceFailJob, requeueJob, updateOrgPlanSuperAdmin,
   updateEmailStatus, logEmailReply, sendEmailReplyViaWorker,
@@ -736,6 +737,10 @@ function BillingView({ events, onRefresh }: { events: any[]; onRefresh: () => vo
           <span style={{ fontSize: 11, color: '#67675f' }}>{fmtDate(e.created_at)}</span>,
         ])}
       />
+      <div style={{ marginTop: 32 }}>
+        <SectionHeader title="Promo Codes Administration" subtitle="Generate and view lifetime pro access codes" onRefresh={onRefresh} />
+        <PromoAdminPanel />
+      </div>
     </div>
   );
 }
