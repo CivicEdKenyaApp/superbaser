@@ -152,9 +152,19 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [targetFilterRegion, setTargetFilterRegion] = useState('ALL');
 
   // Post-Login Onboarding & Connect Database Modal State
-  const [showOnboardingModal, setShowOnboardingModal] = useState(true);
+  const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(() => {
+    if (typeof sessionStorage === 'undefined') return false;
+    return !sessionStorage.getItem('sb_onboarding_guide_seen');
+  });
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
+
+  const dismissOnboardingGuide = () => {
+    setShowOnboardingModal(false);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('sb_onboarding_guide_seen', 'true');
+    }
+  };
 
   // Connect Database Form State
   const [targetProjectName, setTargetProjectName] = useState('');
@@ -1166,10 +1176,16 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                 <div className="bg-paper p-6 border border-ink space-y-6 font-mono text-xs">
 
                   <div className="mb-8">
-                    <OrgBilling 
-                      organizationId={activeOrgId} 
-                      onPlanChanged={() => window.location.reload()} 
-                    />
+                    {activeOrgId ? (
+                      <OrgBilling 
+                        organizationId={activeOrgId} 
+                        onPlanChanged={() => window.location.reload()} 
+                      />
+                    ) : (
+                      <div className="p-4 bg-panel border border-ink text-muted font-mono text-xs uppercase">
+                        Select or create an organization to view active billing & promo code status.
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center border-b border-line pb-4 max-sm:flex-col max-sm:items-start max-sm:gap-4">
@@ -1597,7 +1613,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
           <div className="bg-paper border-2 border-ink shadow-[12px_12px_0_#171714] w-full max-w-2xl p-8 space-y-6 font-mono relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
-                setShowOnboardingModal(false);
+                dismissOnboardingGuide();
                 if (user?.is_anonymous) {
                   window.dispatchEvent(new CustomEvent('SUPERB_SHOW_ANON_TOAST'));
                 }
@@ -1743,7 +1759,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               ) : (
                 <button
                   onClick={() => {
-                    setShowOnboardingModal(false);
+                    dismissOnboardingGuide();
                     if (user?.is_anonymous && onOpenAuthModal) {
                       onOpenAuthModal();
                     } else {

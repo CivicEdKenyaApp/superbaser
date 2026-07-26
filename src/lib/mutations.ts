@@ -3,17 +3,37 @@ import { supabase } from './supabase';
 export async function createOrganization(name: string, userId: string) {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).slice(2, 6);
 
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('create_organization_rpc', {
+      p_name: name,
+      p_slug: slug,
+    });
+    if (!rpcError && rpcData) {
+      return rpcData;
+    }
+  } catch (e) {
+    // Fallback to table insert
+  }
+
   const { data, error } = await supabase
     .from('organizations')
     .insert({
       name,
       slug,
       created_by: userId,
+      plan: 'free',
     })
     .select()
     .single();
 
   if (error) throw new Error(error.message);
+
+  await supabase.from('organization_members').insert({
+    organization_id: data.id,
+    user_id: userId,
+    role: 'owner',
+  }).catch(() => {});
+
   return data;
 }
 

@@ -348,4 +348,70 @@ BEGIN
   END IF;
 END $$;
 
+-- ─── 9. Organization Auto-Owner Membership Trigger & RPC ─────────────────────
+
+CREATE OR REPLACE FUNCTION public.handle_new_organization()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.created_by IS NOT NULL THEN
+    INSERT INTO public.organization_members (organization_id, user_id, role)
+    VALUES (NEW.id, NEW.created_by, 'owner')
+    ON CONFLICT (organization_id, user_id) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_organization_created ON public.organizations;
+CREATE TRIGGER on_organization_created
+  AFTER INSERT ON public.organizations
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_organization();
+
+-- Fallback RPC function for creating organization securely
+CREATE OR REPLACE FUNCTION public.create_organization_rpc(p_name TEXT, p_slug TEXT DEFAULT NULL)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_user_id UUID;
+  v_org_id UUID;
+  v_slug TEXT;
+  v_res JSONB;
+BEGIN
+  v_user_id := auth.uid();
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
+  v_slug := COALESCE(p_slug, lower(regexp_replace(p_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substr(md5(random()::text), 1, 4));
+
+  INSERT INTO public.organizations (name, slug, created_by, plan)
+  VALUES (p_name, v_slug, v_user_id, 'free')
+  RETURNING id INTO v_org_id;
+
+  INSERT INTO public.organization_members (organization_id, user_id, role)
+  VALUES (v_org_id, v_user_id, 'owner')
+  ON CONFLICT (organization_id, user_id) DO NOTHING;
+
+  SELECT jsonb_build_object(
+    'id', o.id,
+    'name', o.name,
+    'slug', o.slug,
+    'created_by', o.created_by,
+    'plan', o.plan,
+    'created_at', o.created_at
+  ) INTO v_res
+  FROM public.organizations o
+  WHERE o.id = v_org_id;
+
+  RETURN v_res;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_organization_rpc(TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_organization_rpc(TEXT, TEXT) TO service_role;
+
 -- ─── DONE ───────────────────────────────────────────────────────────────────
