@@ -340,21 +340,15 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         }
       }
 
-      if (!content && toolCalls && toolCalls.length > 0) {
-        content = "Processing your request...";
-      }
-
       // Send assistant message to client with parsed suggestion chips
-      if (content) {
-        this.sendToConnection(connection, {
-          type: 'ASSISTANT_MESSAGE',
-          payload: {
-            content,
-            providerUsed,
-            suggestions: parsedSuggestions
-          }
-        });
-      }
+      this.sendToConnection(connection, {
+        type: 'ASSISTANT_MESSAGE',
+        payload: {
+          content,
+          providerUsed,
+          suggestions: parsedSuggestions
+        }
+      });
 
     } catch (err: any) {
       this.sendToConnection(connection, {
@@ -398,11 +392,14 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         const apiKey = this.env[provider.apiKeyEnvVar] as string;
         if (!apiKey || apiKey === 'PLACEHOLDER_OPENROUTER_KEY') continue;
 
-        const endpoint = provider.endpoint!;
-        // Route through AI Gateway for logging, caching, guardrails (Item 6 & 18)
-        const gatewayEndpoint = `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.CF_AI_GATEWAY_ID}/${provider.name === 'groq' ? 'groq' : provider.name === 'cerebras' ? 'cerebras' : provider.name === 'deepseek' ? 'openai' : 'openai'}/chat/completions`;
+        // Route through AI Gateway if configured, otherwise use direct provider endpoint
+        const targetEndpoint = (this.env.CF_ACCOUNT_ID && this.env.CF_AI_GATEWAY_ID)
+          ? `https://gateway.ai.cloudflare.com/v1/${this.env.CF_ACCOUNT_ID}/${this.env.CF_AI_GATEWAY_ID}/${provider.name === 'groq' ? 'groq' : provider.name === 'cerebras' ? 'cerebras' : provider.name === 'deepseek' ? 'openai' : 'openai'}/chat/completions`
+          : provider.endpoint;
 
-        const response = await fetch(gatewayEndpoint, {
+        if (!targetEndpoint) continue;
+
+        const response = await fetch(targetEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1023,47 +1020,65 @@ export default {
           : [{ role: 'system', content: systemPrompt }, { role: 'user', content: text }];
 
         let responseContent = '';
-        let providerUsed = 'Workers AI';
+        let providerUsed = 'Knowledge Fallback';
 
-        // Try Workers AI first
-        try {
-          if (env.AI) {
-            const aiResp = await (env.AI as any).run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-              messages: messagesList,
-              max_tokens: 1024
-            });
-            responseContent = aiResp?.response || aiResp?.description || '';
-          }
-        } catch (aiErr: any) {
-          console.error('Workers AI execution failed in HTTP endpoint:', aiErr);
-        }
-
-        // Fallback to Groq API key in Worker secret
-        if (!responseContent && env.GROQ_API_KEY) {
+        // Multi-LLM Provider Cascade for HTTP endpoint: Cerebras -> Groq -> Workers AI -> DeepSeek -> OpenRouter
+        for (const provider of LLM_CASCADE) {
           try {
-            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            if (provider.name === 'workersAi') {
+              if (env.AI) {
+                const aiResp = await (env.AI as any).run(provider.model, {
+                  messages: messagesList,
+                  max_tokens: 1024
+                });
+                const textResp = aiResp?.response || aiResp?.description || '';
+                if (textResp) {
+                  responseContent = textResp;
+                  providerUsed = 'Workers AI';
+                  break;
+                }
+              }
+              continue;
+            }
+
+            const apiKey = env[provider.apiKeyEnvVar] as string;
+            if (!apiKey || apiKey === 'PLACEHOLDER_OPENROUTER_KEY') continue;
+
+            const targetEndpoint = (env.CF_ACCOUNT_ID && env.CF_AI_GATEWAY_ID)
+              ? `https://gateway.ai.cloudflare.com/v1/${env.CF_ACCOUNT_ID}/${env.CF_AI_GATEWAY_ID}/${provider.name === 'groq' ? 'groq' : provider.name === 'cerebras' ? 'cerebras' : provider.name === 'deepseek' ? 'openai' : 'openai'}/chat/completions`
+              : provider.endpoint;
+
+            if (!targetEndpoint) continue;
+
+            const res = await fetch(targetEndpoint, {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
-                messages: messagesList
+                model: provider.model,
+                messages: messagesList,
+                max_tokens: 1024
               })
             });
-            if (groqRes.ok) {
-              const groqData: any = await groqRes.json();
-              responseContent = groqData.choices?.[0]?.message?.content || '';
-              providerUsed = 'Groq';
+
+            if (res.ok) {
+              const data: any = await res.json();
+              const textResp = data.choices?.[0]?.message?.content || '';
+              if (textResp) {
+                responseContent = textResp;
+                providerUsed = provider.name;
+                break;
+              }
             }
-          } catch (groqErr) {
-            console.error('Groq worker fallback failed:', groqErr);
+          } catch (e) {
+            console.error(`[HTTP Cascade] Provider ${provider.name} failed:`, e);
           }
         }
 
         if (!responseContent) {
-          responseContent = 'SUPERB AI is ready to assist you. Ask me anything about database backups, R2 archival, or security pipelines!';
+          responseContent = 'SUPERB AI is ready to assist you. SuperBaser provides automated Postgres snapshots (pg_dumpall) directly to your Cloudflare R2 Vault with 1-click zero-downtime restores. Ask me anything about database backups, R2 archival, or security pipelines!';
         }
 
         let parsedSuggestions: any[] = [];

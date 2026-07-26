@@ -1171,10 +1171,6 @@ export default function AIAssistant({
         }
       } catch (e) {}
 
-      if (!rawContent && (parsedAction || parsedSuggestedActions.length > 0 || parsedIslandTrigger)) {
-        rawContent = "Processing your request...";
-      }
-
       const safeContent = sanitizeResponse(rawContent);
 
       saveManifest({ title: text.substring(0, 30), items: [safeContent.substring(0, 100)], cachedAt: new Date().toISOString() });
@@ -1212,10 +1208,11 @@ export default function AIAssistant({
         setTimeout(() => executeAction(parsedAction), 1500);
       }
     } catch (error: any) {
-      console.error(error);
+      console.error('Worker execution error:', error);
+      const fallbackContent = sanitizeResponse('');
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
-        content: `I encountered a brief issue connecting to my engine: ${error.message}. Please try asking again!`,
+        content: fallbackContent,
         timestamp: new Date(),
         suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
       }]);
