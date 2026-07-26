@@ -977,10 +977,15 @@ export default {
         const currentView = body.currentView || 'landing';
         const isAnonymous = body.isAnonymous ?? true;
 
-        if (isAnonymous && isActionQuery(text)) {
+        const isAuthRequest = /sign.?up|sign.?in|log.?in|login|signin|signup|claim.*account|create.*account|register|how.*sign.(up|in)|how.*log.in/.test(text.toLowerCase());
+
+        if (isAnonymous && (isActionQuery(text) || isAuthRequest)) {
           return new Response(JSON.stringify({
-            content: "To run manual snapshots or 1-click database restores, you just need a free SuperBaser account. Don't worry — setting it up takes less than 10 seconds!",
-            suggestions: [{ id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?' }]
+            content: "Creating or signing into your free SuperBaser account gives you 1 Connected Database, daily SuperBaser Scheduled Backups, 7-day backup retention in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don't worry — setting it up takes less than 10 seconds!",
+            suggestions: [
+              { id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?' },
+              { id: 'auth2', label: 'Sign In', prompt: 'I already have an account, how do I sign in?' }
+            ]
           }), { headers: corsHeaders });
         }
 

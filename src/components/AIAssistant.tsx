@@ -1126,8 +1126,8 @@ export default function AIAssistant({
       return;
     }
 
-    // Client-layer auth intent handler (Sign Up / Claim Account)
-    const isAuthRequest = /sign.?up|claim.*account|create.*account|register|how.*sign.up/.test(lowerText);
+    // Client-layer auth intent handler (Sign Up / Sign In / Claim Account / Auth Claims)
+    const isAuthRequest = /sign.?up|sign.?in|log.?in|login|signin|signup|claim.*account|create.*account|register|how.*sign.(up|in)|how.*log.in/.test(lowerText);
     if (isAuthRequest) {
       if (onOpenAuthModal) onOpenAuthModal();
       setMessages(prev => {
@@ -1139,7 +1139,7 @@ export default function AIAssistant({
         { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
         {
           id: Date.now().toString(), role: 'assistant',
-          content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
+          content: 'Creating or signing into your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
           timestamp: new Date(),
           suggestions: getDynamicSuggestions('landing', null),
         }
