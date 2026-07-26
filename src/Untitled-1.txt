@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="SuperBaser|Enterprise Supabase Disaster Recovery, Physical pg_dump Backups & Region-to-Region Restores. Powered by Cloudflare Containers.">
+  <meta name="keywords"
+    content="Supabase, Disaster Recovery, pg_dump, Backups, Restores, Database Backup, Cloudflare Containers, Postgres Backup, SuperBaser">
+  <meta property="og:title" content="SuperBaser — Automated Supabase Disaster Recovery & Backups">
+  <meta property="og:description"
+    content="SuperBaser|Enterprise Supabase Disaster Recovery, Physical pg_dump Backups & Region-to-Region Restores. Powered by Cloudflare Containers.">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#f1efea">
+  <title>SuperBaser — Automated Supabase Disaster Recovery & Backups</title>
+  <link rel="icon" type="image/svg+xml" href="/logo-2.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    as="style">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-bmydvdVU.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-C8N5qKRo.css">
+</head>
+
+<body>
+  <div id="root"></div>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"a5aadac7a29447a88da59e5402790b9c","r":1}' crossorigin="anonymous"></script>
+</body>
+
+</html>
