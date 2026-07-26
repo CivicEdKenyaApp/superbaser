@@ -120,7 +120,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="relative w-full max-w-md bg-paper border-2 border-ink shadow-[12px_12px_0_#171714] overflow-hidden">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-line bg-panel">

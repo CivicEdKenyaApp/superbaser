@@ -1462,8 +1462,8 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             <button
               onClick={() => {
                 setShowOnboardingModal(false);
-                if (user?.is_anonymous && onOpenAuthModal) {
-                  onOpenAuthModal();
+                if (user?.is_anonymous) {
+                  window.dispatchEvent(new CustomEvent('SUPERB_SHOW_ANON_TOAST'));
                 }
               }}
               className="absolute top-4 right-4 text-ink hover:text-neon transition-colors"
@@ -1475,7 +1475,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
               <div className="text-[0.68rem] text-neon font-bold uppercase tracking-widest">ONBOARDING GUIDE · STEP {onboardingStep} OF 3</div>
               <h3 className="font-display font-bold text-2xl uppercase tracking-tight mt-1 text-ink">
                 {onboardingStep === 1 && "1. Welcome to SuperBaser"}
-                {onboardingStep === 2 && "2. Zero-Downtime DR Architecture"}
+                {onboardingStep === 2 && "2. Zero-Downtime Recovery Architecture"}
                 {onboardingStep === 3 && "3. Connect Your Target Database"}
               </h3>
             </div>
@@ -1483,14 +1483,26 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             {onboardingStep === 1 && (
               <div className="space-y-4 text-xs leading-relaxed text-ink/90">
                 <p>
-                  SuperBaser acts as a centralized control plane for your external Supabase databases. It automates catalog inspection, physical <code>pg_dump</code> backups, cross-region restores, and storage bucket sync.
+                  SuperBaser is your automated disaster recovery platform for Supabase databases. We provide continuous automated backups, point-in-time recovery, and encrypted cloud storage vaults so your project data is always safe, protected, and instantly restorable.
                 </p>
 
                 <div className="p-4 bg-panel border border-line space-y-2">
                   <div className="font-bold uppercase text-ink">Security & Encryption Guarantee</div>
                   <p className="text-[0.72rem] text-muted">
-                    Your target database connection strings are encrypted at rest using AES-256-GCM envelope encryption before transmission. Credentials are decrypted only inside isolated backup containers.
+                    Your database connection keys are protected using AES-256-GCM envelope encryption. Credentials are only decrypted inside isolated, single-use execution runners.
                   </p>
+                </div>
+
+                <div className="p-3 bg-acid/20 border border-ink text-[0.72rem] leading-normal font-bold">
+                  {user?.is_anonymous ? (
+                    <span className="text-ink">
+                      🔒 <strong>Guest Mode Active:</strong> You are currently exploring SuperBaser in Free Temporary Guest Mode. You can navigate the dashboard and inspect sample views before upgrading to a permanent account to run live backups.
+                    </span>
+                  ) : (
+                    <span className="text-ink">
+                      ⚡ <strong>Permanent Account Active:</strong> Your permanent SuperBaser account is active. Your connected databases, automated schedules, and recovery pipelines are protected.
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -1498,15 +1510,15 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
             {onboardingStep === 2 && (
               <div className="space-y-4 text-xs leading-relaxed text-ink/90">
                 <p>
-                  Because serverless runtimes cannot execute system binaries, SuperBaser utilizes a queue-driven architecture powered by <strong>Cloudflare Containers</strong>.
+                  SuperBaser operates high-performance queue-driven backup workers built on top of our isolated <strong>SuperBaser Engine</strong>.
                 </p>
 
                 <div className="p-4 bg-panel border border-line space-y-3">
-                  <div className="font-bold uppercase text-ink">How Backups Work</div>
+                  <div className="font-bold uppercase text-ink">How SuperBaser Protection Works</div>
                   <ul className="list-disc pl-4 space-y-1.5 text-[0.72rem] text-muted">
-                    <li><strong>Queue Event:</strong> Backup jobs are enqueued in your database.</li>
-                    <li><strong>Container Execution:</strong> Cloudflare Containers execute native <code>pg_dump</code> using your direct connection string.</li>
-                    <li><strong>Cloudflare R2 Sync:</strong> Generated SQL archives are uploaded directly to Cloudflare R2 and linked to your Supabase metadata table.</li>
+                    <li><strong>Scheduled Pipelines:</strong> Automated daily (24-hr) and 1-hour snapshot jobs trigger on schedule.</li>
+                    <li><strong>Isolated Execution:</strong> SuperBaser Engine runners generate verified full SQL database backups.</li>
+                    <li><strong>Encrypted Vault Sync:</strong> SQL archives are encrypted and synced directly to SuperBaser Encrypted Storage.</li>
                   </ul>
                 </div>
               </div>

@@ -1017,7 +1017,7 @@ export default {
           : [{ role: 'system', content: systemPrompt }, { role: 'user', content: text }];
 
         let responseContent = '';
-        let providerUsed = 'Workers AI';
+        let actionPayload: any = null;
 
         // Try Workers AI first
         try {
@@ -1043,25 +1043,41 @@ export default {
               },
               body: JSON.stringify({
                 model: 'llama-3.3-70b-versatile',
-                messages: messagesList
+                messages: messagesList,
+                tools: TOOL_SCHEMAS,
+                tool_choice: 'auto'
               })
             });
             if (groqRes.ok) {
               const groqData: any = await groqRes.json();
-              responseContent = groqData.choices?.[0]?.message?.content || '';
+              const msgObj = groqData.choices?.[0]?.message;
+              responseContent = msgObj?.content || '';
               providerUsed = 'Groq';
+
+              if (msgObj?.tool_calls?.length > 0) {
+                const toolCall = msgObj.tool_calls[0];
+                if (toolCall.function?.name === 'navigate_to') {
+                  try {
+                    const args = JSON.parse(toolCall.function.arguments || '{}');
+                    actionPayload = { type: 'navigate_to', target: args.target };
+                    if (!responseContent) {
+                      responseContent = `Navigating to **${args.target}**...`;
+                    }
+                  } catch {}
+                }
+              }
             }
           } catch (groqErr) {
             console.error('Groq worker fallback failed:', groqErr);
           }
         }
 
-        if (!responseContent) {
+        if (!responseContent && !actionPayload) {
           responseContent = 'I was unable to reach my SuperBaser AI Engine right now — all providers are temporarily unavailable. Please try again in a moment.';
         }
 
         let parsedSuggestions: any[] = [];
-        const suggestionsMatch = responseContent.match(/```suggestions\s*([\s\S]*?)```/);
+        const suggestionsMatch = responseContent?.match(/```suggestions\s*([\s\S]*?)```/);
         if (suggestionsMatch) {
           try {
             parsedSuggestions = JSON.parse(suggestionsMatch[1].trim());
@@ -1072,6 +1088,7 @@ export default {
         return new Response(JSON.stringify({
           content: responseContent,
           providerUsed,
+          action: actionPayload,
           suggestions: parsedSuggestions
         }), { headers: corsHeaders });
 

@@ -18,6 +18,7 @@ import AIAssistant from './components/AIAssistant';
 import ClickSpark from './components/ClickSpark';
 import { SEO } from './components/SEO';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
+import { AnonVsPermaModal } from './components/AnonVsPermaModal';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
@@ -28,6 +29,7 @@ export default function App() {
   const [activeProjectRef, setActiveProjectRef] = useState<string>('');
   const [activeServiceRoleKey, setActiveServiceRoleKey] = useState<string>('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAnonVsPermaModal, setShowAnonVsPermaModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<string>('Pro');
   const [initialUserData, setInitialUserData] = useState<{ email: string; name: string; orgName: string; supabasePlan?: string } | undefined>(undefined);
@@ -91,6 +93,11 @@ export default function App() {
       checkAndResumePendingAction(session);
     });
 
+    const handleAnonToastEvent = () => {
+      setShowResetToast(true);
+    };
+    window.addEventListener('SUPERB_SHOW_ANON_TOAST', handleAnonToastEvent);
+
     // Keyboard shortcut: Ctrl+Shift+A → open SuperAdmin (only if is_superadmin)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
@@ -106,6 +113,7 @@ export default function App() {
       subscription.unsubscribe();
       document.removeEventListener('click', handleGlobalClick, true);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('SUPERB_SHOW_ANON_TOAST', handleAnonToastEvent);
     };
   }, [setSession]);
 
@@ -241,6 +249,13 @@ export default function App() {
   }
 
   if (currentView === 'console') {
+    // Hard route guard: completely unauthenticated users CANNOT access console
+    if (!session?.user) {
+      setCurrentView('landing');
+      setShowAuthModal(true);
+      return null;
+    }
+
     return (
       <>
         <SEO title="SuperBaser Console - Dashboard" />
@@ -260,6 +275,11 @@ export default function App() {
           onOpenAuthModal={() => setShowAuthModal(true)}
           currentView={currentView}
           onNavigate={(view, tab, anchor) => {
+            if (!session?.user && view === 'console') {
+              setShowAuthModal(true);
+              setCurrentView('landing');
+              return;
+            }
             setCurrentView(view);
             if (tab) {
               setTimeout(() => window.dispatchEvent(new CustomEvent('SUPERB_AI_NAVIGATE_TAB', { detail: { tab } })), 80);
@@ -274,6 +294,41 @@ export default function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
+        {showAuthModal && (
+          <AuthModal 
+            initialEmail={initialUserData?.email}
+            initialName={initialUserData?.name}
+            initialOrgName={initialUserData?.orgName}
+            onClose={() => setShowAuthModal(false)} 
+            onSuccess={handleAuthSuccess} 
+          />
+        )}
+        <AnonVsPermaModal
+          isOpen={showAnonVsPermaModal}
+          onClose={() => setShowAnonVsPermaModal(false)}
+          onSwitchToPermanent={() => setShowAuthModal(true)}
+        />
+        {showResetToast && (
+          <div className="fixed bottom-6 right-6 z-[999998] animate-in fade-in slide-in-from-bottom-4 duration-500 font-mono">
+            <div className="bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-4 max-w-sm flex items-start gap-4">
+              <div className="flex-1 space-y-1">
+                <h4 className="font-bold text-ink uppercase text-xs">Temporary Access Active</h4>
+                <p className="text-muted text-[0.68rem] leading-relaxed">
+                  You are using Free Temporary Access. All temporary configurations reset on browser reload.
+                </p>
+                <button
+                  onClick={() => setShowAnonVsPermaModal(true)}
+                  className="text-neon hover:underline font-bold text-[0.68rem] uppercase inline-block mt-1 cursor-pointer"
+                >
+                  Read More & Compare Perks →
+                </button>
+              </div>
+              <button onClick={() => setShowResetToast(false)} className="text-muted hover:text-ink transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
         {intentUIMode && activePendingIntent && (
           <PendingIntentUI 
             mode={intentUIMode}
@@ -370,14 +425,26 @@ export default function App() {
             />
           )}
 
+          <AnonVsPermaModal
+            isOpen={showAnonVsPermaModal}
+            onClose={() => setShowAnonVsPermaModal(false)}
+            onSwitchToPermanent={() => setShowAuthModal(true)}
+          />
+
           {showResetToast && (
-            <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="fixed bottom-6 right-6 z-[999998] animate-in fade-in slide-in-from-bottom-4 duration-500 font-mono">
               <div className="bg-paper border-2 border-ink shadow-[8px_8px_0_#171714] p-4 max-w-sm flex items-start gap-4">
                 <div className="flex-1 space-y-1">
-                  <h4 className="font-bold text-ink uppercase text-xs font-mono">Session Reset</h4>
-                  <p className="text-muted text-[0.65rem] font-mono leading-relaxed">
-                    Your temporary session was reset upon refresh. Sign up to save your progress and maintain continuous access.
+                  <h4 className="font-bold text-ink uppercase text-xs">Temporary Access Active</h4>
+                  <p className="text-muted text-[0.68rem] leading-relaxed">
+                    You are using Free Temporary Access. All temporary configurations reset on browser reload.
                   </p>
+                  <button
+                    onClick={() => setShowAnonVsPermaModal(true)}
+                    className="text-neon hover:underline font-bold text-[0.68rem] uppercase inline-block mt-1 cursor-pointer"
+                  >
+                    Read More & Compare Perks →
+                  </button>
                 </div>
                 <button onClick={() => setShowResetToast(false)} className="text-muted hover:text-ink transition-colors">
                   <X className="w-4 h-4" />
@@ -389,6 +456,11 @@ export default function App() {
             onOpenAuthModal={() => setShowAuthModal(true)}
             currentView={currentView}
             onNavigate={(view, tab, anchor) => {
+              if (!session?.user && view === 'console') {
+                setShowAuthModal(true);
+                setCurrentView('landing');
+                return;
+              }
               setCurrentView(view);
               if (tab) {
                 setTimeout(() => window.dispatchEvent(new CustomEvent('SUPERB_AI_NAVIGATE_TAB', { detail: { tab } })), 80);

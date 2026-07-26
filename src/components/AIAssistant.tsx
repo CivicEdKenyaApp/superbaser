@@ -16,8 +16,8 @@ const AGENT_WS_BASE = import.meta.env.VITE_SB_AGENT_WS_URL ?? 'wss://superbaser-
 
 // ─── Action-trigger keywords (client-side UX gate, non-authoritative) ─────────
 const ACTION_TRIGGER_KEYWORDS = [
-  'run', 'trigger', 'snapshot', 'pg_dump', 'backup', 'restore',
-  'create org', 'enqueue', 'execute', 'delete', 'drop', 'remove'
+  'run backup', 'trigger backup', 'execute restore', 'start restore',
+  'delete backup', 'drop database', 'create org', 'enqueue backup', 'enqueue restore'
 ];
 
 // ─── Wallpaper presets ────────────────────────────────────────────────────────
@@ -800,6 +800,24 @@ export default function AIAssistant({
   // ─── Navigation handler ──────────────────────────────────────────────────────
   const handleNavigation = useCallback((target: string) => {
     const resolved = resolveNavTarget(target);
+    const { user: currentUser } = useAuthStore.getState();
+
+    // Strict auth preclusion: completely unauthenticated users CANNOT navigate to console
+    if (!currentUser && resolved.view === 'console') {
+      if (onOpenAuthModal) onOpenAuthModal();
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: 'Accessing the SuperBaser Console requires an account. Please claim your free account to access your database dashboard!',
+          timestamp: new Date(),
+          suggestions: [{ id: 'claim', label: 'Claim Free Account', prompt: 'How do I sign up for SuperBaser for free?', icon: 'shield' }],
+        }
+      ]);
+      return;
+    }
+
     const isScroll = target.startsWith('landing#');
     setIsNavigating({ type: resolved.tab ? 'navigate_to' : 'scroll_to', target });
     setActiveSystemMessage(isScroll ? `Scrolling to ${target.replace('landing#','')}` : `Opening ${resolved.tab || resolved.view}...`);
@@ -827,7 +845,7 @@ export default function AIAssistant({
       setTimeout(() => setActiveSystemMessage(null), 1500);
     }, 1200);
     setIsOpen(false);
-  }, [onNavigate, currentView]);
+  }, [onNavigate, currentView, onOpenAuthModal]);
 
   // ─── Execute action (from agent tool results or JSON blobs) ─────────────────
   const executeAction = useCallback((action: { type: string; target: string }) => {
@@ -1097,15 +1115,21 @@ export default function AIAssistant({
     const isAuthRequest = /sign.?up|claim.*account|create.*account|register|how.*sign.up/.test(lowerText);
     if (isAuthRequest) {
       if (onOpenAuthModal) onOpenAuthModal();
-      setMessages(prev => [...prev,
-        { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
-        {
-          id: Date.now().toString(), role: 'assistant',
-          content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
-          timestamp: new Date(),
-          suggestions: getDynamicSuggestions('landing', null),
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === 'assistant' && (last.content.includes('free SuperBaser account') || last.content.includes('requires an account'))) {
+          return prev;
         }
-      ]);
+        return [...prev,
+          { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
+          {
+            id: Date.now().toString(), role: 'assistant',
+            content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
+            timestamp: new Date(),
+            suggestions: getDynamicSuggestions('landing', null),
+          }
+        ];
+      });
       setInputValue('');
       return;
     }
@@ -1113,15 +1137,21 @@ export default function AIAssistant({
     // Client-layer auth gate for action keywords
     if (user?.is_anonymous && isActionQuery) {
       if (onOpenAuthModal) onOpenAuthModal();
-      setMessages(prev => [...prev,
-        { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
-        {
-          id: Date.now().toString(), role: 'assistant',
-          content: 'To run SuperBaser Backups or 1-click SuperBaser Restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
-          timestamp: new Date(),
-          suggestions: getDynamicSuggestions('landing', null),
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === 'assistant' && (last.content.includes('free SuperBaser account') || last.content.includes('1-click SuperBaser Restores'))) {
+          return prev;
         }
-      ]);
+        return [...prev,
+          { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
+          {
+            id: Date.now().toString(), role: 'assistant',
+            content: 'To run SuperBaser Backups or 1-click SuperBaser Restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
+            timestamp: new Date(),
+            suggestions: getDynamicSuggestions('landing', null),
+          }
+        ];
+      });
       setInputValue('');
       return;
     }
