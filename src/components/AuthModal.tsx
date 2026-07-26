@@ -36,7 +36,17 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
         if (!initialOrgName && meta.org_name) setOrgName(meta.org_name);
       }
     });
-  }, [initialEmail, initialName, initialOrgName]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && !session.user.is_anonymous) {
+        onSuccess();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [initialEmail, initialName, initialOrgName, onSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,17 +97,14 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
         });
         if (error) throw error;
 
-        // Auto-login fallback if signUp returns session: null (guarantees session state for instant redirect)
+        // If signUp succeeded without an active session (e.g. confirmation required), reset captcha for manual login
         if (!data.session) {
-          try {
-            await supabase.auth.signInWithPassword({ 
-              email, 
-              password,
-              options: { captchaToken }
-            });
-          } catch (loginErr) {
-            // Ignore if email confirmation is required by Supabase policy
-          }
+          setIsLogin(true);
+          setError('Account created! Please enter your password to sign in.');
+          if (captchaRef.current) captchaRef.current.resetCaptcha();
+          setCaptchaToken(null);
+          setIsLoading(false);
+          return;
         }
       }
       onSuccess();
@@ -110,7 +117,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
       const msg = err.message || 'An error occurred during authentication.';
       if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('user_already_exists')) {
         setIsLogin(true);
-        setError('Account already registered! Switched to Sign In — enter password to sign in.');
+        setError('Account already registered! Switched to Sign In — complete captcha and enter password to sign in.');
       } else {
         setError(msg);
       }
@@ -120,10 +127,10 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
   };
 
   return (
-    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative w-full max-w-md bg-paper border-2 border-ink shadow-[12px_12px_0_#171714] overflow-hidden">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto py-8">
+      <div className="relative w-full max-w-md bg-paper border-2 border-ink shadow-[12px_12px_0_#171714] max-h-[90vh] flex flex-col my-auto">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-line bg-panel">
+        <div className="flex items-center justify-between p-4 border-b border-line bg-panel flex-shrink-0">
           <h2 className="font-display font-bold text-xl tracking-tight uppercase">
             {isLogin ? 'Operations Login' : 'Create Account'}
           </h2>
@@ -136,7 +143,7 @@ export default function AuthModal({ initialEmail = '', initialName = '', initial
         </div>
 
         {/* Form Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
           <p className="font-mono text-[0.7rem] uppercase tracking-widest text-muted mb-6">
             Authenticate to securely manage project backups and DR pipelines.
           </p>

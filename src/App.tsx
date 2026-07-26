@@ -72,6 +72,7 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user && !session.user.is_anonymous) {
+        setShowAuthModal(false);
         setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
         checkSuperAdmin(session.user.id);
       } else if (session?.user?.is_anonymous) {
@@ -87,6 +88,7 @@ export default function App() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user && !session.user.is_anonymous) {
+        setShowAuthModal(false);
         setCurrentView((prev) => prev === 'landing' ? 'console' : prev);
         checkSuperAdmin(session.user.id);
       }
