@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service | SuperBaser — Enterprise Supabase Disaster Recovery</title>
+  <meta name="description"
+    content="SuperBaser Terms of Service. Review the service level agreements, backup retention policies, subscription tier specifications, and disaster recovery execution guidelines.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/logo-2.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #111111;
+      --paper: #f1efea;
+      --muted: #8e8c85;
+      --acid: #d8ff37;
+      --olive: #303a09;
+      --border: rgba(216, 255, 55, 0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--paper);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--olive);
+      border-radius: 16px;
+      padding: 3rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    header {
+      border-bottom: 1px solid var(--olive);
+      padding-bottom: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: #fff;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      letter-spacing: -0.05em;
+    }
+    .brand span { color: var(--acid); }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 1rem;
+      letter-spacing: -0.03em;
+    }
+    .meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--acid);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px dashed var(--olive);
+      padding-bottom: 0.4rem;
+    }
+    p { margin-bottom: 1.25rem; color: #d5d3cc; font-size: 0.98rem; }
+    ul { margin-left: 1.5rem; margin-bottom: 1.25rem; color: #d5d3cc; }
+    li { margin-bottom: 0.5rem; }
+    code {
+      font-family: 'DM Mono', monospace;
+      background: #171714;
+      color: var(--acid);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    a { color: var(--acid); text-decoration: underline; text-underline-offset: 4px; }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--olive);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="brand">SUPER<span>BASER</span></a>
+      <h1>Terms of Service</h1>
+      <div class="meta">Effective Date: July 26, 2026 · Version 2.4</div>
+    </header>
+
+    <main>
+      <p>
+        These Terms of Service ("Terms") govern your access to and use of the <strong>SuperBaser</strong> disaster recovery platform (<a href="https://superbaser.co">superbaser.co</a>). By creating an account, connecting a Supabase project, or triggering backup and restore operations, you agree to be bound by these Terms.
+      </p>
+
+      <h2>1. Description of Service</h2>
+      <p>SuperBaser provides automated PostgreSQL database backup, snapshot vaulting, Cloudflare R2 archive storage, and 1-click zero-downtime database restoration tools designed specifically for Supabase projects.</p>
+
+      <h2>2. Core Pricing Tiers & Service Level Specs</h2>
+      <p>SuperBaser operates strictly on 3 subscription tiers:</p>
+      <ul>
+        <li><strong>Free Tier ($0/month):</strong> 1 Connected Supabase Project, 24-Hour Automated <code>pg_dump</code> schedule, 7-Day Backup Retention History, Manual Restore Trigger, Community Support.</li>
+        <li><strong>Pro Tier ($15/month):</strong> Up to 5 Connected Supabase Projects, 1-Hour Automated DB & Storage Snapshots, 30-Day Retention History, 1-Click Zero-Downtime Verified Restore, AES-256 Storage Vault, Priority Operations Support.</li>
+        <li><strong>Premium Tier ($49/month):</strong> Unlimited Connected Projects & Organizations, 15-Minute Continuous Backup Streaming, 90-Day Point-in-Time Recovery (PITR), Multi-Region Replication & Migration, Team RBAC, Audit Logging, Dedicated Worker Agent, 1-Hour Response SLA.</li>
+      </ul>
+
+      <h2>3. Account Responsibilities & Security</h2>
+      <p>You are responsible for maintaining the confidentiality of your account credentials and Supabase database connection keys. You agree not to provide invalid or unauthorized database credentials. Guest and anonymous users (<code>is_anonymous: true</code>) are strictly restricted from performing write, edit, delete, or snapshot execution actions.</p>
+
+      <h2>4. Backup Integrity & Restore Safeguards</h2>
+      <p>SuperBaser executes physical snapshots using native PostgreSQL tools (<code>pg_dumpall</code>) inside ephemeral Cloudflare Containers. While SuperBaser employs two-stage conflict verification prior to restoration, you acknowledge that initiating a restore operation into a production database modifies schema objects and table records. Destructive restore requests require explicit confirmation before execution.</p>
+
+      <h2>5. Service Availability & Limitations</h2>
+      <p>We strive to maintain 99.9% platform availability. SuperBaser is not responsible for upstream infrastructure outages on Supabase, PostgreSQL host network link failures, or Cloudflare global edge network disruptions beyond our control.</p>
+
+      <h2>6. Termination</h2>
+      <p>You may cancel your subscription or disconnect your projects at any time. Upon account termination, your stored encrypted snapshot archives will be purged in accordance with your plan's retention cycle.</p>
+
+      <h2>7. Contact Information</h2>
+      <p>For support, billing, or SLA inquiries:</p>
+      <p>
+        <strong>SuperBaser Support & Legal Operations</strong><br>
+        Email: <a href="mailto:support@superbaser.co">support@superbaser.co</a><br>
+        Website: <a href="https://superbaser.co">https://superbaser.co</a>
+      </p>
+    </main>
+
+    <footer>
+      <span>© 2026 SuperBaser · All Rights Reserved</span>
+      <a href="/">← Return to SuperBaser Home</a>
+    </footer>
+  </div>
+</body>
+
+</html>

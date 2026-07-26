@@ -9,8 +9,10 @@ export default function Footer() {
         <a className="brand text-white w-max no-underline font-display font-extrabold text-[1.3rem] leading-none tracking-[-0.06em]" href="#top">
           SUPER<svg className="w-[1.2em] h-[1.2em] inline-block -translate-y-[0.1em] text-neon fill-current stroke-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M4 14 14 3v7h6L10 21v-7H4z" /></svg>BASER
         </a>
-        <span className="footer-copy font-mono text-[0.68rem] leading-[1.5] text-[#aaa99f] uppercase max-sm:hidden">
-          Supabase Backup · Restore · Verification · Disaster Recovery
+        <span className="footer-copy font-mono text-[0.68rem] leading-[1.5] text-[#aaa99f] uppercase flex items-center gap-4 max-sm:hidden">
+          <span>Supabase Backup · Restore · Verification · Disaster Recovery</span>
+          <a href="/privacy" className="text-white hover:text-neon underline underline-offset-4 transition-colors">Privacy Policy</a>
+          <a href="/terms" className="text-white hover:text-neon underline underline-offset-4 transition-colors">Terms of Service</a>
         </span>
         <span className="footer-copy justify-self-end font-mono text-[0.68rem] leading-[1.5] text-[#aaa99f] uppercase">
           © {currentYear} ·{' '}

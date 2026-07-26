@@ -1,3 +1,5 @@
-/sitemap.xml    /sitemap_static.xml    200
-/robots.txt     /robots.txt     200
-/*             /index.html     200
+/privacy       /privacy.html       200
+/terms         /terms.html         200
+/sitemap.xml    /sitemap_static.xml 200
+/robots.txt     /robots.txt         200
+/*             /index.html         200

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | SuperBaser — Enterprise Supabase Disaster Recovery</title>
+  <meta name="description"
+    content="SuperBaser Privacy Policy. Learn how we handle Supabase database connections, AES-256 Cloudflare R2 encrypted backup archives, Google OAuth authentication, and user data telemetry.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/logo-2.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #111111;
+      --paper: #f1efea;
+      --muted: #8e8c85;
+      --acid: #d8ff37;
+      --olive: #303a09;
+      --border: rgba(216, 255, 55, 0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--paper);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--olive);
+      border-radius: 16px;
+      padding: 3rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    header {
+      border-bottom: 1px solid var(--olive);
+      padding-bottom: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: #fff;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      letter-spacing: -0.05em;
+    }
+    .brand span { color: var(--acid); }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 1rem;
+      letter-spacing: -0.03em;
+    }
+    .meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--acid);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px dashed var(--olive);
+      padding-bottom: 0.4rem;
+    }
+    p { margin-bottom: 1.25rem; color: #d5d3cc; font-size: 0.98rem; }
+    ul { margin-left: 1.5rem; margin-bottom: 1.25rem; color: #d5d3cc; }
+    li { margin-bottom: 0.5rem; }
+    code {
+      font-family: 'DM Mono', monospace;
+      background: #171714;
+      color: var(--acid);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    a { color: var(--acid); text-decoration: underline; text-underline-offset: 4px; }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--olive);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="brand">SUPER<span>BASER</span></a>
+      <h1>Privacy Policy</h1>
+      <div class="meta">Effective Date: July 26, 2026 · Version 2.4</div>
+    </header>
+
+    <main>
+      <p>
+        At <strong>SuperBaser</strong> (accessible from <a href="https://superbaser.co">superbaser.co</a>), we take the security, integrity, and privacy of your Supabase database infrastructure and account credential data with the utmost importance. This Privacy Policy details how we collect, store, encrypt, and process information when you interact with our platform.
+      </p>
+
+      <h2>1. Information We Collect & Process</h2>
+      <p>SuperBaser operates as a zero-trust disaster recovery orchestration service. We process the following categories of data:</p>
+      <ul>
+        <li><strong>Account & Identity Data:</strong> Your name, email address, and authentication tokens provided when signing up directly or authenticating via Google OAuth or GitHub OAuth.</li>
+        <li><strong>Supabase Project Connection Data:</strong> Direct PostgreSQL database host connection parameters (Port 5432 SSL strings, project reference IDs, and service role keys). These parameters are stored strictly using AES-256 column-level encryption in Supabase production database tables protected by Row Level Security (RLS).</li>
+        <li><strong>Backup Dumps & Archives:</strong> Physical <code>pg_dumpall</code> snapshot files generated by Cloudflare Container tasks. All backup archives are encrypted at rest with AES-256 and stored in isolated Cloudflare R2 object storage vaults.</li>
+        <li><strong>Telemetry & Execution Logs:</strong> Container run status, job duration, snapshot byte counts, and operational failure codes strictly for error reporting and dashboard metrics.</li>
+      </ul>
+
+      <h2>2. How We Use Google User Data</h2>
+      <p>When you authenticate using <strong>Sign in with Google</strong>:</p>
+      <ul>
+        <li>We access only your basic Google account profile information (email address, full name, and avatar URL).</li>
+        <li>We do <strong>NOT</strong> request or read any restricted Google user scopes (e.g., Google Drive, Gmail, Contacts).</li>
+        <li>Your Google email is used solely to associate your account with your connected Supabase project backups and organization RBAC roles.</li>
+        <li>We do not share, sell, or monetize your Google account data with third parties or advertising brokers.</li>
+      </ul>
+
+      <h2>3. Security & Zero-Trust Architecture</h2>
+      <p>SuperBaser enforces strict security boundaries:</p>
+      <ul>
+        <li><strong>Ephemeral Execution:</strong> Database backup and restore commands (<code>pg_dumpall</code> / <code>psql</code>) execute inside short-lived, isolated Cloudflare Container sandboxes that terminate immediately after job completion.</li>
+        <li><strong>Encryption at Rest & in Transit:</strong> All TLS connections enforce TLS 1.3. Snapshot archives are stored in Cloudflare R2 with AES-256 server-side encryption.</li>
+        <li><strong>Anonymous User Guards:</strong> Anonymous users (<code>is_anonymous: true</code>) are strictly blocked by PostgreSQL RLS policies from performing read, write, update, or backup operations.</li>
+      </ul>
+
+      <h2>4. Data Retention & Deletion</h2>
+      <p>Backup snapshot retention is governed by your active subscription plan:</p>
+      <ul>
+        <li><strong>Free Tier:</strong> 7-day automated rolling retention history.</li>
+        <li><strong>Pro Tier:</strong> 30-day automated rolling retention history.</li>
+        <li><strong>Premium Tier:</strong> Up to 90-day Point-in-Time Recovery (PITR) history.</li>
+      </ul>
+      <p>You may request full deletion of your connected projects, snapshot archives, and account profile at any time by contacting our security team.</p>
+
+      <h2>5. Cookies & Local Storage</h2>
+      <p>SuperBaser uses local browser storage (<code>localStorage</code> / <code>sessionStorage</code>) exclusively to store your UI theme preference (<code>sb_theme</code>) and active authentication session token. We do not use third-party tracking cookies.</p>
+
+      <h2>6. Contact Us</h2>
+      <p>For security inquiries, data protection requests, or disaster recovery compliance audits, reach out to our team at:</p>
+      <p>
+        <strong>SuperBaser Security & Operations</strong><br>
+        Email: <a href="mailto:support@superbaser.co">support@superbaser.co</a><br>
+        Website: <a href="https://superbaser.co">https://superbaser.co</a>
+      </p>
+    </main>
+
+    <footer>
+      <span>© 2026 SuperBaser · All Rights Reserved</span>
+      <a href="/">← Return to SuperBaser Home</a>
+    </footer>
+  </div>
+</body>
+
+</html>
