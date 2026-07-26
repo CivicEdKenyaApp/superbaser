@@ -40,13 +40,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setActiveOrgId: (orgId) => set({ activeOrgId: orgId }),
   setOrganizations: (orgs) => set({ organizations: orgs }),
   fetchProfile: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    if (!error && data) {
-      set({ profile: data });
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      if (!error && data) {
+        set({ profile: data });
+      } else {
+        // Fallback display profile if table row is missing
+        const u = get().user;
+        if (u) {
+          set({
+            profile: {
+              id: u.id,
+              email: u.email || '',
+              display_name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User',
+              avatar_url: '',
+            }
+          });
+        }
+      }
+    } catch {
+      // Ignore profile fetch failure
     }
   },
   signOut: async () => {

@@ -80,11 +80,41 @@ const renderBoringAvatar = (name: string, size = 32) => {
   );
 };
 
+const VALID_TABS = [
+  'dashboard', 'projects', 'backups', 'restores', 'schedules',
+  'verification', 'storage', 'logs', 'organizations', 'billing', 'settings', 'support'
+];
+
+const getTabFromLocation = (): any => {
+  const path = window.location.pathname.toLowerCase();
+  if (path.startsWith('/dashboard/')) {
+    const sub = path.replace('/dashboard/', '').split('/')[0];
+    if (VALID_TABS.includes(sub)) return sub;
+  }
+  return 'dashboard';
+};
+
 export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal, onTriggerIntercept }: DashboardConsoleProps) {
   const activeProject = projectRef;
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings' | 'support'
-  >('dashboard');
+  >(getTabFromLocation);
+
+  const changeTab = (tabName: typeof activeTab) => {
+    setActiveTab(tabName);
+    const targetPath = tabName === 'dashboard' ? '/dashboard' : `/dashboard/${tabName}`;
+    if (window.location.pathname.toLowerCase() !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTab(getTabFromLocation());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const { user, profile, organizations, setOrganizations, activeOrgId, setActiveOrgId, signOut } = useAuthStore();
 
@@ -642,9 +672,9 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
                     key={item.id}
                     onClick={() => {
                       if (organizations.length === 0 && !['organizations', 'billing', 'settings', 'support'].includes(item.id)) {
-                        setActiveTab('organizations');
+                        changeTab('organizations');
                       } else {
-                        setActiveTab(item.id as any);
+                        changeTab(item.id as any);
                       }
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border transition-all duration-200 ${isActive

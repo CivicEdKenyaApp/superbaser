@@ -23,8 +23,15 @@ import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
 
 import { savePendingAction, getPendingAction, clearPendingAction, recordInteraction } from './lib/pending-intent';
+const getViewFromLocation = (): 'landing' | 'console' | 'superadmin' => {
+  const path = window.location.pathname.toLowerCase();
+  if (path.startsWith('/superadmin')) return 'superadmin';
+  if (path.startsWith('/dashboard') || path === '/console') return 'console';
+  return 'landing';
+};
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'console' | 'superadmin'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'console' | 'superadmin'>(getViewFromLocation);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [activeProjectRef, setActiveProjectRef] = useState<string>('');
   const [activeServiceRoleKey, setActiveServiceRoleKey] = useState<string>('');
@@ -44,7 +51,23 @@ export default function App() {
 
   useEffect(() => {
     sessionStorage.setItem('sb_last_view', currentView);
+    const path = window.location.pathname.toLowerCase();
+    if (currentView === 'console' && !path.startsWith('/dashboard')) {
+      window.history.pushState(null, '', '/dashboard');
+    } else if (currentView === 'superadmin' && !path.startsWith('/superadmin')) {
+      window.history.pushState(null, '', '/superadmin');
+    } else if (currentView === 'landing' && (path.startsWith('/dashboard') || path.startsWith('/superadmin'))) {
+      window.history.pushState(null, '', '/');
+    }
   }, [currentView]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentView(getViewFromLocation());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {

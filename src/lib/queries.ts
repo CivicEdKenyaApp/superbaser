@@ -1,17 +1,26 @@
 import { supabase } from './supabase';
 
 export async function listMyOrganizations(userId: string) {
-  const { data, error } = await supabase
-    .from("organization_members")
-    .select("role, organizations:organization_id(id, name, slug, plan, created_at)")
-    .eq("user_id", userId);
+  try {
+    const { data, error } = await supabase
+      .from("organization_members")
+      .select("role, organizations:organization_id(id, name, slug, plan, created_at)")
+      .eq("user_id", userId);
+      
+    if (error) {
+      console.warn("listMyOrganizations notice:", error.message);
+      return [];
+    }
     
-  if (error) throw new Error(error.message);
-  
-  return (data ?? []).map((row) => ({
-    role: row.role,
-    organization: Array.isArray(row.organizations) ? row.organizations[0] : row.organizations,
-  }));
+    return (data ?? [])
+      .filter((row: any) => row && row.organizations)
+      .map((row: any) => ({
+        role: row.role,
+        organization: Array.isArray(row.organizations) ? row.organizations[0] : row.organizations,
+      }));
+  } catch {
+    return [];
+  }
 }
 
 export async function listProjects(organizationId: string) {
