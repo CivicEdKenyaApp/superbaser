@@ -1,116 +1,107 @@
-Viewed index.html:1-37
+<!doctype html>
+<html lang="en" class="dark no-js">
 
-Here is the **full, un-shortened, max-depth production specification** for `index.html`. Every single schema item,
-OpenGraph variant, preconnect origin, `<noscript>` crawlable section, and theme script is fully written out with zero
-  shortcuts or placeholders.
+<head>
+  <!-- THEME INIT: Blocking inline execution before initial DOM paint to eliminate white flash -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("sb_theme");
+        var prefersDark = true; // SuperBaser is dark-mode biased by design
+        var theme = saved || "dark";
+        document.documentElement.classList.remove("light", "dark", "no-js");
+        document.documentElement.classList.add(theme, "js");
+        document.documentElement.style.setProperty(
+          "--initial-bg",
+          theme === "dark" ? "#0a0a0a" : "#f1efea"
+        );
+      } catch (e) { }
+    })();
+  </script>
 
-  ---
+  <!-- Base & Architecture Meta Tags -->
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-  ```html
-  <!doctype html>
-  <html lang="en" class="dark no-js">
+  <!-- Search Engine Verification -->
+  <meta name="google-site-verification" content="SuperBaser-Disaster-Recovery-Verification-Code" />
 
-  <head>
-    <!-- THEME INIT: Blocking inline execution before initial DOM paint to eliminate white flash -->
-    <script>
-      (function () {
-        try {
-          var saved = localStorage.getItem("sb_theme");
-          var prefersDark = true; // SuperBaser is dark-mode biased by design
-          var theme = saved || "dark";
-          document.documentElement.classList.remove("light", "dark", "no-js");
-          document.documentElement.classList.add(theme, "js");
-          document.documentElement.style.setProperty(
-            "--initial-bg",
-            theme === "dark" ? "#0a0a0a" : "#f1efea"
-          );
-        } catch (e) { }
-      })();
-    </script>
+  <!-- Primary Metadata -->
+  <title>SuperBaser | Recover Supabase Backups, Snapshot Engine & Zero-Downtime Restores</title>
+  <meta name="description"
+    content="Enterprise Supabase disaster recovery platform. Physical pg_dump backups, Cloudflare R2 AES-256 encrypted vault sync, continuous log streaming, and 1-click zero-downtime restores for Postgres databases & storage buckets." />
+  <meta name="keywords"
+    content="Supabase, Disaster Recovery, paused project, pg_dump, Backups, Restores, Database Backup, Cloudflare Containers, Postgres Backup, SuperBaser, Cloudflare R2, Point-in-Time Recovery, PITR, Database Replication, Supabase Backup Tool, Supabase Migration, Database Snapshot, Automated pg_dumpall, Table Editor Backup" />
+  <meta name="author" content="SuperBaser Operations" />
 
-    <!-- Base & Architecture Meta Tags -->
-    <meta charset="UTF-8" />
-    <base href="/" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Browser UI & PWA Theme Colors -->
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="msapplication-TileColor" content="#0a0a0a" />
 
-    <!-- Search Engine Verification -->
-    <meta name="google-site-verification" content="SuperBaser-Disaster-Recovery-Verification-Code" />
+  <!-- Open Graph / Facebook Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SuperBaser" />
+  <meta property="og:url" content="https://superbaser.co/" />
+  <meta property="og:title" content="SuperBaser — Automated Supabase Disaster Recovery & Backups" />
+  <meta property="og:description"
+    content="Enterprise Supabase Disaster Recovery, Physical pg_dump Backups & Region-to-Region Restores. Powered by Cloudflare Containers & R2 Encrypted Storage Vault." />
 
-    <!-- Primary Metadata -->
-    <title>SuperBaser | Recover Supabase Backups, Snapshot Engine & Zero-Downtime Restores</title>
-    <meta name="description"
-      content="Enterprise Supabase disaster recovery platform. Physical pg_dump backups, Cloudflare R2 AES-256 encrypted vault sync, continuous log streaming, and 1-click zero-downtime restores for Postgres databases & storage buckets." />
-    <meta name="keywords"
-      content="Supabase, Disaster Recovery, paused project, pg_dump, Backups, Restores, Database Backup, Cloudflare Containers, Postgres Backup, SuperBaser, Cloudflare R2, Point-in-Time Recovery, PITR, Database Replication, Supabase Backup Tool, Supabase Migration, Database Snapshot, Automated pg_dumpall, Table Editor Backup" />
-    <meta name="author" content="SuperBaser Operations" />
+  <!-- OG Images (Multiple Variants for Social Platform Pickers) -->
+  <meta property="og:image" content="https://superbaser.co/social.png" />
+  <meta property="og:image:secure_url" content="https://superbaser.co/social.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SuperBaser | Supabase Disaster Recovery & Automated Snapshot Vault" />
 
-    <!-- Browser UI & PWA Theme Colors -->
-    <meta name="theme-color" content="#0a0a0a" />
-    <meta name="msapplication-TileColor" content="#0a0a0a" />
+  <meta property="og:image" content="https://superbaser.co/logo-2.svg" />
+  <meta property="og:image:type" content="image/svg+xml" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="SuperBaser Brand Mark" />
 
-    <!-- Open Graph / Facebook Meta Tags -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="SuperBaser" />
-    <meta property="og:url" content="https://superbaser.co/" />
-    <meta property="og:title" content="SuperBaser — Automated Supabase Disaster Recovery & Backups" />
-    <meta property="og:description"
-      content="Enterprise Supabase Disaster Recovery, Physical pg_dump Backups & Region-to-Region Restores. Powered by Cloudflare Containers & R2 Encrypted Storage Vault." />
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@SuperBaser" />
+  <meta name="twitter:creator" content="@SuperBaser" />
+  <meta name="twitter:title" content="SuperBaser | Recover Supabase Backups Fast & Easy" />
+  <meta name="twitter:description"
+    content="Automated Postgres pg_dump snapshots, AES-256 Cloudflare R2 vault sync, and 1-click database restores for Supabase infrastructure." />
+  <meta name="twitter:image" content="https://superbaser.co/social.png" />
+  <meta name="twitter:image:alt" content="SuperBaser | Supabase Disaster Recovery & Vault Sync" />
 
-    <!-- OG Images (Multiple Variants for Social Platform Pickers) -->
-    <meta property="og:image" content="https://superbaser.co/social.png" />
-    <meta property="og:image:secure_url" content="https://superbaser.co/social.png" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="SuperBaser | Supabase Disaster Recovery & Automated Snapshot Vault" />
+  <!-- Geographic & Localization Meta Tags -->
+  <meta name="geo.region" content="US" />
+  <meta name="geo.placename" content="Cloudflare Global Edge Network" />
+  <meta http-equiv="content-language" content="en" />
+  <meta name="language" content="English" />
+  <meta name="locale" content="en_US" />
 
-    <meta property="og:image" content="https://superbaser.co/logo-2.svg" />
-    <meta property="og:image:type" content="image/svg+xml" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:image:alt" content="SuperBaser Brand Mark" />
+  <!-- Search Engine Indexing Directives -->
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
 
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@SuperBaser" />
-    <meta name="twitter:creator" content="@SuperBaser" />
-    <meta name="twitter:title" content="SuperBaser | Recover Supabase Backups Fast & Easy" />
-    <meta name="twitter:description"
-      content="Automated Postgres pg_dump snapshots, AES-256 Cloudflare R2 vault sync, and 1-click database restores for Supabase infrastructure." />
-    <meta name="twitter:image" content="https://superbaser.co/social.png" />
-    <meta name="twitter:image:alt" content="SuperBaser | Supabase Disaster Recovery & Vault Sync" />
+  <!-- Performance Optimization: Preconnect & Preload Critical Origins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://vkepcsrjgeyquzmvwvmf.supabase.co" crossorigin />
+  <link rel="preconnect" href="https://superbaser-agent.saemscodes.workers.dev" crossorigin />
 
-    <!-- Geographic & Localization Meta Tags -->
-    <meta name="geo.region" content="US" />
-    <meta name="geo.placename" content="Cloudflare Global Edge Network" />
-    <meta http-equiv="content-language" content="en" />
-    <meta name="language" content="English" />
-    <meta name="locale" content="en_US" />
+  <!-- Typography: Syne (display), Manrope (body), DM Mono (monospace/tokens) -->
+  <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    as="style" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet" />
 
-    <!-- Search Engine Indexing Directives -->
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <!-- Icons & Manifest -->
+  <link rel="icon" type="image/svg+xml" href="/logo-2.svg" />
+  <link rel="apple-touch-icon" href="/logo-2.svg" />
 
-    <!-- Performance Optimization: Preconnect & Preload Critical Origins -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://vkepcsrjgeyquzmvwvmf.supabase.co" crossorigin />
-    <link rel="preconnect" href="https://superbaser-agent.saemscodes.workers.dev" crossorigin />
-
-    <!-- Typography: Syne (display), Manrope (body), DM Mono (monospace/tokens) -->
-    <link rel="preload"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
-      as="style" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
-      rel="stylesheet" />
-
-    <!-- Icons & Manifest -->
-    <link rel="icon" type="image/svg+xml" href="/logo-2.svg" />
-    <link rel="apple-touch-icon" href="/logo-2.svg" />
-
-    <!-- MASSIVE STRUCTURED DATA FOR SEARCH ENGINE INDEXING & KNOWLEDGE GRAPH -->
-    <script type="application/ld+json">
+  <!-- MASSIVE STRUCTURED DATA FOR SEARCH ENGINE INDEXING & KNOWLEDGE GRAPH -->
+  <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
@@ -228,62 +219,62 @@ OpenGraph variant, preconnect origin, `<noscript>` crawlable section, and theme 
         ]
       }
     </script>
-  </head>
+</head>
 
-  <body>
-    <!-- JavaScript Fallback for Search Engine Crawlers & Non-JS Agents -->
-    <noscript>
-      <div
-        style="padding: 2.5rem; max-width: 900px; margin: 0 auto; background-color: #0a0a0a; color: #f1efea; font-family: sans-serif; line-height: 1.6; border: 2px solid #303a09;">
-        <h1 style="color: #d8ff37; text-transform: uppercase;">SuperBaser: Supabase Disaster Recovery & Snapshot Vault
-        </h1>
-        <p>
-          SuperBaser is an enterprise disaster recovery platform for Supabase projects. Powered by Cloudflare Workers,
-          Cloudflare Containers, and Cloudflare R2 Storage Vaults, SuperBaser provides automated Postgres physical
-          snapshots, AES-256 encrypted archives, continuous log streaming, and 1-click zero-downtime restores.
-        </p>
+<body>
+  <!-- JavaScript Fallback for Search Engine Crawlers & Non-JS Agents -->
+  <noscript>
+    <div
+      style="padding: 2.5rem; max-width: 900px; margin: 0 auto; background-color: #0a0a0a; color: #f1efea; font-family: sans-serif; line-height: 1.6; border: 2px solid #303a09;">
+      <h1 style="color: #d8ff37; text-transform: uppercase;">SuperBaser: Supabase Disaster Recovery & Snapshot Vault
+      </h1>
+      <p>
+        SuperBaser is an enterprise disaster recovery platform for Supabase projects. Powered by Cloudflare Workers,
+        Cloudflare Containers, and Cloudflare R2 Storage Vaults, SuperBaser provides automated Postgres physical
+        snapshots, AES-256 encrypted archives, continuous log streaming, and 1-click zero-downtime restores.
+      </p>
 
-        <h2>Core Platform Features</h2>
-        <ul>
-          <li><strong>Automated pg_dumpall Snapshots:</strong> Ephemeral Cloudflare Container execution for physical
-            PostgreSQL backups.</li>
-          <li><strong>Cloudflare R2 Vault Sync:</strong> AES-256 encrypted object storage for database dumps and storage
-            buckets.</li>
-          <li><strong>1-Click Zero-Downtime Restores:</strong> Two-stage psql ingestion pipeline with conflict checking.
-          </li>
-          <li><strong>Point-in-Time Recovery (PITR):</strong> Continuous 15-minute log streaming and 90-day recovery
-            windows.</li>
-        </ul>
+      <h2>Core Platform Features</h2>
+      <ul>
+        <li><strong>Automated pg_dumpall Snapshots:</strong> Ephemeral Cloudflare Container execution for physical
+          PostgreSQL backups.</li>
+        <li><strong>Cloudflare R2 Vault Sync:</strong> AES-256 encrypted object storage for database dumps and storage
+          buckets.</li>
+        <li><strong>1-Click Zero-Downtime Restores:</strong> Two-stage psql ingestion pipeline with conflict checking.
+        </li>
+        <li><strong>Point-in-Time Recovery (PITR):</strong> Continuous 15-minute log streaming and 90-day recovery
+          windows.</li>
+      </ul>
 
-        <h2>SuperBaser Core Pricing Tiers</h2>
-        <h3>1. Free Tier ($0/mo)</h3>
-        <p>1 Connected Supabase Project • 24-Hour Daily Automated pg_dump • 7-Day Backup Retention • Manual Restore
-          Trigger.</p>
+      <h2>SuperBaser Core Pricing Tiers</h2>
+      <h3>1. Free Tier ($0/mo)</h3>
+      <p>1 Connected Supabase Project • 24-Hour Daily Automated pg_dump • 7-Day Backup Retention • Manual Restore
+        Trigger.</p>
 
-        <h3>2. Pro Tier ($15/mo)</h3>
-        <p>Up to 5 Connected Supabase Projects • 1-Hour Automated Snapshots • 30-Day Retention • 1-Click Zero-Downtime
-          Verified Restore • AES-256 Storage Vault.</p>
+      <h3>2. Pro Tier ($15/mo)</h3>
+      <p>Up to 5 Connected Supabase Projects • 1-Hour Automated Snapshots • 30-Day Retention • 1-Click Zero-Downtime
+        Verified Restore • AES-256 Storage Vault.</p>
 
-        <h3>3. Premium Tier ($49/mo)</h3>
-        <p>Unlimited Connected Projects & Organizations • 15-Minute Continuous Backup Streaming • 90-Day Point-in-Time
-          Recovery (PITR) • Multi-Region Replication • Dedicated Worker Agent.</p>
+      <h3>3. Premium Tier ($49/mo)</h3>
+      <p>Unlimited Connected Projects & Organizations • 15-Minute Continuous Backup Streaming • 90-Day Point-in-Time
+        Recovery (PITR) • Multi-Region Replication • Dedicated Worker Agent.</p>
 
-        <h2>Platform Console Subpages</h2>
-        <p>Dashboard (#dashboard) • Projects (#projects) • Backups (#backups) • Restores (#restores) • Schedules
-          (#schedules) • Verification (#verification) • Storage (#storage) • Logs (#logs) • Organizations
-          (#organizations) • Billing (#billing) • Settings (#settings) • Support (#support)</p>
+      <h2>Platform Console Subpages</h2>
+      <p>Dashboard (#dashboard) • Projects (#projects) • Backups (#backups) • Restores (#restores) • Schedules
+        (#schedules) • Verification (#verification) • Storage (#storage) • Logs (#logs) • Organizations
+        (#organizations) • Billing (#billing) • Settings (#settings) • Support (#support)</p>
 
-        <p style="margin-top: 2rem;">
-          <a href="https://superbaser.co" style="color: #d8ff37; font-weight: bold;">Launch SuperBaser Production App
-            ↗</a>
-        </p>
-      </div>
-    </noscript>
+      <p style="margin-top: 2rem;">
+        <a href="https://superbaser.co" style="color: #d8ff37; font-weight: bold;">Launch SuperBaser Production App
+          ↗</a>
+      </p>
+    </div>
+  </noscript>
 
-    <!-- React SPA Mounting Container -->
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- React SPA Mounting Container -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 
-  </html>
-  ```
+</html>
+```
