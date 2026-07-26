@@ -20,16 +20,37 @@ const ACTION_TRIGGER_KEYWORDS = [
   'delete backup', 'drop database', 'create org', 'enqueue backup', 'enqueue restore'
 ];
 
-// ─── Wallpaper presets ────────────────────────────────────────────────────────
-const WALLPAPER_PRESETS = [
-  { id: 'default', label: 'Default',  value: null,                                              preview: '#111111' },
-  { id: 'cosmos',  label: 'Cosmos',   value: 'linear-gradient(160deg,#0f0c29,#302b63,#24243e)', preview: '#302b63' },
-  { id: 'acid',    label: 'Acid',     value: 'linear-gradient(160deg,#0a1200,#1a2f00,#0a1200)', preview: '#1a2f00' },
-  { id: 'ember',   label: 'Ember',    value: 'linear-gradient(160deg,#1a0800,#3d1500,#1a0800)', preview: '#3d1500' },
-  { id: 'nebula',  label: 'Nebula',   value: 'linear-gradient(160deg,#1a0020,#2d0035,#0d0015)', preview: '#2d0035' },
-  { id: 'ocean',   label: 'Ocean',    value: 'linear-gradient(160deg,#000d1a,#00243d,#000d1a)', preview: '#00243d' },
-];
-const WP_STORAGE_KEY = 'superbaser_chat_wallpaper';
+// ─── SVG Helper Components for Status Indicators ──────────────────────────────
+function ConnectAgentIcon({ connected }: { connected: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className={connected ? 'text-neon' : 'text-white/40'}>
+      <path d="M17,12H14.15a6.25,6.25,0,0,0-6.21,5H2v2H7.93a6.22,6.22,0,0,0,6.22,5H17Z" fill="currentColor" />
+      <path d="M28.23,17A6.25,6.25,0,0,0,22,12H19V24h3a6.22,6.22,0,0,0,6.22-5H34V17Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function WifiStatusIcon({ isOnline, isLowBandwidth }: { isOnline: boolean; isLowBandwidth: boolean }) {
+  if (!isOnline) {
+    return (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-orange">
+        <path d="M17.8506 11.5442C17.0475 10.6829 16.0641 10.0096 14.9707 9.57227M20.7759 8.81625C19.5712 7.52437 18.0961 6.51439 16.4561 5.8584C14.816 5.20241 13.0514 4.91635 11.2881 5.02111M8.34277 14.5905C8.95571 13.9332 9.73448 13.4532 10.5971 13.2012C11.4598 12.9491 12.3745 12.9335 13.2449 13.1574M6.14941 11.5438C7.09778 10.5268 8.29486 9.77461 9.62259 9.36133M3.22363 8.81604C4.1215 7.85319 5.17169 7.04466 6.33211 6.42285M4.41406 4L18.5562 18.1421M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  if (isLowBandwidth) {
+    return (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400">
+        <path d="M8.34277 14.5898C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1445 11.2995 13.0024 11.9826 13C12.6656 12.9976 13.3418 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5645M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  }
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neon">
+      <path d="M8.34277 14.5899C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1446 11.2995 13.0025 11.9826 13.0001C12.6656 12.9977 13.3419 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1066 8.79745 9.66902C9.79893 9.23148 10.8793 9.00389 11.9721 9.00007C13.065 8.99626 14.1466 9.21651 15.1511 9.64704C16.1556 10.0776 17.0617 10.7094 17.8127 11.5035M3.22363 8.81635C4.34165 7.61742 5.69347 6.66028 7.19569 6.00398C8.69791 5.34768 10.3179 5.0058 11.9572 5.00007C13.5966 4.99435 15.2208 5.32472 16.7276 5.97052C18.2344 6.61632 19.5931 7.56458 20.7195 8.75568M12 19.0001C11.4477 19.0001 11 18.5524 11 18.0001C11 17.4478 11.4477 17.0001 12 17.0001C12.5523 17.0001 13 17.4478 13 18.0001C13 18.5524 12.5523 19.0001 12 19.0001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
 // ─── Full PAGE_DICTIONARY: every navigable destination ───────────────────────
 // Key = any natural-language phrase the user/LLM might say
@@ -753,15 +774,12 @@ export default function AIAssistant({
   const [activeSystemMessage, setActiveSystemMessage] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState<{ type: string; target: string } | null>(null);
   const [fabIsIdle, setFabIsIdle] = useState(false);
-  const [showPersonalize, setShowPersonalize] = useState(false);
-  const [chatWallpaper, setChatWallpaper] = useState<string | null>(null);
   const agentWsRef = useRef<WebSocket | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   const hasSentRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const wpFileInputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState('');
 
   // Compute initial suggestions based on current view + auth state
@@ -1338,47 +1356,41 @@ export default function AIAssistant({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 {isDegradedMode && (
-                  <div className="flex items-center gap-1 text-[0.60rem] font-mono uppercase bg-orange/20 px-2 py-0.5 rounded-full border border-orange/40">
-                    <AlertTriangle className="w-3 h-3 text-orange" />
-                    <span className="text-orange">Degraded</span>
+                  <div title="Degraded connection" className="flex items-center justify-center w-7 h-7 rounded-full bg-orange/20 border border-orange/40">
+                    <AlertTriangle className="w-3.5 h-3.5 text-orange" />
                   </div>
                 )}
                 {AGENT_ENABLED && (
                   <div
-                    title={agentConnected ? 'Agent WebSocket connected — real-time job tracking active' : 'Connecting to SUPERB AI agent… Using HTTP fallback'}
-                    className={`flex items-center gap-1 text-[0.60rem] font-mono uppercase px-2 py-0.5 rounded-full border cursor-default select-none ${agentConnected ? 'bg-neon/10 border-neon/40 text-neon' : 'bg-white/10 border-white/20 text-white/50'}`}
+                    title={agentConnected ? 'SuperBaser Agent Active' : 'Connecting to Agent… Using HTTP fallback'}
+                    className={`flex items-center justify-center w-7 h-7 rounded-full border transition-all ${agentConnected ? 'bg-neon/10 border-neon/40 text-neon' : 'bg-white/5 border-white/20 text-white/40'}`}
                   >
-                    <span>{agentConnected ? 'Agent' : 'Agent ↻'}</span>
+                    <ConnectAgentIcon connected={agentConnected} />
                   </div>
                 )}
-                <div className="flex items-center gap-1 text-[0.65rem] font-mono uppercase bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
-                  {isOnline ? <Wifi className="w-3 h-3 text-[#d8ff37]" /> : <WifiOff className="w-3 h-3 text-orange" />}
-                  <span>{isOnline ? (isLowBandwidth ? 'Low BW' : 'Online') : 'Offline'}</span>
+                <div
+                  title={isOnline ? (isLowBandwidth ? 'Slow connection (Low BW)' : 'Online') : 'Offline'}
+                  className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 border border-white/20"
+                >
+                  <WifiStatusIcon isOnline={isOnline} isLowBandwidth={isLowBandwidth} />
                 </div>
                 {/* Pure-SVG mute toggle */}
                 <button
                   onClick={() => { setIsMuted(m => !m); if (!isMuted) synthRef.current?.cancel(); }}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isMuted ? 'text-white/30 bg-white/5 hover:bg-white/10' : 'text-neon bg-neon/10 hover:bg-neon/20'}`}
+                  className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${isMuted ? 'text-white/30 bg-white/5 hover:bg-white/10' : 'text-neon bg-neon/10 hover:bg-neon/20'}`}
                   title={isMuted ? 'Unmute voice' : 'Mute voice'}
                 >
                   {isMuted ? <MuteIcon /> : <UnmuteIcon />}
                 </button>
-                {/* Personalize wallpaper */}
-                <button
-                  onClick={() => setShowPersonalize(p => !p)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showPersonalize ? 'text-neon bg-neon/10' : 'text-white/40 hover:text-white hover:bg-white/10'}`}
-                  title="Personalize chat"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                </button>
                 {/* New chat */}
-                <button onClick={handleNewChat} className="text-white/40 hover:text-white transition-colors" title="New chat">
-                  <RefreshCw className="w-4 h-4" />
+                <button onClick={handleNewChat} className="w-7 h-7 flex items-center justify-center rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors" title="New chat">
+                  <RefreshCw className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => { setIsOpen(false); synthRef.current?.cancel(); stopListening(); }} className="text-white/60 hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
+                {/* Close */}
+                <button onClick={() => { setIsOpen(false); synthRef.current?.cancel(); stopListening(); }} className="w-7 h-7 flex items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -1391,59 +1403,6 @@ export default function AIAssistant({
               </div>
               <div className="text-[0.65rem] uppercase font-bold text-neon bg-ink px-2 py-0.5">Local Session Only</div>
             </div>
-
-            {/* Personalize wallpaper drawer */}
-            <AnimatePresence>
-              {showPersonalize && (
-                <motion.div
-                  key="personalize-drawer"
-                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-                  className="overflow-hidden flex-shrink-0 border-b-2 border-ink bg-panel"
-                >
-                  <div className="px-4 py-3 space-y-2">
-                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-ink/50">Chat Wallpaper</p>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {WALLPAPER_PRESETS.map(preset => (
-                        <button key={preset.id} onClick={() => {
-                          setChatWallpaper(preset.value);
-                          localStorage.setItem(WP_STORAGE_KEY, preset.value ?? 'null');
-                        }} title={preset.label}
-                          className={`w-8 h-8 rounded-full border-2 transition-all flex-shrink-0 ${
-                            chatWallpaper === preset.value ? 'border-neon scale-110 shadow-[0_0_8px_rgba(216,255,55,0.4)]' : 'border-ink/30 hover:border-ink'
-                          }`}
-                          style={{ background: preset.value ?? preset.preview }}
-                        />
-                      ))}
-                      <button onClick={() => wpFileInputRef.current?.click()} title="Custom image"
-                        className="w-8 h-8 rounded-full border-2 border-dashed border-ink/20 hover:border-neon/60 transition-all flex items-center justify-center text-ink/30 hover:text-neon text-xl font-mono leading-none">
-                        +
-                      </button>
-                    </div>
-                    <input ref={wpFileInputRef} type="file" accept="image/*" className="hidden"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = ev => {
-                          const dataUrl = ev.target?.result as string;
-                          const val = `url(${dataUrl})`;
-                          setChatWallpaper(val);
-                          try { localStorage.setItem(WP_STORAGE_KEY, val); } catch { }
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                    />
-                    {chatWallpaper !== null && (
-                      <button onClick={() => { setChatWallpaper(null); localStorage.setItem(WP_STORAGE_KEY, 'null'); }}
-                        className="text-[9px] font-bold uppercase tracking-widest text-ink/30 hover:text-ink/70 transition-colors">
-                        Reset to default
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Offline / Low-BW banners */}
             <AnimatePresence>
@@ -1473,12 +1432,7 @@ export default function AIAssistant({
             />
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative"
-              style={{
-                backgroundImage: chatWallpaper?.startsWith('url(') ? chatWallpaper : chatWallpaper ?? undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative">
               {messages.map((msg, index) => (
                 <div key={msg.id} className="space-y-2">
                   <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
