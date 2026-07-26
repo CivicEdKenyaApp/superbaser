@@ -829,7 +829,7 @@ export class SuperbAgent extends Agent<Env, AgentState> {
     const byView: Record<string, any[]> = {
       backups: [
         { id: 's1', label: 'Restore This Backup', prompt: 'I want to restore my latest backup', icon: 'refresh' },
-        { id: 's2', label: 'Download Snapshot', prompt: 'How do I download a SQL dump from R2?', icon: 'database' },
+        { id: 's2', label: 'Download Snapshot', prompt: 'How do I download a SuperBaser Backup from SuperBaser Storage?', icon: 'database' },
         { id: 's3', label: 'Check Integrity', prompt: 'How does backup verification work?', icon: 'shield' }
       ],
       restores: [
@@ -838,9 +838,9 @@ export class SuperbAgent extends Agent<Env, AgentState> {
         { id: 's3', label: 'Zero-Downtime Guide', prompt: 'How does 1-click zero-downtime restore work?', icon: 'zap' }
       ],
       projects: [
-        { id: 's1', label: 'Run Backup Now', prompt: 'Trigger a manual pg_dump backup right now', icon: 'zap' },
+        { id: 's1', label: 'Run Backup Now', prompt: 'Trigger a manual SuperBaser Full Backup right now', icon: 'zap' },
         { id: 's2', label: 'Check Status', prompt: 'What is the status of my last backup job?', icon: 'clock' },
-        { id: 's3', label: 'Add Project', prompt: 'How do I connect another Supabase project?', icon: 'database' }
+        { id: 's3', label: 'Add Database', prompt: 'How do I connect another Connected Database?', icon: 'database' }
       ],
       billing: [
         { id: 's1', label: 'Compare Plans', prompt: 'What are the differences between Free, Pro, and Premium?', icon: 'database' },
@@ -850,22 +850,22 @@ export class SuperbAgent extends Agent<Env, AgentState> {
       schedules: [
         { id: 's1', label: 'Schedule Backup', prompt: 'How do I set up an automated backup schedule?', icon: 'clock' },
         { id: 's2', label: 'Cron Docs', prompt: 'Explain how cron-based backup pipelines work', icon: 'database' },
-        { id: 's3', label: 'Run Now', prompt: 'Trigger an immediate manual pg_dump snapshot', icon: 'zap' }
+        { id: 's3', label: 'Run Now', prompt: 'Trigger an immediate SuperBaser Full Backup', icon: 'zap' }
       ],
       logs: [
         { id: 's1', label: 'Latest Job', prompt: 'What is the status of my last running job?', icon: 'clock' },
         { id: 's2', label: 'Error Details', prompt: 'Explain the most recent backup error in my logs', icon: 'shield' },
-        { id: 's3', label: 'Container Logs', prompt: 'How do I read Cloudflare Container execution logs?', icon: 'database' }
+        { id: 's3', label: 'Container Logs', prompt: 'How do I read SuperBaser Engine execution logs?', icon: 'database' }
       ],
       landing: [
-        { id: 's1', label: 'Get Started', prompt: 'How do I connect my first Supabase project?', icon: 'zap' },
+        { id: 's1', label: 'Get Started', prompt: 'How do I connect my first Connected Database?', icon: 'zap' },
         { id: 's2', label: 'View Pricing', prompt: 'Take me to the pricing section', icon: 'database' },
         { id: 's3', label: 'Security Info', prompt: 'How are my database credentials kept safe?', icon: 'shield' }
       ]
     };
 
     return byView[currentView ?? ''] ?? [
-      { id: 's1', label: 'Run Snapshot', prompt: 'Run a manual pg_dump backup right now', icon: 'zap' },
+      { id: 's1', label: 'Run Snapshot', prompt: 'Run a manual SuperBaser Full Backup right now', icon: 'zap' },
       { id: 's2', label: 'Check Retention', prompt: 'What is the retention rule for my current plan?', icon: 'clock' },
       { id: 's3', label: 'View Billing', prompt: 'How do I upgrade my plan?', icon: 'database' }
     ];
@@ -1057,7 +1057,7 @@ export default {
         }
 
         if (!responseContent) {
-          responseContent = 'I was unable to reach my inference engine right now — all providers are temporarily unavailable. Please try again in a moment.';
+          responseContent = 'I was unable to reach my SuperBaser AI Engine right now — all providers are temporarily unavailable. Please try again in a moment.';
         }
 
         let parsedSuggestions: any[] = [];

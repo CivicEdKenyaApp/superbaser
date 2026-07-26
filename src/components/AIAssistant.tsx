@@ -126,11 +126,11 @@ const SUGGESTION_CATALOGUE: SuggestionEntry[] = [
   { id: 'r2_storage', label: 'Cloudflare R2 Storage',   prompt: 'How are backups encrypted and stored on Cloudflare R2?', icon: 'sparkles', contexts: ['landing'], authRequired: false, priority: 65 },
 
   // Console — dashboard
-  { id: 'run_backup', label: 'Run Instant Backup',       prompt: 'How do I trigger an immediate pg_dump snapshot right now?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 90 },
+  { id: 'run_backup', label: 'Run Instant Backup',       prompt: 'How do I trigger an immediate SuperBaser Full Backup right now?', icon: 'zap', contexts: ['console'], authRequired: true, tier: 'free', priority: 90 },
   { id: 'view_dash',  label: 'Dashboard Overview',       prompt: 'Show me the dashboard summary', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 85 },
 
   // Console — backups
-  { id: 'dl_backup',  label: 'Download Backup',          prompt: 'How do I download one of my existing SQL backups?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 80 },
+  { id: 'dl_backup',  label: 'Download Backup',          prompt: 'How do I download one of my existing SuperBaser Backups?', icon: 'database', contexts: ['console'], authRequired: true, tier: 'free', priority: 80 },
   { id: 'retention',  label: 'Check Retention Policy',   prompt: 'What is the backup retention policy for my current plan?', icon: 'clock', contexts: ['console'], authRequired: true, tier: 'free', priority: 78 },
 
   // Console — restores
@@ -774,7 +774,7 @@ export default function AIAssistant({
     {
       id: '1',
       role: 'assistant',
-      content: 'Habari! I am your SUPERB AI assistant. Ask me anything about database backups, R2 archival, or security pipelines!',
+      content: 'Habari! I am your SUPERB AI assistant. Ask me anything about SuperBaser Backups, SuperBaser Storage, or security pipelines!',
       timestamp: new Date(),
       suggestions: initialSuggestions,
     }
@@ -941,7 +941,7 @@ export default function AIAssistant({
     stopListening();
     setMessages([{
       id: `welcome-${Date.now()}`, role: 'assistant',
-      content: 'Habari! I am your SUPERB AI assistant. Ask me anything about database backups, R2 archival, or security pipelines!',
+      content: 'Habari! I am your SUPERB AI assistant. Ask me anything about SuperBaser Backups, SuperBaser Storage, or security pipelines!',
       timestamp: new Date(), suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
     }]);
     setInputValue('');
@@ -1101,7 +1101,7 @@ export default function AIAssistant({
         { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
         {
           id: Date.now().toString(), role: 'assistant',
-          content: 'Creating your free SuperBaser account gives you **1 connected Supabase project**, **daily automated pg_dump snapshots**, **7-day backup retention** in our encrypted R2 vault, and instant point-in-time restore triggers. Don\'t worry — setting it up takes less than 10 seconds!',
+          content: 'Creating your free SuperBaser account gives you **1 Connected Database**, **daily SuperBaser Scheduled Backups**, **7-day backup retention** in our SuperBaser Encrypted Storage, and instant SuperBaser Restores. Don\'t worry — setting it up takes less than 10 seconds!',
           timestamp: new Date(),
           suggestions: getDynamicSuggestions('landing', null),
         }
@@ -1117,7 +1117,7 @@ export default function AIAssistant({
         { id: (Date.now() - 1).toString(), role: 'user', content: text, timestamp: new Date() },
         {
           id: Date.now().toString(), role: 'assistant',
-          content: 'To run manual snapshots or 1-click database restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
+          content: 'To run SuperBaser Backups or 1-click SuperBaser Restores, you just need a free SuperBaser account. Don\'t worry — setting it up takes less than 10 seconds!',
           timestamp: new Date(),
           suggestions: getDynamicSuggestions('landing', null),
         }
@@ -1225,7 +1225,7 @@ export default function AIAssistant({
       console.error(error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
-        content: 'I ran into a brief issue reaching my inference engine. Please try asking again in a moment.',
+        content: 'I ran into a brief issue reaching my SuperBaser AI Engine. Please try asking again in a moment.',
         timestamp: new Date(),
         suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
       }]);
