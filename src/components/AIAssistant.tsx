@@ -807,13 +807,13 @@ export default function AIAssistant({
     // Fire-and-forget navigation telemetry (permanent users only)
     const { user: navUser, activeOrgId } = useAuthStore.getState();
     if (navUser && !navUser.is_anonymous) {
-      supabase.from('ai_navigation_events').insert({
+      Promise.resolve(supabase.from('ai_navigation_events').insert({
         user_id: navUser.id,
         organization_id: activeOrgId ?? undefined,
         from_view: currentView ?? null,
         to_target: target,
         trigger_type: 'inline_link',
-      }).then(() => {}).catch(() => {});
+      })).catch(() => {});
     }
     setTimeout(() => {
       if (onNavigate) {
@@ -1138,7 +1138,7 @@ export default function AIAssistant({
         body: JSON.stringify({
           text,
           currentView: currentView ?? 'landing',
-          isAnonymous: !user || isAnonymous,
+          isAnonymous: user ? Boolean(user.is_anonymous) : true,
           messages: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
         })
       });
@@ -1150,14 +1150,14 @@ export default function AIAssistant({
 
       const data = await response.json();
       let rawContent = data.content || '';
-      if (data.suggestions && data.suggestions.length > 0) {
-        parsedSuggestions = data.suggestions;
-      }
-
       let parsedAction = null;
       let parsedSuggestedActions: any[] = [];
       let parsedIslandTrigger = null;
       let parsedSuggestions: any[] = [];
+
+      if (data.suggestions && data.suggestions.length > 0) {
+        parsedSuggestions = data.suggestions;
+      }
 
       try {
         const jsonMatch = rawContent.match(/\{[\s\S]*"(?:action|suggestions|suggestedActions)"[\s\S]*\}/);
@@ -1462,13 +1462,13 @@ export default function AIAssistant({
                       onClickTelemetry={(item) => {
                         const { user: su, activeOrgId: sOrgId } = useAuthStore.getState();
                         if (!su || su.is_anonymous) return;
-                        supabase.from('ai_suggestion_feedback').insert({
+                        Promise.resolve(supabase.from('ai_suggestion_feedback').insert({
                           user_id: su.id,
                           suggestion_id: item.id,
                           label: item.label,
                           prompt: item.prompt,
                           current_view: currentView ?? null,
-                        }).then(() => {}).catch(() => {});
+                        })).catch(() => {});
                       }}
                     />
                   )}
