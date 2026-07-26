@@ -350,6 +350,14 @@ END $$;
 
 -- ─── 9. Organization Auto-Owner Membership Trigger & RPC ─────────────────────
 
+DROP POLICY IF EXISTS "orgs_member_insert" ON public.organizations;
+CREATE POLICY "orgs_member_insert" ON public.organizations 
+  FOR INSERT TO authenticated 
+  WITH CHECK (
+    (created_by IS NULL OR created_by = auth.uid()) 
+    AND public.is_permanent_user()
+  );
+
 CREATE OR REPLACE FUNCTION public.handle_new_organization()
 RETURNS TRIGGER
 LANGUAGE plpgsql
