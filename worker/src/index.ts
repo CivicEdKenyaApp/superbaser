@@ -961,6 +961,125 @@ export default {
       }
     }
 
+    // HTTP Chat Endpoint (Fallback when WebSocket is not connected)
+    if (url.pathname === '/api/chat' && request.method === 'POST') {
+      const origin = request.headers.get('Origin') ?? '*';
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+        'Content-Type': 'application/json'
+      };
+
+      try {
+        const body = await request.json() as any;
+        const text = body.text || body.message || '';
+        const currentView = body.currentView || 'landing';
+        const isAnonymous = body.isAnonymous ?? true;
+
+        if (isAnonymous && isActionQuery(text)) {
+          return new Response(JSON.stringify({
+            content: 'You must sign in or create an account before triggering vital database actions like running manual backups or restores. Please claim your free account to proceed.',
+            suggestions: [{ id: 'auth1', label: 'Claim Account Now', prompt: 'How do I claim my free account?' }]
+          }), { headers: corsHeaders });
+        }
+
+        // RAG context retrieval
+        let ragContext = '';
+        try {
+          if (env.AI && env.VECTOR_INDEX) {
+            const embeddingResp = await (env.AI as any).run('@cf/baai/bge-base-en-v1.5', { text: [text] });
+            const queryVector = embeddingResp?.data?.[0];
+            if (queryVector) {
+              const results = await env.VECTOR_INDEX.query(queryVector, { topK: 5, returnMetadata: 'all' });
+              if (results?.matches?.length) {
+                ragContext = results.matches
+                  .map((m: any) => `Source: ${m.metadata?.title || m.metadata?.source || 'Docs'}\n${m.metadata?.content || ''}`)
+                  .join('\n\n');
+              }
+            }
+          }
+        } catch (e) {
+          console.error('RAG query error in HTTP endpoint:', e);
+        }
+
+        const systemPrompt = buildBasePrompt({
+          orgId: '',
+          plan: 'free',
+          role: 'viewer',
+          userName: 'Guest User',
+          isAnonymous,
+          currentView
+        }) + (ragContext ? `\n\n## RETRIEVED KNOWLEDGE (from Vectorize)\n${ragContext}` : '');
+
+        const messagesList = body.messages && Array.isArray(body.messages)
+          ? [{ role: 'system', content: systemPrompt }, ...body.messages.map((m: any) => ({ role: m.role, content: m.content }))]
+          : [{ role: 'system', content: systemPrompt }, { role: 'user', content: text }];
+
+        let responseContent = '';
+        let providerUsed = 'Workers AI';
+
+        // Try Workers AI first
+        try {
+          if (env.AI) {
+            const aiResp = await (env.AI as any).run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+              messages: messagesList,
+              max_tokens: 1024
+            });
+            responseContent = aiResp?.response || aiResp?.description || '';
+          }
+        } catch (aiErr: any) {
+          console.error('Workers AI execution failed in HTTP endpoint:', aiErr);
+        }
+
+        // Fallback to Groq API key in Worker secret
+        if (!responseContent && env.GROQ_API_KEY) {
+          try {
+            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: messagesList
+              })
+            });
+            if (groqRes.ok) {
+              const groqData: any = await groqRes.json();
+              responseContent = groqData.choices?.[0]?.message?.content || '';
+              providerUsed = 'Groq';
+            }
+          } catch (groqErr) {
+            console.error('Groq worker fallback failed:', groqErr);
+          }
+        }
+
+        if (!responseContent) {
+          responseContent = 'SUPERB AI is ready to assist you. Ask me anything about database backups, R2 archival, or security pipelines!';
+        }
+
+        let parsedSuggestions: any[] = [];
+        const suggestionsMatch = responseContent.match(/```suggestions\s*([\s\S]*?)```/);
+        if (suggestionsMatch) {
+          try {
+            parsedSuggestions = JSON.parse(suggestionsMatch[1].trim());
+          } catch {}
+          responseContent = responseContent.replace(suggestionsMatch[0], '').trim();
+        }
+
+        return new Response(JSON.stringify({
+          content: responseContent,
+          providerUsed,
+          suggestions: parsedSuggestions
+        }), { headers: corsHeaders });
+
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+      }
+    }
+
     // Route WebSocket agent requests via Agents SDK routing
     // URL pattern: /agents/superb-agent/{orgId}?token={jwt}
     const agentResponse = await routeAgentRequest(request, env);

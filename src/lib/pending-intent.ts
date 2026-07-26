@@ -31,11 +31,13 @@ export function getInteractionHistory(): string[] {
 
 export async function inferActionContext(history: string[]): Promise<string> {
   if (!history || history.length === 0) return 'continue your action';
+  const apiKey = import.meta.env.VITE_SB_GROQ_API_KEY;
+  if (!apiKey) return 'continue your action';
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_SB_GROQ_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

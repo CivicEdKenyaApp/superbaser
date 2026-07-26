@@ -1124,47 +1124,35 @@ export default function AIAssistant({
       return;
     }
 
-    // ─── Legacy Groq fallback ────────────────────────────────────────────────
+    // ─── Cloudflare Agent Worker HTTP fallback ──────────────────────────────────────
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const workerUrl = import.meta.env.VITE_WORKER_URL 
+        ? `${import.meta.env.VITE_WORKER_URL}/api/chat` 
+        : 'https://superbaser-agent.saemscodes.workers.dev/api/chat';
+
+      const response = await fetch(workerUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SB_GROQ_API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [
-            {
-              role: 'system',
-              content: `You are SUPERB AI, an expert Postgres, Supabase, and Cloudflare disaster recovery architect. Current page context: ${currentView ?? 'landing'}.
-
-KNOWLEDGE BASE:
-${SUPERBASER_KNOWLEDGE_BASE}
-
-NAVIGATION DICTIONARY (when user asks to go somewhere, embed the link using markdown [label](target) syntax where target is one of the values below):
-${Object.entries(PAGE_DICTIONARY).map(([k, v]) => `  "${k}" → ${v}`).join('\n')}
-
-RULES:
-1. Provide warm, concise, direct answers without emojis.
-2. When mentioning any navigable page (dashboard, billing, backups, etc.), wrap it as a markdown link: [dashboard](console#dashboard), [billing](console#billing), etc.
-3. If user asks to navigate somewhere, respond with the navigation markdown link prominently AND output a JSON block at the end: {"action": {"type": "navigate_to", "target": "console#dashboard"}, "suggestedActions": [...]}
-4. Always output a "suggestions" JSON key with 3-5 contextually relevant follow-up prompt strings based on the conversation.
-5. JSON block format at end of message (when needed): {"action": {...}, "suggestedActions": [...], "suggestions": [{"id":"s1","label":"Label","prompt":"Full prompt text","icon":"zap"}]}`
-            },
-            ...messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: text }
-          ]
+          text,
+          currentView: currentView ?? 'landing',
+          isAnonymous: !user || isAnonymous,
+          messages: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
         })
       });
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(`Groq API Error: ${response.status} - ${JSON.stringify(errData)}`);
+        throw new Error(`Worker API Error: ${response.status} - ${JSON.stringify(errData)}`);
       }
 
       const data = await response.json();
-      let rawContent = data.choices[0].message.content;
+      let rawContent = data.content || '';
+      if (data.suggestions && data.suggestions.length > 0) {
+        parsedSuggestions = data.suggestions;
+      }
 
       let parsedAction = null;
       let parsedSuggestedActions: any[] = [];
