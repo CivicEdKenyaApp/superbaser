@@ -876,15 +876,12 @@ export default function AIAssistant({
     }
   }, [handleNavigation]);
 
-  // ─── Voice support detection + wallpaper persistence + FAB idle ────────────────
+  // ─── Voice support detection + FAB idle ────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setHasVoiceSupport(!!SR);
     synthRef.current = window.speechSynthesis || null;
-    // Load persisted wallpaper
-    const saved = localStorage.getItem(WP_STORAGE_KEY);
-    if (saved) setChatWallpaper(saved === 'null' ? null : saved);
   }, []);
 
   // FAB idle fade: fade to 28% opacity after 4s of no user activity
