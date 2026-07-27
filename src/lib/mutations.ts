@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { parseConnectionUri } from './connection-parser';
 
 export async function createOrganization(name: string, userId: string) {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).slice(2, 6);
@@ -47,6 +48,14 @@ export async function createProject(
   serviceRoleKey?: string,
   region: string = 'aws-us-east-1'
 ) {
+  let sanitizedUri = connectionString || null;
+  if (connectionString) {
+    const parsed = parseConnectionUri(connectionString);
+    if (parsed.sanitizedUri) {
+      sanitizedUri = parsed.sanitizedUri;
+    }
+  }
+
   const { data, error } = await supabase
     .from('projects')
     .insert({
@@ -55,7 +64,7 @@ export async function createProject(
       supabase_project_ref: projectRef,
       region,
       created_by: userId,
-      connection_string: connectionString || null,
+      connection_string: sanitizedUri,
       project_url: projectUrl || null,
       service_role_key: serviceRoleKey || null,
     })

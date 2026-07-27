@@ -1,0 +1,37 @@
+{
+  "name": "superbaser-backup",
+  "main": "src/backup-worker.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BACKUP_CONTAINER",
+        "class_name": "BackupContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["BackupContainer"]
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BACKUPS",
+      "bucket_name": "superbaser-backups"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "vars": {
+    "SUPABASE_URL": "https://vkepcsrjgeyquzmvwvmf.supabase.co",
+    "WORKER_URL": "https://superbaser-backup.saemscodes.workers.dev"
+  }
+  // SECRETS (set via: wrangler secret put SECRET_NAME)
+  // Required:
+  //   SUPABASE_SERVICE_KEY   — Supabase service role key for DB mutations
+  //   ENCRYPTION_KEY         — AES-256 key for backup encryption
+}

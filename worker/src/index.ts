@@ -1102,6 +1102,43 @@ export default {
       }
     }
 
+    // ─── Database Webhook Endpoint — Job Dispatcher ────────────────────────────────
+    if (url.pathname === '/api/webhook/jobs' && request.method === 'POST') {
+      try {
+        const payload = await request.json() as any;
+        const job = payload.record || payload.new || payload;
+
+        // Filter webhooks: process only backup, restore, and verify jobs
+        if (!job || !['backup', 'restore', 'verify'].includes(job.kind)) {
+          return new Response(JSON.stringify({ status: 'ignored', reason: 'Non-executable job kind' }), { status: 200, headers: corsHeaders });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+        // Atomic Job Claim: UPDATE jobs SET status = 'claimed' WHERE id = job.id AND status = 'queued'
+        const { data: claimedJob, error: claimErr } = await supabase
+          .from('jobs')
+          .update({ 
+            status: 'claimed', 
+            claimed_at: new Date().toISOString(),
+            progress: 10,
+            progress_message: 'Worker claimed job. Initializing container runner...'
+          })
+          .eq('id', job.id)
+          .eq('status', 'queued')
+          .select()
+          .single();
+
+        if (claimErr || !claimedJob) {
+          return new Response(JSON.stringify({ status: 'already_claimed_or_missing' }), { status: 200, headers: corsHeaders });
+        }
+
+        return new Response(JSON.stringify({ status: 'claimed', jobId: job.id }), { status: 200, headers: corsHeaders });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+      }
+    }
+
     // Route WebSocket agent requests via Agents SDK routing
     // URL pattern: /agents/superb-agent/{orgId}?token={jwt}
     const agentResponse = await routeAgentRequest(request, env);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   FolderGit2,
@@ -219,6 +219,54 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
   const [logsData, setLogsData] = useState<any[]>([]);
   const [summaryData, setSummaryData] = useState<any>(null);
 
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery.trim()) return projectsData;
+    const q = searchQuery.toLowerCase().trim();
+    return projectsData.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.supabase_project_ref && p.supabase_project_ref.toLowerCase().includes(q)) ||
+      (p.region && p.region.toLowerCase().includes(q))
+    );
+  }, [projectsData, searchQuery]);
+
+  const filteredBackups = useMemo(() => {
+    if (!searchQuery.trim()) return backupsData;
+    const q = searchQuery.toLowerCase().trim();
+    return backupsData.filter(b =>
+      (b.id && b.id.toLowerCase().includes(q)) ||
+      (b.status && b.status.toLowerCase().includes(q))
+    );
+  }, [backupsData, searchQuery]);
+
+  const filteredRestores = useMemo(() => {
+    if (!searchQuery.trim()) return restoresData;
+    const q = searchQuery.toLowerCase().trim();
+    return restoresData.filter(r =>
+      (r.id && r.id.toLowerCase().includes(q)) ||
+      (r.destination_project_id && r.destination_project_id.toLowerCase().includes(q)) ||
+      (r.status && r.status.toLowerCase().includes(q))
+    );
+  }, [restoresData, searchQuery]);
+
+  const filteredSchedules = useMemo(() => {
+    if (!searchQuery.trim()) return schedulesData;
+    const q = searchQuery.toLowerCase().trim();
+    return schedulesData.filter(s =>
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.cron_expression && s.cron_expression.toLowerCase().includes(q))
+    );
+  }, [schedulesData, searchQuery]);
+
+  const filteredLogs = useMemo(() => {
+    if (!searchQuery.trim()) return logsData;
+    const q = searchQuery.toLowerCase().trim();
+    return logsData.filter(l =>
+      (l.job_type && l.job_type.toLowerCase().includes(q)) ||
+      (l.status && l.status.toLowerCase().includes(q)) ||
+      (l.id && l.id.toLowerCase().includes(q))
+    );
+  }, [logsData, searchQuery]);
+
   const [isBackupRunning, setIsBackupRunning] = useState(false);
   const [backupProgress, setBackupProgress] = useState(0);
   const [backupStep, setBackupStep] = useState('');
@@ -407,30 +455,6 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       console.error("Backup queue error", err);
       setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Queue Error: ${err.message}`, ...prev]);
     }
-
-    const steps = [
-      { pct: 25, msg: 'Validating Direct Connection over Port 5432...' },
-      { pct: 50, msg: 'Executing pg_dump --format=plain...' },
-      { pct: 80, msg: 'Streaming output directly to R2 bucket...' },
-      { pct: 100, msg: 'Backup completed successfully.' }
-    ];
-
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < steps.length) {
-        const step = steps[i];
-        if (step) {
-          setBackupProgress(step.pct);
-          setBackupStep(step.msg);
-          setLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${step.msg}`, ...prev]);
-        }
-        i++;
-      } else {
-        clearInterval(interval);
-        setIsBackupRunning(false);
-        if (activeOrgId) listBackups(activeOrgId).then(setBackupsData);
-      }
-    }, 1200);
   };
 
   const [isRestoreRunning, setIsRestoreRunning] = useState(false);
@@ -490,32 +514,11 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       }
     } catch (err: any) {
       console.error("Restore queue error", err);
-      setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Restore Error: ${err.message}`, ...prev]);
+      setRestoreProgress(100);
+      setRestoreStep(`Restore Queue Error: ${err.message}`);
+      setLogs((prev) => [`[${new Date().toLocaleTimeString()}] Restore Queue Error: ${err.message}`, ...prev]);
+      setIsRestoreRunning(false);
     }
-
-    const steps = [
-      { pct: 25, msg: 'Connecting over Port 5432...' },
-      { pct: 55, msg: 'Ingesting SQL dump using psql with ON_ERROR_STOP=0...' },
-      { pct: 85, msg: 'Rebuilding storage buckets via restore-storage.js...' },
-      { pct: 100, msg: 'Restoration completed.' }
-    ];
-
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < steps.length) {
-        const step = steps[i];
-        if (step) {
-          setRestoreProgress(step.pct);
-          setRestoreStep(step.msg);
-          setLogs((prev) => [`[${new Date().toLocaleTimeString()}] RESTORE: ${step.msg}`, ...prev]);
-        }
-        i++;
-      } else {
-        clearInterval(interval);
-        setIsRestoreRunning(false);
-        if (activeOrgId) listRestores(activeOrgId).then(setRestoresData);
-      }
-    }, 1200);
   };
 
   const handleDownloadDump = (b?: any) => {
@@ -979,28 +982,34 @@ VALUES (
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-display font-bold text-xl uppercase tracking-tight">Connected Projects ({projectsData.length})</h3>
+                    <h3 className="font-display font-bold text-xl uppercase tracking-tight">Connected Projects ({filteredProjects.length})</h3>
                     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-6">
-                      {projectsData.map((project) => (
-                        <div key={project.id} className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] flex flex-col justify-between space-y-4">
-                          <div>
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h4 className="font-bold text-lg uppercase truncate">{project.name}</h4>
-                                <p className="text-muted text-xs font-mono">{project.supabase_project_ref}</p>
-                              </div>
-                              <span className={`px-2 py-1 text-[0.6rem] font-bold uppercase ${project.status === 'active' ? 'bg-[#347000]/10 text-[#347000]' : 'bg-[#347000]/10 text-[#347000]'}`}>
-                                {project.status || 'Active'}
-                              </span>
-                            </div>
-                            <div className="text-xs font-mono text-muted">Region: {project.region}</div>
-                          </div>
-                          <div className="pt-4 border-t border-line flex justify-between items-center text-xs font-mono">
-                            <button onClick={() => setActiveTab('backups')} className="text-ink hover:text-neon font-bold uppercase">View Backups ↗</button>
-                            <span className="text-muted">Last sync: {project.last_inventory_at ? new Date(project.last_inventory_at).toLocaleDateString() : 'Pending'}</span>
-                          </div>
+                      {filteredProjects.length === 0 && searchQuery ? (
+                        <div className="col-span-2 p-6 bg-panel border border-line text-muted font-mono text-xs uppercase text-center">
+                          No projects matching "{searchQuery}"
                         </div>
-                      ))}
+                      ) : (
+                        filteredProjects.map((project: any) => (
+                          <div key={project.id} className="bg-paper p-6 border border-ink shadow-[4px_4px_0_#171714] flex flex-col justify-between space-y-4">
+                            <div>
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h4 className="font-bold text-lg uppercase truncate">{project.name}</h4>
+                                  <p className="text-muted text-xs font-mono">{project.supabase_project_ref}</p>
+                                </div>
+                                <span className={`px-2 py-1 text-[0.6rem] font-bold uppercase ${project.status === 'active' ? 'bg-[#347000]/10 text-[#347000]' : 'bg-[#347000]/10 text-[#347000]'}`}>
+                                  {project.status || 'Active'}
+                                </span>
+                              </div>
+                              <div className="text-xs font-mono text-muted">Region: {project.region}</div>
+                            </div>
+                            <div className="pt-4 border-t border-line flex justify-between items-center text-xs font-mono">
+                              <button onClick={() => setActiveTab('backups')} className="text-ink hover:text-neon font-bold uppercase">View Backups ↗</button>
+                              <span className="text-muted">Last sync: {project.last_inventory_at ? new Date(project.last_inventory_at).toLocaleDateString() : 'Pending'}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1017,8 +1026,10 @@ VALUES (
                   <div className="space-y-4">
                     {projectsData.length === 0 ? (
                       <div className="p-4 bg-panel border border-line text-muted">No projects found. Add one via API.</div>
+                    ) : filteredProjects.length === 0 && searchQuery ? (
+                      <div className="p-4 bg-panel border border-line text-muted">No projects matching "{searchQuery}"</div>
                     ) : (
-                      projectsData.map(p => (
+                      filteredProjects.map((p: any) => (
                         <div key={p.id} className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
                           <div className="p-4 bg-panel border border-line space-y-1">
                             <div className="text-muted">Project Ref / Name</div>
@@ -1062,8 +1073,10 @@ VALUES (
                       </div>
                     ) : backupsData.length === 0 ? (
                       <div className="p-4 bg-panel border border-line text-muted">No backups found. Trigger a snapshot to begin.</div>
+                    ) : filteredBackups.length === 0 && searchQuery ? (
+                      <div className="p-4 bg-panel border border-line text-muted">No backups matching "{searchQuery}"</div>
                     ) : (
-                      backupsData.map((b) => (
+                      filteredBackups.map((b: any) => (
                         <div key={b.id} className="flex max-sm:flex-col justify-between items-center p-4 bg-panel border border-line gap-4">
                           <div>
                             <div className="font-bold text-sm">{b.id.substring(0, 18)}... (FULL DUMP)</div>
@@ -1945,6 +1958,37 @@ VALUES (
                   className="w-full border border-ink bg-white px-3 py-2 outline-none focus:border-orange font-mono"
                 />
                 <p className="text-[0.65rem] text-muted">Required by Cloudflare Containers to run physical pg_dump binaries.</p>
+
+                {targetConnectionString.trim().length > 0 && (() => {
+                  const parsed = parseConnectionUri(targetConnectionString);
+                  return (
+                    <div className="p-3 bg-panel border border-ink space-y-1 text-[0.68rem] font-mono mt-2">
+                      <div className="font-bold flex items-center justify-between text-ink">
+                        <span>CONNECTION INTELLIGENCE AUDIT</span>
+                        <span className={`px-1.5 py-0.5 text-[0.6rem] uppercase font-bold ${parsed.isValid ? 'bg-acid text-ink' : 'bg-red-500 text-white'}`}>
+                          {parsed.connectionType.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="text-muted">Host: <strong>{parsed.host || 'None'}</strong>:{parsed.port}</div>
+                      {parsed.projectRef && <div className="text-muted">Supabase Project Ref: <strong>{parsed.projectRef}</strong></div>}
+                      {parsed.validationWarnings.map((w, idx) => (
+                        <div key={idx} className="text-orange flex items-center gap-1 font-semibold">
+                          <span>⚡ {w}</span>
+                        </div>
+                      ))}
+                      {parsed.validationErrors.map((e, idx) => (
+                        <div key={idx} className="text-red-600 flex items-center gap-1 font-semibold">
+                          <span>✖ {e}</span>
+                        </div>
+                      ))}
+                      {parsed.isValid && (
+                        <div className="text-neon flex items-center gap-1 font-bold pt-1 border-t border-line/40">
+                          <span>✓ Verified SSL Mode: PGSSLMODE=require enforced</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="space-y-1.5">

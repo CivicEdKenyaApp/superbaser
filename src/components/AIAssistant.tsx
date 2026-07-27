@@ -780,6 +780,8 @@ export default function AIAssistant({
   const hasSentRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const activeRequestIdRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [inputValue, setInputValue] = useState('');
 
   // Compute initial suggestions based on current view + auth state
@@ -1202,23 +1204,38 @@ export default function AIAssistant({
     }
 
     // ─── Cloudflare Agent Worker HTTP fallback ──────────────────────────────────────
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    activeRequestIdRef.current += 1;
+    const currentReqId = activeRequestIdRef.current;
+
     try {
       const workerUrl = import.meta.env.VITE_WORKER_URL
         ? `${import.meta.env.VITE_WORKER_URL}/api/chat`
         : 'https://superbaser-agent.saemscodes.workers.dev/api/chat';
+
+      const payloadHistory = [...messages, newUserMsg]
+        .filter(m => m.role !== 'system')
+        .map(m => ({ role: m.role, content: m.content }));
 
       const response = await fetch(workerUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        signal: controller.signal,
         body: JSON.stringify({
           text,
           currentView: currentView ?? 'landing',
           isAnonymous: user ? Boolean(user.is_anonymous) : true,
-          messages: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
+          messages: payloadHistory
         })
       });
+
+      if (currentReqId !== activeRequestIdRef.current) return;
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -1226,6 +1243,8 @@ export default function AIAssistant({
       }
 
       const data = await response.json();
+      if (currentReqId !== activeRequestIdRef.current) return;
+
       let rawContent = data.content || '';
       let parsedAction = null;
       let parsedSuggestedActions: any[] = [];
@@ -1283,6 +1302,7 @@ export default function AIAssistant({
         setTimeout(() => executeAction(parsedAction), 1500);
       }
     } catch (error: any) {
+      if (error.name === 'AbortError' || currentReqId !== activeRequestIdRef.current) return;
       console.error(error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
@@ -1291,8 +1311,10 @@ export default function AIAssistant({
         suggestions: getDynamicSuggestions(currentView ?? 'landing', user),
       }]);
     } finally {
-      setIsTyping(false);
-      setIsListening(false);
+      if (currentReqId === activeRequestIdRef.current) {
+        setIsTyping(false);
+        setIsListening(false);
+      }
     }
   };
 

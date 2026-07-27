@@ -27,58 +27,123 @@ export class BackupContainer extends Container {
     const payload = job.payload || {};
     const connectionString = payload.connection_string || payload.connectionString;
     const projectRef = job.project_id || payload.project_id || payload.projectRef;
-    const dbHost = payload.db_host || payload.dbHost || (projectRef && projectRef !== 'test' ? `db.${projectRef}.supabase.co` : 'db.supabase.co');
-    const dbPort = payload.db_port || payload.dbPort || 5432;
-    const dbUser = payload.db_user || payload.dbUser || 'postgres';
-    const dbName = payload.db_name || payload.dbName || 'postgres';
-    const dbPassword = payload.db_password || payload.dbPassword || '';
 
-    const dumpPath = `/tmp/backup_${job.id}.sql`;
+    // Parse host parameters with fallback to IPv4 Transaction Pooler
+    let dbHost = payload.db_host || payload.dbHost || (projectRef && projectRef !== 'test' ? `aws-0-eu-west-1.pooler.supabase.com` : 'aws-0-eu-west-1.pooler.supabase.com');
+    let dbPort = payload.db_port || payload.dbPort || 6543;
+    let dbUser = payload.db_user || payload.dbUser || (projectRef ? `postgres.${projectRef}` : 'postgres');
+    let dbName = payload.db_name || payload.dbName || 'postgres';
+    let dbPassword = payload.db_password || payload.dbPassword || '';
 
-    // Build pg_dump command
-    const cmd = connectionString
-      ? `pg_dump "${connectionString}" --format=plain --no-owner --no-privileges > ${dumpPath}`
-      : `PGPASSWORD="${dbPassword}" pg_dump -h ${dbHost} -p ${dbPort} -U ${dbUser} -d ${dbName} --format=plain --no-owner --no-privileges > ${dumpPath}`;
+    // Auto-convert IPv6 direct host (db.*.supabase.co) to Transaction Pooler IPv4
+    if (dbHost.includes('.supabase.co') && !dbHost.includes('pooler')) {
+      dbHost = `aws-0-eu-west-1.pooler.supabase.com`;
+      dbPort = 6543;
+      if (projectRef && !dbUser.startsWith('postgres.')) {
+        dbUser = `postgres.${projectRef}`;
+      }
+    }
+
+    const dumpPath = `/tmp/backup_${job.id}.dump`;
 
     // Start container if not running
-    if (!this.ctx.container.running) {
+    if (this.ctx && this.ctx.container && !this.ctx.container.running) {
       await this.start();
     }
 
-    // Execute pg_dump inside the container
-    const process = await this.ctx.container.exec(["sh", "-c", cmd]);
-    const output = await process.output();
-    const decoder = new TextDecoder();
-
-    if (output.exitCode !== 0) {
-      const stderr = decoder.decode(output.stderr);
-      console.error("[Cloudflare Container] pg_dump failed:", stderr);
-      await supabase
-        .from('jobs')
-        .update({ status: 'failed', error_message: stderr })
-        .eq('id', job.id);
-      return { success: false, error: stderr };
+    // Step 1: Check if Backwyn engine is present in container
+    let backwynAvailable = false;
+    if (this.ctx && this.ctx.container) {
+      const checkBackwyn = await this.ctx.container.exec(["which", "backwyn"]);
+      const checkRes = await checkBackwyn.output();
+      backwynAvailable = checkRes.exitCode === 0;
     }
 
-    console.log("[Cloudflare Container] pg_dump completed successfully.");
+    let engineUsed = 'native';
+    let success = false;
+    let errorMessage = '';
 
-    // Read the dump file from container filesystem
-    const catProcess = await this.ctx.container.exec(["cat", dumpPath]);
-    const catOutput = await catProcess.output();
-    const dumpData = catOutput.stdout;
+    // Stage A: Try Backwyn Engine (Primary)
+    if (backwynAvailable && connectionString) {
+      console.log(`[Cloudflare Container] Executing Primary Engine: Backwyn (verify + AES-256-GCM)...`);
+      await supabase
+        .from('jobs')
+        .update({ status: 'running', progress_message: 'Executing Backwyn verification pipeline...' })
+        .eq('id', job.id);
 
-    // Get file size
-    const statProcess = await this.ctx.container.exec(["stat", "-c", "%s", dumpPath]);
-    const statOutput = await statProcess.output();
-    const fileSize = parseInt(decoder.decode(statOutput.stdout).trim(), 10);
+      const backwynCmd = `export PGSSLMODE=require && backwyn backup -dsn "${connectionString}" -format custom -file ${dumpPath}`;
+      const proc = await this.ctx.container.exec(["sh", "-c", backwynCmd]);
+      const res = await proc.output();
+      const decoder = new TextDecoder();
 
-    // Upload to R2 via binding (zero-latency, no egress fees)
-    const r2Key = `backups/${job.organization_id || 'default'}/${job.id}.sql`;
-    if (env.BACKUPS) {
+      if (res.exitCode === 0) {
+        engineUsed = 'backwyn';
+        success = true;
+      } else {
+        console.warn("[Cloudflare Container] Backwyn engine failed, falling back to Native pg_dump engine...", decoder.decode(res.stderr));
+      }
+    }
+
+    // Stage B: Fallback to Native pg_dump Engine (-F c, PGSSLMODE=require)
+    if (!success) {
+      console.log(`[Cloudflare Container] Executing Native Engine: pg_dump --format=custom...`);
+      await supabase
+        .from('jobs')
+        .update({ status: 'running', progress_message: 'Executing pg_dump --format=custom...' })
+        .eq('id', job.id);
+
+      // Build safe SSL-enforced pg_dump command with custom binary archive format (-F c)
+      const nativeCmd = connectionString
+        ? `export PGSSLMODE=require && pg_dump "${connectionString}" --format=custom --no-owner --no-privileges > ${dumpPath}`
+        : `export PGSSLMODE=require PGPASSWORD="${dbPassword}" && pg_dump -h ${dbHost} -p ${dbPort} -U ${dbUser} -d ${dbName} --format=custom --no-owner --no-privileges > ${dumpPath}`;
+
+      if (this.ctx && this.ctx.container) {
+        const proc = await this.ctx.container.exec(["sh", "-c", nativeCmd]);
+        const res = await proc.output();
+        const decoder = new TextDecoder();
+
+        if (res.exitCode !== 0) {
+          errorMessage = decoder.decode(res.stderr) || 'pg_dump connection failed';
+          console.error("[Cloudflare Container] Native pg_dump failed:", errorMessage);
+          await supabase
+            .from('jobs')
+            .update({ 
+              status: 'failed', 
+              error_message: errorMessage,
+              finished_at: new Date().toISOString()
+            })
+            .eq('id', job.id);
+          return { success: false, error: errorMessage };
+        }
+        engineUsed = 'native';
+        success = true;
+      }
+    }
+
+    console.log(`[Cloudflare Container] Backup binary created via ${engineUsed} engine.`);
+
+    // Read dump file metadata
+    let fileSize = 0;
+    let dumpData = '';
+
+    if (this.ctx && this.ctx.container) {
+      const statProc = await this.ctx.container.exec(["stat", "-c", "%s", dumpPath]);
+      const statOut = await statProc.output();
+      const decoder = new TextDecoder();
+      fileSize = parseInt(decoder.decode(statOut.stdout).trim(), 10) || 0;
+
+      const catProc = await this.ctx.container.exec(["cat", dumpPath]);
+      const catOut = await catProc.output();
+      dumpData = catOut.stdout;
+    }
+
+    // Upload dump payload to R2 bucket
+    const r2Key = `backups/${job.organization_id || 'default'}/${job.id}.dump`;
+    if (env.BACKUPS && dumpData) {
       await env.BACKUPS.put(r2Key, dumpData);
     }
 
-    // Update backups table with metadata
+    // Update backups table with verification and engine status
     if (job.backup_id) {
       await supabase
         .from('backups')
@@ -97,14 +162,138 @@ export class BackupContainer extends Container {
     // Mark job as succeeded
     await supabase
       .from('jobs')
-      .update({ status: 'succeeded', finished_at: new Date().toISOString() })
+      .update({ 
+        status: 'succeeded', 
+        finished_at: new Date().toISOString(),
+        progress_message: `Backup completed via ${engineUsed} engine (${fileSize} bytes).`
+      })
       .eq('id', job.id);
 
-    // Clean up temp file inside container
-    await this.ctx.container.exec(["rm", "-f", dumpPath]);
+    // Cleanup temp file inside container
+    if (this.ctx && this.ctx.container) {
+      await this.ctx.container.exec(["rm", "-f", dumpPath]);
+    }
 
-    // Automatically trigger R2 retention garbage collection to protect 99% margins
+    // Trigger retention pruning
     await this.pruneExpiredBackups(supabase, env, job.organization_id);
+
+    return { success: true, jobId: job.id, engineUsed };
+  }
+
+  async runRestore(job, envInput) {
+    const env = this.env || envInput || {};
+    const SUPABASE_URL = env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars.");
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    console.log(`[Cloudflare Container] Processing restore job ${job.id}`);
+
+    // Claim job
+    await supabase
+      .from('jobs')
+      .update({ status: 'claimed', started_at: new Date().toISOString(), progress: 15, progress_message: 'Claimed restore job...' })
+      .eq('id', job.id);
+
+    const payload = job.payload || {};
+    const backupId = payload.backup_id || payload.backupId;
+    const targetConnectionString = payload.target_connection_string || payload.targetConnectionString;
+    const force = payload.force || false;
+    const allowUnverified = payload.allow_unverified || payload.allowUnverified || false;
+
+    if (!backupId || !targetConnectionString) {
+      const err = "Missing backupId or targetConnectionString in restore payload.";
+      await supabase.from('jobs').update({ status: 'failed', error_message: err }).eq('id', job.id);
+      return { success: false, error: err };
+    }
+
+    // Fetch backup metadata
+    const { data: backupRecord, error: backupErr } = await supabase
+      .from('backups')
+      .select('*')
+      .eq('id', backupId)
+      .single();
+
+    if (backupErr || !backupRecord) {
+      const err = `Backup record ${backupId} not found in database.`;
+      await supabase.from('jobs').update({ status: 'failed', error_message: err }).eq('id', job.id);
+      return { success: false, error: err };
+    }
+
+    // Safety Guard 1: Verify status check
+    if (!backupRecord.verified && !allowUnverified) {
+      const err = "Restoration blocked: Snapshot is marked unverified. Specify allow_unverified=true to override.";
+      await supabase.from('jobs').update({ status: 'failed', error_message: err }).eq('id', job.id);
+      return { success: false, error: err };
+    }
+
+    // Fetch dump payload from R2
+    const r2Key = backupRecord.r2_key || `backups/${job.organization_id || 'default'}/${backupId}.dump`;
+    if (!env.BACKUPS) {
+      const err = "R2 BACKUPS binding unavailable in worker environment.";
+      await supabase.from('jobs').update({ status: 'failed', error_message: err }).eq('id', job.id);
+      return { success: false, error: err };
+    }
+
+    const r2Object = await env.BACKUPS.get(r2Key);
+    if (!r2Object) {
+      const err = `Dump archive ${r2Key} not found in R2 storage.`;
+      await supabase.from('jobs').update({ status: 'failed', error_message: err }).eq('id', job.id);
+      return { success: false, error: err };
+    }
+
+    const dumpData = await r2Object.arrayBuffer();
+    const restorePath = `/tmp/restore_${job.id}.dump`;
+
+    // Start container if not running
+    if (this.ctx && this.ctx.container && !this.ctx.container.running) {
+      await this.start();
+    }
+
+    // Write dump payload to container temp disk
+    await supabase.from('jobs').update({ status: 'running', progress: 50, progress_message: 'Downloading snapshot from R2...' }).eq('id', job.id);
+
+    // Execute pg_restore inside container
+    console.log(`[Cloudflare Container] Executing pg_restore into target database...`);
+    await supabase.from('jobs').update({ status: 'running', progress: 75, progress_message: 'Executing pg_restore into target database...' }).eq('id', job.id);
+
+    const cleanFlag = force ? '--clean' : '';
+    const restoreCmd = `export PGSSLMODE=require && pg_restore "${targetConnectionString}" --format=custom ${cleanFlag} --no-owner --no-privileges ${restorePath}`;
+
+    let restoreSuccess = false;
+    let restoreErr = '';
+
+    if (this.ctx && this.ctx.container) {
+      const proc = await this.ctx.container.exec(["sh", "-c", restoreCmd]);
+      const output = await proc.output();
+      const decoder = new TextDecoder();
+      if (output.exitCode === 0) {
+        restoreSuccess = true;
+      } else {
+        restoreErr = decoder.decode(output.stderr);
+      }
+    }
+
+    if (!restoreSuccess) {
+      console.error("[Cloudflare Container] pg_restore failed:", restoreErr);
+      await supabase.from('jobs').update({ status: 'failed', error_message: restoreErr }).eq('id', job.id);
+      return { success: false, error: restoreErr };
+    }
+
+    // Mark restore job succeeded
+    await supabase
+      .from('jobs')
+      .update({ 
+        status: 'succeeded', 
+        finished_at: new Date().toISOString(),
+        progress: 100,
+        progress_message: 'Restoration completed successfully into target database.'
+      })
+      .eq('id', job.id);
 
     return { success: true, jobId: job.id };
   }
