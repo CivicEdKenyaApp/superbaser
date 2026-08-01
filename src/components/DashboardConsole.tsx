@@ -71,13 +71,8 @@ import {
 import { openPaystackCheckout } from '../lib/paystack';
 import AIAssistant from './AIAssistant';
 
-const LIFETIME_PRO_CODES = [
-  'LIFETIME-PRO-H7X9K', 'LIFETIME-PRO-P3M2R', 'LIFETIME-PRO-W8N5C', 'LIFETIME-PRO-T6B4Y',
-  'LIFETIME-PRO-Q1L9F', 'LIFETIME-PRO-E5V7S', 'LIFETIME-PRO-Z2D8J', 'LIFETIME-PRO-X4G6M',
-  'LIFETIME-PRO-C9A3T', 'LIFETIME-PRO-V7Y1P', 'LIFETIME-PRO-B5U8W', 'LIFETIME-PRO-N3I4E',
-  'LIFETIME-PRO-M2O6Q', 'LIFETIME-PRO-L8K9Z', 'LIFETIME-PRO-J4H5X', 'LIFETIME-PRO-F6G2C',
-  'LIFETIME-PRO-D1S7V', 'LIFETIME-PRO-S9A8B', 'LIFETIME-PRO-A3D4N', 'LIFETIME-PRO-R7F1M'
-];
+// Promo codes are validated server-side via redeem_promo_code() RPC.
+// No promo code arrays are stored client-side.
 
 interface DashboardConsoleProps {
   projectRef: string;
@@ -85,6 +80,8 @@ interface DashboardConsoleProps {
   onBackToLanding: () => void;
   onOpenAuthModal?: () => void;
   onTriggerIntercept?: (intent: any) => void;
+  pendingPlanUpgrade?: { plan: string; billingCycle: string; paystackRef?: string } | null;
+  onPlanUpgradeConsumed?: () => void;
 }
 
 const renderBoringAvatar = (name: string, size = 32) => {
@@ -117,7 +114,7 @@ const getTabFromLocation = (): any => {
   return 'dashboard';
 };
 
-export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal, onTriggerIntercept }: DashboardConsoleProps) {
+export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToLanding, onOpenAuthModal, onTriggerIntercept, pendingPlanUpgrade, onPlanUpgradeConsumed }: DashboardConsoleProps) {
   const activeProject = projectRef;
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'projects' | 'backups' | 'restores' | 'schedules' | 'verification' | 'storage' | 'logs' | 'organizations' | 'billing' | 'settings' | 'support'
@@ -199,6 +196,7 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
 
   const [promoCode, setPromoCode] = useState('');
   const [promoStatus, setPromoStatus] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
+  const [isRedeemingPromo, setIsRedeemingPromo] = useState(false);
 
   const [discoveryData, setDiscoveryData] = useState<DiscoveryReportPayload | null>(null);
   const [isDiscovering, setIsDiscovering] = useState(true);
@@ -307,6 +305,26 @@ export default function DashboardConsole({ projectRef, serviceRoleKey, onBackToL
       window.removeEventListener('SUPERB_OPEN_CREATE_ORG_MODAL', handleOpenOrgModal);
     };
   }, []);
+
+  // Apply pending plan upgrade from PaymentModal (landing page checkout flow)
+  // Fires once after org list loads and a real Paystack reference exists
+  useEffect(() => {
+    if (!pendingPlanUpgrade?.paystackRef || !activeOrgId || !user || user.is_anonymous) return;
+    const { plan, paystackRef } = pendingPlanUpgrade;
+    const applyUpgrade = async () => {
+      try {
+        await updateOrganizationPlan(activeOrgId, plan, paystackRef);
+        const updatedOrgs = await listMyOrganizations(user.id);
+        setOrganizations(updatedOrgs);
+        showToast(`Plan upgraded to ${plan}! Your subscription is now active.`, 'success');
+      } catch (err: any) {
+        showToast(`Plan activation failed: ${err.message}`, 'error');
+      } finally {
+        onPlanUpgradeConsumed?.();
+      }
+    };
+    applyUpgrade();
+  }, [activeOrgId, pendingPlanUpgrade]);
 
   // Load User's Organizations
   useEffect(() => {
@@ -1358,24 +1376,35 @@ VALUES (
                           ) : (
                             <button
                               onClick={() => {
+                                if (!user?.email) {
+                                  showToast('A verified email is required to subscribe.', 'error');
+                                  return;
+                                }
                                 const planCode = billingCycle === 'monthly'
-                                  ? (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
-                                  : (import.meta.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
+                                  ? (import.meta.env.VITE_PAYSTACK_PRO_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr')
+                                  : (import.meta.env.VITE_PAYSTACK_PRO_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp');
 
                                 openPaystackCheckout({
-                                  email: user?.email || 'support@superbaser.co',
+                                  email: user.email,
                                   amount: billingCycle === 'monthly' ? 1950 : 19500,
                                   planCode,
+                                  metadata: { plan: 'pro', billing_cycle: billingCycle, org_id: activeOrgId, source: 'billing_tab' },
                                   onSuccess: async (ref) => {
-                                    if (activeOrgId) {
-                                      await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, ref.reference);
-                                      if (user) {
-                                        const updatedOrgs = await listMyOrganizations(user.id);
-                                        setOrganizations(updatedOrgs);
+                                    try {
+                                      const paystackRef = ref?.reference || ref?.trans || ref?.trxref;
+                                      if (activeOrgId && paystackRef) {
+                                        await updateOrganizationPlan(activeOrgId, `Mwananchi (${billingCycle})`, paystackRef);
+                                        if (user) {
+                                          const updatedOrgs = await listMyOrganizations(user.id);
+                                          setOrganizations(updatedOrgs);
+                                        }
+                                        showToast(`Pro plan active! Reference: ${paystackRef}`, 'success');
                                       }
+                                    } catch (err: any) {
+                                      showToast(`Plan activation failed: ${err.message}`, 'error');
                                     }
-                                    showToast(`Paystack Subscription Active! Reference: ${ref.reference}`, 'success');
-                                  }
+                                  },
+                                  onClose: () => showToast('Payment window closed. No charge was made.', 'error'),
                                 });
                               }}
                               className="button w-full py-2.5 border border-ink bg-ink text-white font-bold uppercase text-xs shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors"
@@ -1410,24 +1439,35 @@ VALUES (
                           ) : (
                             <button
                               onClick={() => {
+                                if (!user?.email) {
+                                  showToast('A verified email is required to subscribe.', 'error');
+                                  return;
+                                }
                                 const planCode = billingCycle === 'monthly'
-                                  ? (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
-                                  : (import.meta.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
+                                  ? (import.meta.env.VITE_PAYSTACK_PREMIUM_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3')
+                                  : (import.meta.env.VITE_PAYSTACK_PREMIUM_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g');
 
                                 openPaystackCheckout({
-                                  email: user?.email || 'support@superbaser.co',
+                                  email: user.email,
                                   amount: billingCycle === 'monthly' ? 6370 : 63700,
                                   planCode,
+                                  metadata: { plan: 'premium', billing_cycle: billingCycle, org_id: activeOrgId, source: 'billing_tab' },
                                   onSuccess: async (ref: any) => {
-                                    if (activeOrgId) {
-                                      await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, ref.reference);
-                                      if (user) {
-                                        const updatedOrgs = await listMyOrganizations(user.id);
-                                        setOrganizations(updatedOrgs);
+                                    try {
+                                      const paystackRef = ref?.reference || ref?.trans || ref?.trxref;
+                                      if (activeOrgId && paystackRef) {
+                                        await updateOrganizationPlan(activeOrgId, `Taifa Enterprise (${billingCycle})`, paystackRef);
+                                        if (user) {
+                                          const updatedOrgs = await listMyOrganizations(user.id);
+                                          setOrganizations(updatedOrgs);
+                                        }
+                                        showToast(`Premium plan active! Reference: ${paystackRef}`, 'success');
                                       }
+                                    } catch (err: any) {
+                                      showToast(`Plan activation failed: ${err.message}`, 'error');
                                     }
-                                    showToast(`Paystack Taifa Enterprise Plan Active! Ref: ${ref.reference}`, 'success');
-                                  }
+                                  },
+                                  onClose: () => showToast('Payment window closed. No charge was made.', 'error'),
                                 });
                               }}
                               className="button w-full py-2.5 border border-white bg-acid text-ink font-bold uppercase text-xs shadow-[3px_3px_0_#171714] hover:bg-orange transition-colors"
@@ -1447,21 +1487,40 @@ VALUES (
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
-                        if (!promoCode.trim()) return;
-                        if (LIFETIME_PRO_CODES.includes(promoCode.trim().toUpperCase())) {
-                          if (activeOrgId) {
-                            await updateOrganizationPlan(activeOrgId, 'Lifetime Pro', `PROMO-${promoCode.trim()}`);
+                        const trimmedCode = promoCode.trim().toUpperCase();
+                        if (!trimmedCode) return;
+                        if (!activeOrgId) {
+                          setPromoStatus({ type: 'error', msg: 'No active organization selected. Create or select an organization first.' });
+                          return;
+                        }
+                        if (user?.is_anonymous) {
+                          setPromoStatus({ type: 'error', msg: 'You must have a permanent account to redeem promo codes.' });
+                          return;
+                        }
+                        setIsRedeemingPromo(true);
+                        setPromoStatus(null);
+                        try {
+                          const { data: rpcResult, error: rpcError } = await supabase.rpc('redeem_promo_code', {
+                            p_code: trimmedCode,
+                            p_organization_id: activeOrgId,
+                          });
+                          if (rpcError) {
+                            setPromoStatus({ type: 'error', msg: rpcError.message || 'Redemption failed. Please try again.' });
+                          } else if (rpcResult?.success) {
+                            const tierLabel = rpcResult.tier === 'pro_lifetime' ? 'Lifetime Pro' : (rpcResult.tier || 'upgraded');
+                            setPromoStatus({ type: 'success', msg: `${tierLabel} access unlocked! Your organization has been upgraded.` });
+                            setPromoCode('');
                             if (user) {
                               const updatedOrgs = await listMyOrganizations(user.id);
                               setOrganizations(updatedOrgs);
                             }
-                            setPromoStatus({ type: 'success', msg: 'Lifetime Pro unlocked successfully! Enjoy unlimited backups.' });
-                            setPromoCode('');
                           } else {
-                            setPromoStatus({ type: 'error', msg: 'No active organization selected.' });
+                            setPromoStatus({ type: 'error', msg: rpcResult?.error || 'Invalid or expired promo code.' });
                           }
-                        } else {
-                          setPromoStatus({ type: 'error', msg: 'Invalid or expired promo code.' });
+                        } catch (err: any) {
+                          setPromoStatus({ type: 'error', msg: err.message || 'Redemption request failed.' });
+                        } finally {
+                          setIsRedeemingPromo(false);
                         }
                       }}
                       className="flex gap-4 max-sm:flex-col items-start"
@@ -1473,8 +1532,14 @@ VALUES (
                         onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoStatus(null); }}
                         className="flex-1 min-w-[250px] px-4 py-3 bg-paper border border-ink font-mono text-sm uppercase focus-visible:ring-2 focus-visible:ring-acid outline-none placeholder:text-muted/60"
                       />
-                      <button type="submit" className="button px-6 py-3 bg-ink text-paper font-bold font-mono text-sm uppercase shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors h-full">
-                        Redeem Code
+                      <button
+                        type="submit"
+                        disabled={isRedeemingPromo || !promoCode.trim()}
+                        className="button px-6 py-3 bg-ink text-paper font-bold font-mono text-sm uppercase shadow-[3px_3px_0_#c6f806] hover:bg-orange hover:text-ink transition-colors h-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isRedeemingPromo ? (
+                          <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Verifying...</>
+                        ) : 'Redeem Code'}
                       </button>
                     </form>
                     {promoStatus && (

@@ -21,6 +21,7 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import { AnonVsPermaModal } from './components/AnonVsPermaModal';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './lib/auth-store';
+import { updateOrganizationPlan } from './lib/mutations';
 
 import { savePendingAction, getPendingAction, clearPendingAction, recordInteraction } from './lib/pending-intent';
 const getViewFromLocation = (): 'landing' | 'console' | 'superadmin' => {
@@ -45,6 +46,7 @@ export default function App() {
   const [showResetToast, setShowResetToast] = useState(false);
   const [showAnonymousCaptcha, setShowAnonymousCaptcha] = useState(false);
   const [pendingLaunchArgs, setPendingLaunchArgs] = useState<{ref?: string, key?: string, data?: any} | null>(null);
+  const [pendingPlanUpgrade, setPendingPlanUpgrade] = useState<{ plan: string; billingCycle: string; paystackRef?: string } | null>(null);
   const lastViewRef = useRef(typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('sb_last_view') : null);
 
   const { session, setSession } = useAuthStore();
@@ -246,8 +248,12 @@ export default function App() {
     }
   };
 
-  const handlePaymentSuccess = (plan: string) => {
+  const handlePaymentSuccess = (plan: string, billingCycle: 'monthly' | 'yearly', paystackRef?: string) => {
     setShowPaymentModal(false);
+    // Store the upgrade intent — DashboardConsole applies it once the org is loaded
+    if (paystackRef) {
+      setPendingPlanUpgrade({ plan, billingCycle, paystackRef });
+    }
     handleLaunchConsole(undefined, undefined, {
       name: initialUserData?.name || 'Operations Guest',
       email: initialUserData?.email || '',
@@ -296,6 +302,8 @@ export default function App() {
               setActivePendingIntent(intent);
               setIntentUIMode('intercept');
             }}
+            pendingPlanUpgrade={pendingPlanUpgrade}
+            onPlanUpgradeConsumed={() => setPendingPlanUpgrade(null)}
           />
         </ClickSpark>
         <AIAssistant

@@ -138,19 +138,29 @@ export async function enqueueRestore(organizationId: string, backupId: string, t
 }
 
 export async function updateOrganizationPlan(organizationId: string, planName: string, paystackRef?: string) {
-  const { data, error } = await supabase
-    .from('organizations')
-    .update({
-      plan: planName,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', organizationId)
-    .select()
-    .single();
+  const isFreePlan = planName.toLowerCase() === 'free';
+
+  // Paid plan upgrades require a real Paystack reference
+  if (!isFreePlan && (!paystackRef || paystackRef.trim() === '')) {
+    throw new Error('A valid payment reference is required to activate a paid plan.');
+  }
+
+  // Route through the SECURITY DEFINER RPC — the only server-authorised
+  // path to write plan and paystack_reference on the organizations table.
+  const { data, error } = await supabase.rpc('set_organization_plan', {
+    p_organization_id: organizationId,
+    p_plan: planName.toLowerCase(),
+    p_paystack_reference: isFreePlan ? null : (paystackRef ?? null),
+  });
 
   if (error) {
-    // If schema column varies, return simulated success for UI
-    return { id: organizationId, plan: planName, paystack_ref: paystackRef };
+    throw new Error(error.message || 'Plan update failed.');
   }
+
+  // The RPC returns { success, plan, error }
+  if (data && data.success === false) {
+    throw new Error(data.error || 'Plan update rejected by server.');
+  }
+
   return data;
 }

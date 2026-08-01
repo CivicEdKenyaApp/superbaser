@@ -1,0 +1,340 @@
+src/components/app-shell/OrgSwitcher.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/components/app-shell/OrgSwitcher.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/components/app-shell/OrgSwitcher.tsx(20,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/components/app-shell/OrgSwitcher.tsx(36,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/components/app-shell/OrgSwitcher.tsx(44,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/components/app-shell/OrgSwitcher.tsx(68,19): error TS2322: Type '{ children: Element[]; variant: string; className: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/app-shell/OrgSwitcher.tsx(78,30): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/components/app-shell/OrgSwitcher.tsx(99,40): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/app-shell/OrgSwitcher.tsx(121,21): error TS2322: Type '{ children: string; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/app-shell/Sidebar.tsx(1,35): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/components/DashboardConsole.tsx(2028,34): error TS2304: Cannot find name 'parseConnectionUri'.
+src/components/DashboardConsole.tsx(2039,55): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/components/DashboardConsole.tsx(2039,58): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/components/DashboardConsole.tsx(2044,53): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/DashboardConsole.tsx(2044,56): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/components/ui-ext/StatusBadge.tsx(2,24): error TS2305: Module '"lucide-react"' has no exported member 'CircleAlert'.
+src/components/ui-ext/StatusBadge.tsx(2,51): error TS2724: '"lucide-react"' has no exported member named 'CirclePause'. Did you mean 'CircleUser'?
+src/components/ui/accordion.tsx(2,37): error TS2307: Cannot find module '@radix-ui/react-accordion' or its corresponding type declarations.
+src/components/ui/alert-dialog.tsx(2,39): error TS2307: Cannot find module '@radix-ui/react-alert-dialog' or its corresponding type declarations.
+src/components/ui/alert.tsx(2,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/aspect-ratio.tsx(1,39): error TS2307: Cannot find module '@radix-ui/react-aspect-ratio' or its corresponding type declarations.
+src/components/ui/avatar.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-avatar' or its corresponding type declarations.
+src/components/ui/badge.tsx(2,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/badge.tsx(28,29): error TS2339: Property 'variant' does not exist on type 'BadgeProps'.
+src/components/ui/breadcrumb.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot' or its corresponding type declarations.
+src/components/ui/button.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot' or its corresponding type declarations.
+src/components/ui/button.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/button.tsx(40,17): error TS2339: Property 'variant' does not exist on type 'ButtonProps'.
+src/components/ui/button.tsx(40,26): error TS2339: Property 'size' does not exist on type 'ButtonProps'.
+src/components/ui/calendar.tsx(5,60): error TS2307: Cannot find module 'react-day-picker' or its corresponding type declarations.
+src/components/ui/calendar.tsx(20,55): error TS2339: Property 'variant' does not exist on type 'ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/ui/calendar.tsx(35,31): error TS7006: Parameter 'date' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(108,18): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(108,29): error TS7031: Binding element 'rootRef' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(111,21): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(111,32): error TS7031: Binding element 'orientation' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(123,24): error TS7031: Binding element 'children' implicitly has an 'any' type.
+src/components/ui/carousel.tsx(2,61): error TS2307: Cannot find module 'embla-carousel-react' or its corresponding type declarations.
+src/components/ui/carousel.tsx(178,17): error TS2339: Property 'variant' does not exist on type 'Omit<ButtonProps & RefAttributes<HTMLButtonElement>, "ref">'.
+src/components/ui/carousel.tsx(178,38): error TS2339: Property 'size' does not exist on type 'Omit<ButtonProps & RefAttributes<HTMLButtonElement>, "ref">'.
+src/components/ui/carousel.tsx(184,9): error TS2322: Type '{ children: Element[]; id?: string | undefined; onClick: MouseEventHandler<HTMLButtonElement>; type?: "button" | "submit" | "reset" | undefined; ... 274 more ...; className: any; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/ui/carousel.tsx(206,17): error TS2339: Property 'variant' does not exist on type 'Omit<ButtonProps & RefAttributes<HTMLButtonElement>, "ref">'.
+src/components/ui/carousel.tsx(206,38): error TS2339: Property 'size' does not exist on type 'Omit<ButtonProps & RefAttributes<HTMLButtonElement>, "ref">'.
+src/components/ui/carousel.tsx(212,9): error TS2322: Type '{ children: Element[]; id?: string | undefined; onClick: MouseEventHandler<HTMLButtonElement>; type?: "button" | "submit" | "reset" | undefined; ... 274 more ...; className: any; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/ui/chart.tsx(2,36): error TS2307: Cannot find module 'recharts' or its corresponding type declarations.
+src/components/ui/chart.tsx(169,22): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/chart.tsx(170,19): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/chart.tsx(170,25): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ui/chart.tsx(267,18): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/chart.tsx(268,15): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/ui/checkbox.tsx(2,36): error TS2307: Cannot find module '@radix-ui/react-checkbox' or its corresponding type declarations.
+src/components/ui/collapsible.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-collapsible' or its corresponding type declarations.
+src/components/ui/command.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-dialog' or its corresponding type declarations.
+src/components/ui/command.tsx(5,45): error TS2307: Cannot find module 'cmdk' or its corresponding type declarations.
+src/components/ui/context-menu.tsx(2,39): error TS2307: Cannot find module '@radix-ui/react-context-menu' or its corresponding type declarations.
+src/components/ui/dialog.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-dialog' or its corresponding type declarations.
+src/components/ui/drawer.tsx(2,43): error TS2307: Cannot find module 'vaul' or its corresponding type declarations.
+src/components/ui/dropdown-menu.tsx(4,40): error TS2307: Cannot find module '@radix-ui/react-dropdown-menu' or its corresponding type declarations.
+src/components/ui/form.tsx(2,33): error TS2307: Cannot find module '@radix-ui/react-label' or its corresponding type declarations.
+src/components/ui/form.tsx(3,22): error TS2307: Cannot find module '@radix-ui/react-slot' or its corresponding type declarations.
+src/components/ui/form.tsx(11,8): error TS2307: Cannot find module 'react-hook-form' or its corresponding type declarations.
+src/components/ui/hover-card.tsx(2,37): error TS2307: Cannot find module '@radix-ui/react-hover-card' or its corresponding type declarations.
+src/components/ui/input-otp.tsx(2,43): error TS2307: Cannot find module 'input-otp' or its corresponding type declarations.
+src/components/ui/input-otp.tsx(36,44): error TS18046: 'inputOTPContext' is of type 'unknown'.
+src/components/ui/label.tsx(4,33): error TS2307: Cannot find module '@radix-ui/react-label' or its corresponding type declarations.
+src/components/ui/label.tsx(5,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/menubar.tsx(2,35): error TS2307: Cannot find module '@radix-ui/react-menubar' or its corresponding type declarations.
+src/components/ui/navigation-menu.tsx(2,42): error TS2307: Cannot find module '@radix-ui/react-navigation-menu' or its corresponding type declarations.
+src/components/ui/navigation-menu.tsx(3,21): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/pagination.tsx(31,23): error TS2344: Type '"size"' does not satisfy the constraint 'keyof ButtonProps'.
+src/components/ui/pagination.tsx(55,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+src/components/ui/pagination.tsx(68,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+src/components/ui/popover.tsx(2,35): error TS2307: Cannot find module '@radix-ui/react-popover' or its corresponding type declarations.
+src/components/ui/progress.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-progress' or its corresponding type declarations.
+src/components/ui/radio-group.tsx(2,38): error TS2307: Cannot find module '@radix-ui/react-radio-group' or its corresponding type declarations.
+src/components/ui/resizable.tsx(2,41): error TS2307: Cannot find module 'react-resizable-panels' or its corresponding type declarations.
+src/components/ui/scroll-area.tsx(2,38): error TS2307: Cannot find module '@radix-ui/react-scroll-area' or its corresponding type declarations.
+src/components/ui/select.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-select' or its corresponding type declarations.
+src/components/ui/separator.tsx(2,37): error TS2307: Cannot find module '@radix-ui/react-separator' or its corresponding type declarations.
+src/components/ui/sheet.tsx(4,33): error TS2307: Cannot find module '@radix-ui/react-dialog' or its corresponding type declarations.
+src/components/ui/sheet.tsx(5,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/sheet.tsx(60,6): error TS2339: Property 'side' does not exist on type 'SheetContentProps'.
+src/components/ui/sheet.tsx(60,22): error TS2339: Property 'className' does not exist on type 'SheetContentProps'.
+src/components/ui/sheet.tsx(60,33): error TS2339: Property 'children' does not exist on type 'SheetContentProps'.
+src/components/ui/sidebar.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/sidebar.tsx(192,12): error TS2322: Type '{ children: Element[]; "data-sidebar": string; "data-mobile": string; className: string; style: CSSProperties; side: "left" | "right"; }' is not assignable to type 'IntrinsicAttributes & SheetContentProps & RefAttributes<any>'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & SheetContentProps & RefAttributes<any>'.
+src/components/ui/sidebar.tsx(270,7): error TS2322: Type '{ children: Element[]; id?: string | undefined; type?: "button" | "submit" | "reset" | undefined; form?: string | undefined; slot?: string | undefined; style?: CSSProperties | undefined; ... 273 more ...; onClick: (event: MouseEvent<...>) => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/components/ui/slider.tsx(2,34): error TS2307: Cannot find module '@radix-ui/react-slider' or its corresponding type declarations.
+src/components/ui/sonner.tsx(1,35): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/components/ui/switch.tsx(2,35): error TS2307: Cannot find module '@radix-ui/react-switch' or its corresponding type declarations.
+src/components/ui/tabs.tsx(2,32): error TS2307: Cannot find module '@radix-ui/react-tabs' or its corresponding type declarations.
+src/components/ui/toggle-group.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-toggle-group' or its corresponding type declarations.
+src/components/ui/toggle-group.tsx(5,35): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/toggle.tsx(2,34): error TS2307: Cannot find module '@radix-ui/react-toggle' or its corresponding type declarations.
+src/components/ui/toggle.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/tooltip.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-tooltip' or its corresponding type declarations.
+src/integrations/lovable/index.ts(3,35): error TS2307: Cannot find module '@lovable.dev/cloud-auth-js' or its corresponding type declarations.
+src/integrations/supabase/auth-attacher.ts(2,34): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/integrations/supabase/auth-attacher.ts(8,12): error TS7031: Binding element 'next' implicitly has an 'any' type.
+src/integrations/supabase/auth-middleware.ts(2,34): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/integrations/supabase/auth-middleware.ts(3,28): error TS2307: Cannot find module '@tanstack/react-start/server' or its corresponding type declarations.
+src/integrations/supabase/auth-middleware.ts(34,12): error TS7031: Binding element 'next' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(1,32): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/lib/mutations.functions.ts(16,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(17,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(17,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(36,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(37,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(37,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(45,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(46,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(46,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(54,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(75,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(75,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(119,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(120,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(120,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(128,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(137,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(137,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(177,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(187,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(187,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(219,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(231,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(231,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(251,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(252,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(252,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(260,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(261,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(261,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(269,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(270,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(270,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(278,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(279,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(279,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(287,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(288,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(288,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(307,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(308,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(308,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(316,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(325,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(325,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(346,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(347,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(347,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(355,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(364,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(364,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(378,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(379,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(379,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(387,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(390,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/mutations.functions.ts(390,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/mutations.ts(36,6): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "organization_members", unknown, "POST", false>'. Did you mean 'match'?
+src/lib/queries.functions.ts(1,32): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/lib/queries.functions.ts(9,21): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(15,30): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/lib/queries.functions.ts(29,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(30,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(30,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(38,30): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/queries.functions.ts(43,48): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/queries.functions.ts(44,25): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/queries.functions.ts(49,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(50,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(50,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(62,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(63,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(63,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(75,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(76,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(76,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(89,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(90,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(90,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(103,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(104,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(104,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(116,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(117,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(117,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(130,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(131,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(131,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(146,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(147,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(147,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(160,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(161,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(161,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(174,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(175,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(175,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(187,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(188,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(188,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(200,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(201,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(201,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(214,21): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(226,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/queries.functions.ts(227,21): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/lib/queries.functions.ts(227,27): error TS7031: Binding element 'context' implicitly has an 'any' type.
+src/lib/queries.functions.ts(237,16): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/queries.functions.ts(238,16): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/queries.functions.ts(238,19): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/queries.functions.ts(242,56): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/utils.ts(1,39): error TS2307: Cannot find module 'clsx' or its corresponding type declarations.
+src/lib/utils.ts(2,25): error TS2307: Cannot find module 'tailwind-merge' or its corresponding type declarations.
+src/router.tsx(1,29): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/router.tsx(2,30): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/__root.tsx(1,50): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/__root.tsx(9,8): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/__root.tsx(11,25): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/backups.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/backups.tsx(2,26): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/backups.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/backups.tsx(62,36): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/billing.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/dashboard.tsx(1,39): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/dashboard.tsx(2,26): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/dashboard.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/dashboard.tsx(90,21): error TS2322: Type '{ children: Element; variant: string; size: string; asChild: true; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/dashboard.tsx(100,49): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/dashboard.tsx(121,21): error TS2322: Type '{ children: Element; variant: string; size: string; asChild: true; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/dashboard.tsx(131,50): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/_authenticated/dashboard.tsx(159,30): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/routes/_authenticated/logs.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/logs.tsx(2,26): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/logs.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/logs.tsx(62,36): error TS7006: Parameter 'j' implicitly has an 'any' type.
+src/routes/_authenticated/organizations.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/organizations.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/organizations.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/organizations.tsx(17,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/organizations.tsx(86,40): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/_authenticated/organizations.tsx(101,21): error TS2322: Type '{ children: (string | Element)[]; size: string; onClick: () => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/organizations.tsx(109,45): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/routes/_authenticated/organizations.tsx(118,45): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/routes/_authenticated/organizations.tsx(132,23): error TS2322: Type '{ children: Element; variant: string; size: string; onClick: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/organizations.tsx(163,52): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/routes/_authenticated/organizations.tsx(175,21): error TS2322: Type '{ children: string; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/organizations.tsx(191,21): error TS2322: Type '{ children: string; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/projects.$id.tsx(1,39): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/projects.$id.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/projects.$id.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/projects.$id.tsx(13,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/projects.$id.tsx(14,29): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/projects.$id.tsx(17,12): error TS7031: Binding element 'params' implicitly has an 'any' type.
+src/routes/_authenticated/projects.$id.tsx(47,55): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/projects.$id.tsx(85,21): error TS2322: Type '{ children: (string | Element)[]; variant: string; onClick: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/projects.$id.tsx(126,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/projects.tsx(1,39): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/projects.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/projects.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/projects.tsx(17,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/projects.tsx(115,30): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/routes/_authenticated/projects.tsx(187,37): error TS2322: Type '{ children: string; type: "button"; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/restores.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/restores.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/restores.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/restores.tsx(19,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/restores.tsx(64,53): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/restores.tsx(115,45): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/_authenticated/restores.tsx(144,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/_authenticated/restores.tsx(155,47): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/routes/_authenticated/restores.tsx(163,21): error TS2322: Type '{ children: string; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/route.tsx(1,51): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/schedules.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/schedules.tsx(2,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/schedules.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/schedules.tsx(19,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/schedules.tsx(93,40): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/routes/_authenticated/schedules.tsx(105,47): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/routes/_authenticated/schedules.tsx(113,21): error TS2322: Type '{ children: Element; variant: string; size: string; onClick: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/schedules.tsx(136,62): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/routes/_authenticated/schedules.tsx(139,47): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/routes/_authenticated/schedules.tsx(165,21): error TS2322: Type '{ children: string; variant: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/settings.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/settings.tsx(3,42): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/settings.tsx(4,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/settings.tsx(18,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/_authenticated/settings.tsx(129,43): error TS7006: Parameter 'k' implicitly has an 'any' type.
+src/routes/_authenticated/settings.tsx(137,35): error TS2322: Type '{ children: string; variant: string; size: string; onClick: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/settings.tsx(174,38): error TS7006: Parameter 'h' implicitly has an 'any' type.
+src/routes/_authenticated/settings.tsx(181,27): error TS2322: Type '{ children: Element; variant: string; size: string; onClick: () => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/_authenticated/settings.tsx(210,44): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/routes/_authenticated/storage.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/storage.tsx(2,26): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/storage.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/support.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/verification.tsx(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/_authenticated/verification.tsx(2,26): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+src/routes/_authenticated/verification.tsx(3,29): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/routes/_authenticated/verification.tsx(47,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/api/public/worker/claim.ts(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/api/public/worker/claim.ts(7,22): error TS7031: Binding element 'request' implicitly has an 'any' type.
+src/routes/api/public/worker/report.ts(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/api/public/worker/report.ts(7,22): error TS7031: Binding element 'request' implicitly has an 'any' type.
+src/routes/auth.tsx(1,46): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/auth.tsx(10,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+src/routes/auth.tsx(153,31): error TS2322: Type '{ children: string; type: "button"; variant: string; className: string; onClick: () => Promise<void>; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/index.tsx(1,52): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/index.tsx(51,19): error TS2322: Type '{ children: Element; variant: string; asChild: true; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/index.tsx(67,19): error TS2322: Type '{ children: Element; size: string; asChild: true; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/routes/sitemap[.]xml.ts(1,33): error TS2307: Cannot find module '@tanstack/react-router' or its corresponding type declarations.
+src/routes/sitemap[.]xml.ts(2,21): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/server.ts(14,33): error TS2307: Cannot find module '@tanstack/react-start/server-entry' or its corresponding type declarations.
+src/start.ts(1,47): error TS2307: Cannot find module '@tanstack/react-start' or its corresponding type declarations.
+src/start.ts(6,60): error TS7031: Binding element 'next' implicitly has an 'any' type.

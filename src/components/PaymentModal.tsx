@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, Check, Shield, CreditCard, Lock, Zap } from 'lucide-react';
+import { X, Check, Shield, Lock, Zap, AlertCircle, Loader2 } from 'lucide-react';
+import { openPaystackCheckout } from '../lib/paystack';
 
 interface PaymentModalProps {
   initialPlan?: string;
   initialData?: { name?: string; email?: string; orgName?: string; supabasePlan?: string };
   onClose: () => void;
-  onSuccess: (plan: string, billingCycle: 'monthly' | 'yearly') => void;
+  onSuccess: (plan: string, billingCycle: 'monthly' | 'yearly', paystackRef?: string) => void;
 }
 
 interface PlanDetails {
@@ -13,6 +14,10 @@ interface PlanDetails {
   name: string;
   monthlyPrice: number;
   yearlyPrice: number;
+  monthlyAmountKES: number;
+  yearlyAmountKES: number;
+  monthlyPlanCode: string;
+  yearlyPlanCode: string;
   description: string;
   features: string[];
   popular?: boolean;
@@ -25,6 +30,10 @@ export const PLANS: Record<string, PlanDetails> = {
     name: 'Free Tier',
     monthlyPrice: 0,
     yearlyPrice: 0,
+    monthlyAmountKES: 0,
+    yearlyAmountKES: 0,
+    monthlyPlanCode: '',
+    yearlyPlanCode: '',
     description: 'Essential automated daily backups for 1 Supabase project.',
     features: [
       '24-hour daily automated pg_dump',
@@ -40,6 +49,10 @@ export const PLANS: Record<string, PlanDetails> = {
     name: 'Pro Tier',
     monthlyPrice: 15,
     yearlyPrice: 12,
+    monthlyAmountKES: 1950,
+    yearlyAmountKES: 19500,
+    monthlyPlanCode: import.meta.env.VITE_PAYSTACK_PRO_PLAN_CODE_MONTHLY || 'PLN_1whq8h5qxv9lerr',
+    yearlyPlanCode: import.meta.env.VITE_PAYSTACK_PRO_PLAN_CODE_ANNUAL || 'PLN_5cu6agsex0uqbzp',
     description: 'Hourly snapshots & 1-click zero-downtime restore for growing products.',
     popular: true,
     features: [
@@ -50,13 +63,17 @@ export const PLANS: Record<string, PlanDetails> = {
       'AES-256 encrypted vault & Storage sync',
       'Priority operations email support',
     ],
-    ctaText: 'Upgrade to Pro ($15/mo)',
+    ctaText: 'Subscribe to Pro ($15/mo)',
   },
   Premium: {
     id: 'Premium',
     name: 'Premium Tier',
     monthlyPrice: 49,
     yearlyPrice: 39,
+    monthlyAmountKES: 6370,
+    yearlyAmountKES: 63700,
+    monthlyPlanCode: import.meta.env.VITE_PAYSTACK_PREMIUM_PLAN_CODE_MONTHLY || 'PLN_ixgzvfe6ofr5as3',
+    yearlyPlanCode: import.meta.env.VITE_PAYSTACK_PREMIUM_PLAN_CODE_ANNUAL || 'PLN_p7ov52pl3xi3s2g',
     description: '15-minute continuous log streaming & multi-region DR for scaling teams.',
     features: [
       '15-minute continuous backup & log streaming',
@@ -80,40 +97,71 @@ export default function PaymentModal({
     PLANS[initialPlan] ? initialPlan : 'Pro'
   );
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-
-  // Checkout Form State
-  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
-  const [expiry, setExpiry] = useState('12/28');
-  const [cvc, setCvc] = useState('888');
-  const [cardHolder, setCardHolder] = useState(initialData?.name || 'Operations Lead');
-  const [promoCode, setPromoCode] = useState('');
-  const [isAppliedPromo, setIsAppliedPromo] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const selectedPlan = PLANS[selectedPlanId] || PLANS.Pro;
-  const rawPrice = billingCycle === 'yearly' ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
-  const finalPrice = isAppliedPromo ? Math.round(rawPrice * 0.8) : rawPrice;
+  const isFreePlan = selectedPlan.monthlyPrice === 0;
+  const displayPrice = billingCycle === 'yearly' ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
 
-  const handleApplyPromo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (promoCode.trim().toLowerCase() === 'superbaser2026' || promoCode.trim().toLowerCase() === 'launch') {
-      setIsAppliedPromo(true);
-    }
-  };
-
-  const handleConfirmPayment = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleActivateFree = () => {
     setIsProcessing(true);
-
+    setPaymentError(null);
+    // Free plan — no payment required, activate immediately
     setTimeout(() => {
       setIsProcessing(false);
       setPaymentSuccess(true);
-
       setTimeout(() => {
         onSuccess(selectedPlanId, billingCycle);
-      }, 1000);
-    }, 1200);
+      }, 900);
+    }, 600);
+  };
+
+  const handlePaidCheckout = () => {
+    if (isProcessing || paymentSuccess) return;
+    setPaymentError(null);
+
+    const email = initialData?.email;
+    if (!email || !email.includes('@')) {
+      setPaymentError('A valid email address is required to process payment. Please sign in first.');
+      return;
+    }
+
+    const planCode = billingCycle === 'yearly'
+      ? selectedPlan.yearlyPlanCode
+      : selectedPlan.monthlyPlanCode;
+
+    const amount = billingCycle === 'yearly'
+      ? selectedPlan.yearlyAmountKES
+      : selectedPlan.monthlyAmountKES;
+
+    setIsProcessing(true);
+
+    openPaystackCheckout({
+      email,
+      amount,
+      planCode,
+      metadata: {
+        plan_id: selectedPlanId,
+        billing_cycle: billingCycle,
+        org_name: initialData?.orgName || '',
+        user_name: initialData?.name || '',
+        source: 'payment_modal',
+      },
+      onSuccess: (response) => {
+        setIsProcessing(false);
+        setPaymentSuccess(true);
+        const paystackRef = response?.reference || response?.trans || response?.trxref || undefined;
+        setTimeout(() => {
+          onSuccess(selectedPlanId, billingCycle, paystackRef);
+        }, 900);
+      },
+      onClose: () => {
+        setIsProcessing(false);
+        setPaymentError('Payment window was closed. No charge was made. Try again when ready.');
+      },
+    });
   };
 
   return (
@@ -177,7 +225,7 @@ export default function PaymentModal({
                     <button
                       key={plan.id}
                       type="button"
-                      onClick={() => setSelectedPlanId(plan.id)}
+                      onClick={() => { setSelectedPlanId(plan.id); setPaymentError(null); }}
                       className={`p-3 text-left border-2 transition-all relative cursor-pointer ${
                         isSelected
                           ? 'border-ink bg-acid shadow-[4px_4px_0_#171714]'
@@ -224,7 +272,7 @@ export default function PaymentModal({
             </div>
           </div>
 
-          {/* Right Column: Simulated Checkout Form */}
+          {/* Right Column: Checkout Summary */}
           <div className="bg-white border-2 border-ink p-6 shadow-[6px_6px_0_#171714] flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-ink pb-3 mb-4">
@@ -236,129 +284,103 @@ export default function PaymentModal({
                 </span>
               </div>
 
-              {/* Price Calculation Box */}
-              <div className="space-y-2 font-mono text-xs mb-4">
+              {/* Price Display */}
+              <div className="space-y-2 font-mono text-xs mb-6">
                 <div className="flex justify-between">
                   <span className="text-muted">{selectedPlan.name} Subscription</span>
-                  <span className="font-bold">${rawPrice}/mo</span>
+                  <span className="font-bold">
+                    {displayPrice === 0 ? '$0' : `$${displayPrice}/mo`}
+                  </span>
                 </div>
-
-                {isAppliedPromo && (
-                  <div className="flex justify-between text-emerald-600 font-bold">
-                    <span>Discount (SUPERBASER2026)</span>
-                    <span>-20%</span>
-                  </div>
-                )}
-
                 <div className="flex justify-between border-t border-dashed border-ink/40 pt-2 text-sm font-bold text-ink">
                   <span>Total Due Now</span>
                   <span className="text-lg">
-                    {finalPrice === 0 ? '$0' : `$${finalPrice * (billingCycle === 'yearly' ? 12 : 1)}`}
+                    {displayPrice === 0
+                      ? '$0'
+                      : `$${displayPrice * (billingCycle === 'yearly' ? 12 : 1)}`}
                   </span>
                 </div>
               </div>
 
-              {/* Promo code input */}
-              {selectedPlan.monthlyPrice > 0 && !isAppliedPromo && (
-                <form onSubmit={handleApplyPromo} className="flex gap-2 mb-6">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Promo code (e.g. LAUNCH)"
-                    className="flex-1 px-2 py-1.5 border border-ink text-xs font-mono outline-none uppercase"
-                  />
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 bg-ink text-white font-mono text-xs uppercase font-bold hover:bg-neutral-800"
-                  >
-                    Apply
-                  </button>
-                </form>
+              {/* Free Plan Notice */}
+              {isFreePlan && (
+                <div className="p-4 bg-neutral-100 border border-ink font-mono text-xs text-muted mb-4">
+                  No credit card required. Activate instantly and connect your Supabase project.
+                </div>
               )}
 
-              {/* Card Payment Form */}
-              {selectedPlan.monthlyPrice > 0 ? (
-                <form id="payment-checkout-form" onSubmit={handleConfirmPayment} className="space-y-3">
-                  <div className="font-mono font-bold text-[0.7rem] uppercase tracking-wide text-muted mb-1 flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-ink" /> Payment Details
+              {/* Paid Plan — Paystack Notice */}
+              {!isFreePlan && (
+                <div className="p-4 bg-acid/20 border border-ink font-mono text-xs text-ink mb-4 space-y-2">
+                  <div className="font-bold uppercase flex items-center gap-2">
+                    <Lock className="w-3.5 h-3.5" />
+                    Secure Payment via Paystack
                   </div>
-
-                  <div>
-                    <label className="block font-mono text-[0.65rem] uppercase mb-1">Cardholder Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={cardHolder}
-                      onChange={(e) => setCardHolder(e.target.value)}
-                      className="w-full px-3 py-2 border border-ink font-mono text-xs bg-paper outline-none focus:border-b-2"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-mono text-[0.65rem] uppercase mb-1">Card Number</label>
-                    <input
-                      type="text"
-                      required
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      className="w-full px-3 py-2 border border-ink font-mono text-xs bg-paper outline-none focus:border-b-2"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block font-mono text-[0.65rem] uppercase mb-1">Expiry</label>
-                      <input
-                        type="text"
-                        required
-                        value={expiry}
-                        onChange={(e) => setExpiry(e.target.value)}
-                        placeholder="MM/YY"
-                        className="w-full px-3 py-2 border border-ink font-mono text-xs bg-paper outline-none"
-                      />
+                  <p className="text-muted leading-relaxed">
+                    Clicking the button below opens the Paystack secure checkout popup.
+                    Your card details are processed directly by Paystack — SuperBaser never
+                    stores payment credentials.
+                  </p>
+                  {initialData?.email && (
+                    <div className="mt-2 text-[0.68rem] text-muted">
+                      Billing email: <strong className="text-ink">{initialData.email}</strong>
                     </div>
-                    <div>
-                      <label className="block font-mono text-[0.65rem] uppercase mb-1">CVC</label>
-                      <input
-                        type="text"
-                        required
-                        value={cvc}
-                        onChange={(e) => setCvc(e.target.value)}
-                        placeholder="123"
-                        className="w-full px-3 py-2 border border-ink font-mono text-xs bg-paper outline-none"
-                      />
+                  )}
+                  {!initialData?.email && (
+                    <div className="mt-2 text-[0.68rem] text-orange font-bold flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      Sign in first to attach a billing email to your subscription.
                     </div>
-                  </div>
-                </form>
-              ) : (
-                <div className="p-4 bg-neutral-100 border border-ink font-mono text-xs text-muted mb-6">
-                  No credit card required for the Free plan. Activate instantly and connect your Supabase project.
+                  )}
+                </div>
+              )}
+
+              {/* Error Message */}
+              {paymentError && (
+                <div className="p-3 bg-red-50 border border-red-400 font-mono text-xs text-red-700 mb-4 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{paymentError}</span>
                 </div>
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-6 pt-4 border-t border-ink/20 space-y-2">
+            {/* Action Button */}
+            <div className="mt-4 pt-4 border-t border-ink/20 space-y-2">
               {paymentSuccess ? (
                 <div className="p-3 bg-acid border border-ink text-center font-mono font-bold text-xs uppercase flex items-center justify-center gap-2 animate-bounce">
-                  <Check className="w-4 h-4 text-ink" /> Payment Confirmed! Launching DR Console...
+                  <Check className="w-4 h-4 text-ink" />
+                  {isFreePlan ? 'Free Plan Activated! Launching Console...' : 'Payment Confirmed! Launching DR Console...'}
                 </div>
-              ) : (
+              ) : isFreePlan ? (
                 <button
-                  type="submit"
-                  form={selectedPlan.monthlyPrice > 0 ? 'payment-checkout-form' : undefined}
-                  onClick={selectedPlan.monthlyPrice === 0 ? handleConfirmPayment : undefined}
+                  type="button"
+                  onClick={handleActivateFree}
                   disabled={isProcessing}
                   className="button w-full py-3.5 px-4 bg-ink text-white font-mono font-bold text-xs uppercase tracking-wider shadow-[4px_4px_0_#bce21c] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#bce21c] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  <Lock className="w-3.5 h-3.5 text-acid" />
-                  {isProcessing ? 'Processing Transaction…' : selectedPlan.ctaText}
+                  {isProcessing
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Activating...</>
+                    : <><Lock className="w-3.5 h-3.5 text-acid" /> {selectedPlan.ctaText}</>
+                  }
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePaidCheckout}
+                  disabled={isProcessing || !initialData?.email}
+                  className="button w-full py-3.5 px-4 bg-ink text-white font-mono font-bold text-xs uppercase tracking-wider shadow-[4px_4px_0_#bce21c] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#bce21c] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isProcessing
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Opening Paystack...</>
+                    : <><Lock className="w-3.5 h-3.5 text-acid" /> {selectedPlan.ctaText} ↗</>
+                  }
                 </button>
               )}
 
               <p className="text-center font-mono text-[0.62rem] text-muted uppercase">
-                Encrypted via 256-bit TLS · Automated DR pipeline activation
+                {isFreePlan
+                  ? 'No payment required · Upgrade anytime'
+                  : 'Encrypted via Paystack · 256-bit TLS · Automated DR pipeline activation'}
               </p>
             </div>
           </div>
